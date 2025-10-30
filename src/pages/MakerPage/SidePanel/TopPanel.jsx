@@ -1,8 +1,8 @@
 import React from "react";
 import styled from "styled-components";
-import SearchInput from "../components/SearchInput";
-import HubModalSelector from "../components/HubModalSelector";
-import SidePanelClose from "../../../assets/icon/tabler_chevrons-open.svg";
+import SearchInput from "./SearchInput";
+import HubModalSelector from "./HubModalSelector";
+import SidePanelCloseImg from "../../../assets/icon/side-panel-close.svg";
 
 function TopPanel({ onClose }) {
   return (
@@ -11,7 +11,7 @@ function TopPanel({ onClose }) {
       <HubModalSelector />
       {onClose && (
         <CloseButton onClick={onClose} aria-label="사이드바 닫기">
-          <CloseIcon src={SidePanelClose} />
+          <CloseIcon src={SidePanelCloseImg} />
         </CloseButton>
       )}
     </TopContainer>
@@ -30,7 +30,7 @@ const TopContainer = styled.div`
   gap: 1rem;
   padding: 2.7vh 1.93vw;
   width: 100%;
-  background-color: #001e40;
+  background-color: #f6fcff;
   position: relative;
 `;
 
@@ -53,6 +53,6 @@ const CloseButton = styled.button`
 `;
 
 const CloseIcon = styled.img`
-  width: 10vh;
-  height: auto;
+  width: auto;
+  height: 2.5vh;
 `;
