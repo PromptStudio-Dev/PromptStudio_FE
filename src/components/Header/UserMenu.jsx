@@ -20,14 +20,14 @@ const LogoutButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  height: 3.5rem;
-  padding: 0.5rem 1rem;
+  gap: 0.26vw;
+  height: 3.24vh;
+  padding: 0.46vh 0.52vw;
   border-radius: 7.5rem;
   border: none;
   background: transparent;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.625rem;
+  font-size: 0.99vw;
   font-weight: 600;
   color: #00aeff;
   cursor: pointer;
