@@ -22,5 +22,5 @@ export default function GNB() {
 const Nav = styled.nav`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.83vw;
 `;

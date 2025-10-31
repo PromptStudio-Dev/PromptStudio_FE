@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
-import AIModalSelector from "../components/AIModalSelctor";
-import CloseIconImage from "../../../assets/icon/tabler_chevrons-close.svg";
+import AIModalSelector from "./AIModalSelector";
+import ResultPanelCloseImg from "../../../assets/icon/panel-close-open.svg";
 
 function ResultPanel({ onToggle }) {
   return (
@@ -17,7 +17,7 @@ function ResultPanel({ onToggle }) {
       <ResultContent>{/* 결과 표시 영역 */}</ResultContent>
 
       <CloseButton onClick={onToggle} aria-label="결과 패널 닫기">
-        <CloseIcon src={CloseIconImage} />
+        <CloseIcon src={ResultPanelCloseImg} />
       </CloseButton>
     </ResultPanelWrapper>
   );
@@ -26,7 +26,7 @@ function ResultPanel({ onToggle }) {
 export default ResultPanel;
 
 const ResultPanelWrapper = styled.div`
-  width: 31.77vw; /* 610px / 1920px */
+  width: 31.77vw;
   height: 100%;
   background-color: #f4f4f4;
   box-shadow: -5px 0px 26px 0px rgba(0, 0, 0, 0.06);
@@ -50,12 +50,7 @@ const RunButton = styled.button`
   height: auto;
   gap: 0.5rem;
   padding: 0.8rem 1.5rem;
-  background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.2) 0%,
-      rgba(0, 0, 0, 0.2) 100%
-    ),
-    linear-gradient(90deg, rgb(166, 166, 166) 0%, rgb(166, 166, 166) 100%);
+  background: #49d8ff;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -90,7 +85,7 @@ const CloseButton = styled.button`
   transform: translateY(-50%);
   width: 2.19vw;
   height: 14.91vh;
-  background-color: #001e40;
+  background-color: #aadff7;
   border: none;
   border-radius: 2.25rem 0 0 2.25rem;
   cursor: pointer;
@@ -108,6 +103,6 @@ const CloseButton = styled.button`
 `;
 
 const CloseIcon = styled.img`
-  width: 1.5rem;
-  height: 1.5rem;
+  width: auto;
+  height: 2.5vh;
 `;

@@ -31,13 +31,14 @@ export default function NavItem({ to, end, disabled, children }) {
 const StyledButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
+  justify-content: center;
+  gap: 0.52vw;
   border: none;
   background: transparent;
-  font-size: 1.625rem;
+  font-size: 0.99vw;
   font-weight: 700;
   font-family: "Pretendard Variable", sans-serif;
-  padding: 0.625rem;
+  padding: 0.93vh 0.52vw;
   color: #454545;
   cursor: pointer;
   transition: color 0.15s ease;

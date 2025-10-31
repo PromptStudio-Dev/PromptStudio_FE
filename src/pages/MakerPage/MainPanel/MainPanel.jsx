@@ -1,10 +1,10 @@
 import React from "react";
 import styled from "styled-components";
-import PromptTitleInput from "../components/PromptTitleInput";
-import PromptEditor from "../components/PromptEditor";
-import ImageUploader from "../components/ImageUploader";
-import ResultPanelOpen from "../../../assets/icon/tabler_chevrons-open.svg";
-import SidePanelOpen from "../../../assets/icon/tabler_chevrons-close.svg";
+import PromptTitleInput from "./PromptTitleInput";
+import PromptEditor from "./PromptEditor";
+import ImageUploader from "./ImageUploader";
+import ResultPanelOpenImg from "../../../assets/icon/tabler_chevrons-open.svg";
+import SidePanelOpenImg from "../../../assets/icon/panel-close-open.svg";
 
 function MainPanel({
   isSidebarOpen,
@@ -20,14 +20,16 @@ function MainPanel({
       {/* 사이드바 토글 버튼 */}
       {!isSidebarOpen && (
         <SidebarOpenButton onClick={onToggleSidebar} aria-label="사이드바 열기">
-          <ToggleIcon src={SidePanelOpen} />
+          <ToggleIcon src={SidePanelOpenImg} />
         </SidebarOpenButton>
       )}
 
       {/* 메인 컨텐츠 영역 */}
       <ContentArea>
-        <PromptTitleInput />
-        <PromptEditor />
+        <PromptInputWrapper>
+          <PromptTitleInput />
+          <PromptEditor />
+        </PromptInputWrapper>
         <ImageUploader />
       </ContentArea>
 
@@ -37,7 +39,7 @@ function MainPanel({
           onClick={onToggleResultPanel}
           aria-label="결과 패널 열기"
         >
-          <ToggleIcon src={ResultPanelOpen} />
+          <ToggleIcon src={ResultPanelOpenImg} />
         </ResultOpenButton>
       )}
     </MakerPanelWrapper>
@@ -68,7 +70,7 @@ const SidebarOpenButton = styled.button`
   transform: translateY(-50%);
   width: 3vh;
   height: 10vh; /* 100px */
-  background-color: #001e40;
+  background-color: #aadff7;
   border: none;
   border-radius: 0 2.25rem 2.25rem 0;
   cursor: pointer;
@@ -88,10 +90,9 @@ const ResultOpenButton = styled.button`
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  /* rem을 vw/vh로 자동 변환 (2.625rem → 2.19vw, 10.0625rem → 14.91vh) */
-  width: 2.19vw; /* 42px */
-  height: 14.91vh; /* 161px */
-  background-color: #001e40;
+  width: 2.19vw;
+  height: 14.91vh;
+  background-color: #aadff7;
   border: none;
   border-radius: 2.25rem 0 0 2.25rem;
   cursor: pointer;
@@ -109,13 +110,20 @@ const ResultOpenButton = styled.button`
 `;
 
 const ToggleIcon = styled.img`
-  width: 1.5rem;
-  height: 1.5rem;
+  width: auto;
+  height: 2.5vh;
 `;
 
 const ContentArea = styled.div`
   padding: 3vh 5vw;
   display: flex;
   flex-direction: column;
-  gap: 2vh;
+  justify-content: space-between;
+  flex: 1;
+  min-height: 0;
+`;
+
+const PromptInputWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
