@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import styled from "styled-components";
 import PromptUpgradeIcon from "../../../assets/icon/prompt-upgrade-icon.svg";
+import PromptUpgradeButton from "../../../assets/icon/prompt-upgrade-button.svg";
 
 function PromptEditor() {
   const [content, setContent] = useState("");
@@ -73,8 +74,11 @@ function PromptEditor() {
             <LeftButton>AI 맞춤 추천</LeftButton>
           </LeftSection>
           <MiddleSection>
-            <ButtonIcon src={PromptUpgradeIcon} alt="업그레이드" />
-            <MiddleText>AI 사용으로 업그레이드 하기</MiddleText>
+            <UpgradeIcon src={PromptUpgradeIcon} alt="업그레이드 아이콘" />
+            <UpgradeInput />
+            <UpgradeButton>
+              <ButtonIcon src={PromptUpgradeButton} alt="업그레이드 버튼" />
+            </UpgradeButton>
           </MiddleSection>
         </SelectionModal>
       )}
@@ -131,11 +135,12 @@ const EditorTextarea = styled.textarea`
   z-index: 1; /* FakePlaceholder보다 위에 있도록 설정 */
 `;
 
+// 드래그 시 모달 스타일
 const SelectionModal = styled.div`
   position: absolute;
   display: flex;
-  width: 40.99vw; /* 787px @ 1920px */
-  height: 4.26vh; /* 46px @ 1080px */
+  width: 38vw; /* 787px @ 1920px */
+  height: 4.5vh; /* 46px @ 1080px */
   border: 0.16vw solid #49d8ff; /* 3px @ 1920px */
   border-radius: 0.42vw; /* 8px @ 1920px */
   background: #fff;
@@ -162,6 +167,7 @@ const LeftSection = styled.div`
   align-items: center;
   justify-content: center;
   border-right: 0.16vw solid #49d8ff; /* 3px @ 1920px */
+  margin-right: 1rem;
 `;
 
 const LeftButton = styled.button`
@@ -180,18 +186,42 @@ const MiddleSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.83vw; /* 16px @ 1920px */
+  gap: 0.5vw; /* 16px @ 1920px */
 `;
 
-const MiddleText = styled.span`
+const UpgradeInput = styled.input`
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  padding: 0;
+  font-size: 1vw; /* 23px @ 1920px */
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 0.83vw; /* 16px @ 1920px */
   font-weight: 500;
-  color: #848484;
-  white-space: nowrap;
+  color: #454545;
+
+  &::placeholder {
+    color: #aadff7;
+  }
+`;
+
+const UpgradeIcon = styled.img`
+  width: 1.25vw; /* 24px @ 1920px */
+  height: 2.22vh; /* 24px @ 1080px */
 `;
 
 const ButtonIcon = styled.img`
-  width: 1.25vw; /* 24px @ 1920px */
-  height: 2.22vh; /* 24px @ 1080px */
+  width: 3vw; /* 24px @ 1920px */
+  height: 3vh; /* 24px @ 1080px */
+`;
+
+const UpgradeButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 `;

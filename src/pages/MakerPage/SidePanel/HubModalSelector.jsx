@@ -49,7 +49,7 @@ const SelectorButton = styled.button`
   width: 18.23vw;
   height: 4.54vh;
   background-color: #ffffff;
-  border: 1px solid #aadff7;
+  border: 0.0625rem solid #aadff7;
   border-radius: 120px;
   padding: 0 1vw 0 1.5vw;
   display: flex;
@@ -85,7 +85,7 @@ const DropdownMenu = styled.div`
   top: 100%;
   left: 0;
   background: white;
-  border: 1px solid #aadff7;
+  border: 0.1rem solid #aadff7;
   width: 18.23vw;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -102,7 +102,7 @@ const MenuItem = styled.button`
   text-align: left;
   cursor: pointer;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.19rem;
+  font-size: 0.99vw;
   color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
 
   &:hover {
