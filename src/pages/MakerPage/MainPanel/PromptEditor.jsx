@@ -1,8 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import styled from "styled-components";
+import PromptUpgradeIcon from "../../../assets/icon/prompt-upgrade-icon.svg";
+import PromptUpgradeButton from "../../../assets/icon/prompt-upgrade-button.svg";
 
 function PromptEditor() {
   const [content, setContent] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const textareaRef = useRef(null);
+
+  const handleMouseUp = () => {
+    const textarea = textareaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = content.substring(start, end);
+
+    if (selectedText.trim().length > 0) {
+      const style = getComputedStyle(textarea);
+      const lineHeight =
+        parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
+      const paddingTop = parseFloat(style.paddingTop);
+
+      // end는 항상 커서가 끝나는 위치 (드래그 방향 무관)
+      // 선택 영역이 끝나는 줄 번호 계산 (0-based)
+      const textBeforeEnd = content.substring(0, end);
+      const endLineNumber = textBeforeEnd.split("\n").length - 1;
+
+      // Y 위치: 선택된 줄의 다음 줄 위치 + 8px 간격
+      const topPosition = paddingTop + (endLineNumber + 1) * lineHeight + 8;
+
+      setModalPosition({
+        top: topPosition,
+        left: 0, // 항상 왼쪽에 고정
+      });
+      setShowModal(true);
+    } else {
+      setShowModal(false);
+    }
+  };
+
+  const handleMouseDown = () => {
+    // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
+    setShowModal(false);
+  };
 
   return (
     <EditorWrapper>
@@ -16,10 +56,32 @@ function PromptEditor() {
         </FakePlaceholder>
       )}
       <EditorTextarea
-        // 기존 placeholder 속성 제거
+        ref={textareaRef}
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        onMouseUp={handleMouseUp}
+        onMouseDown={handleMouseDown}
       />
+
+      {showModal && (
+        <SelectionModal
+          style={{
+            top: `${modalPosition.top}px`,
+            left: `${modalPosition.left}px`,
+          }}
+        >
+          <LeftSection>
+            <LeftButton>AI 맞춤 추천</LeftButton>
+          </LeftSection>
+          <MiddleSection>
+            <UpgradeIcon src={PromptUpgradeIcon} alt="업그레이드 아이콘" />
+            <UpgradeInput />
+            <UpgradeButton>
+              <ButtonIcon src={PromptUpgradeButton} alt="업그레이드 버튼" />
+            </UpgradeButton>
+          </MiddleSection>
+        </SelectionModal>
+      )}
     </EditorWrapper>
   );
 }
@@ -71,4 +133,95 @@ const EditorTextarea = styled.textarea`
   padding: 1rem 0;
   position: relative; /* z-index를 주기 위해 추가 */
   z-index: 1; /* FakePlaceholder보다 위에 있도록 설정 */
+`;
+
+// 드래그 시 모달 스타일
+const SelectionModal = styled.div`
+  position: absolute;
+  display: flex;
+  width: 38vw; /* 787px @ 1920px */
+  height: 4.5vh; /* 46px @ 1080px */
+  border: 0.16vw solid #49d8ff; /* 3px @ 1920px */
+  border-radius: 0.42vw; /* 8px @ 1920px */
+  background: #fff;
+  overflow: hidden;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-0.37vh);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const LeftSection = styled.div`
+  width: 7.55vw; /* 145px @ 1920px */
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 0.16vw solid #49d8ff; /* 3px @ 1920px */
+  margin-right: 1rem;
+`;
+
+const LeftButton = styled.button`
+  background: transparent;
+  border: none;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 0.83vw; /* 16px @ 1920px */
+  font-weight: 500;
+  color: #454545;
+  cursor: pointer;
+  white-space: nowrap;
+`;
+
+const MiddleSection = styled.div`
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5vw; /* 16px @ 1920px */
+`;
+
+const UpgradeInput = styled.input`
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  padding: 0;
+  font-size: 1vw; /* 23px @ 1920px */
+  font-family: "Pretendard Variable", sans-serif;
+  font-weight: 500;
+  color: #454545;
+
+  &::placeholder {
+    color: #aadff7;
+  }
+`;
+
+const UpgradeIcon = styled.img`
+  width: 1.25vw; /* 24px @ 1920px */
+  height: 2.22vh; /* 24px @ 1080px */
+`;
+
+const ButtonIcon = styled.img`
+  width: 3vw; /* 24px @ 1920px */
+  height: 3vh; /* 24px @ 1080px */
+`;
+
+const UpgradeButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 `;

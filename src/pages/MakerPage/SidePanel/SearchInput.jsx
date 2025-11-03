@@ -19,7 +19,7 @@ const SearchContainer = styled.div`
   width: 18.23vw; /* 350px @ 1920px */
   height: 4.54vh; /* 49px @ 1080px */
   background-color: #ffffff;
-  border: 1px solid #aadff7;
+  border: 0.0625rem solid #aadff7;
   border-radius: 120px;
   padding: 0.37vh 0.68vw; /* 4px 13px */
   display: flex;
