@@ -6,7 +6,7 @@ function HubModalSelector() {
   const [selectedModel, setSelectedModel] = useState("모든 허브");
   const [isOpen, setIsOpen] = useState(false);
 
-  const models = ["모든 허브", "아카이브", "하트"];
+  const models = ["모든 허브", "아카이브", "좋아요"];
 
   return (
     <SelectorWrapper>
@@ -85,12 +85,13 @@ const DropdownMenu = styled.div`
   top: 100%;
   left: 0;
   background: white;
-  border: 1px solid #e1e1e1;
+  border: 1px solid #aadff7;
+  width: 18.23vw;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-top: 0.5rem;
-  min-width: 150px;
   z-index: 1000;
+  overflow: hidden;
 `;
 
 const MenuItem = styled.button`
