@@ -28,7 +28,7 @@ export default ResultPanel;
 const ResultPanelWrapper = styled.div`
   width: 31.77vw;
   height: 100%;
-  background-color: #f4f4f4;
+  background-color: #f4fbfd;
   box-shadow: -5px 0px 26px 0px rgba(0, 0, 0, 0.06);
   position: relative;
   display: flex;

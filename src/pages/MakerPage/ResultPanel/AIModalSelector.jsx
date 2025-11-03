@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import AIDropdownImg from "../../../assets/icon/ai-modal-dropdown.svg";
+import GPT5PlusImg from "../../../assets/icon/chatgpt-icon.svg";
 
 function ModalSelector() {
-  const [selectedModel, setSelectedModel] = useState("ChatGPT");
+  const [selectedModel, setSelectedModel] = useState("GPT 5 Plus");
   const [isOpen, setIsOpen] = useState(false);
 
-  const models = ["ChatGPT"];
+  const models = ["GPT 5 Plus"];
 
   return (
     <SelectorWrapper>
       <SelectorButton onClick={() => setIsOpen(!isOpen)}>
         <ModelInfo>
+          <img src={GPT5PlusImg} />
           <ModelName>{selectedModel}</ModelName>
         </ModelInfo>
         <DropdownIcon src={AIDropdownImg} />
@@ -28,7 +30,9 @@ function ModalSelector() {
               }}
               $isSelected={model === selectedModel}
             >
-              {model}
+              <MenuItemIcon src={GPT5PlusImg} />
+              <MenuItemText>{model}</MenuItemText>
+              <MenuItemArrow src={AIDropdownImg} />
             </MenuItem>
           ))}
         </DropdownMenu>
@@ -39,15 +43,19 @@ function ModalSelector() {
 
 export default ModalSelector;
 
+// styled-components
 const SelectorWrapper = styled.div`
   position: relative;
 `;
 
 const SelectorButton = styled.button`
   display: flex;
+  width: 15.9375rem; /* 255px */
+  height: 3.125rem; /* 50px */
+  padding: 0.75rem 1.4375rem 0.75rem 2.3125rem; /* 12px 23px 12px 37px */
+  justify-content: flex-end;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 1rem;
+  flex-shrink: 0;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -60,55 +68,70 @@ const SelectorButton = styled.button`
 const ModelInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.6875rem; /* 11px */
+  margin-right: auto; /* 왼쪽 정렬 */
 `;
 
 const ModelName = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.44rem;
-  font-weight: 500;
+  font-family: "Inter", sans-serif;
+  font-size: 1.4375rem; /* 23px */
+  font-weight: 400;
   color: black;
-  letter-spacing: 1.38px;
 `;
 
 const DropdownIcon = styled.img`
-  width: 2vh;
-  margin-top: 1vh;
+  width: 1.625rem; /* 26px */
+  height: 1.625rem;
 `;
 
 const DropdownMenu = styled.div`
   position: absolute;
   top: 100%;
   left: 0;
+  width: 15.9375rem; /* 255px - SelectorButton과 동일 */
   background: white;
-  border: 1px solid #e1e1e1;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-top: 0.5rem;
-  min-width: 150px;
+  margin-top: 0.25rem; /* 4px */
   z-index: 1000;
+  overflow: hidden;
 `;
 
 const MenuItem = styled.button`
+  display: flex;
   width: 100%;
-  padding: 0.75rem 1rem;
-  background: ${(props) => (props.$isSelected ? "#f4f4f4" : "white")};
+  height: 3.125rem; /* 50px - SelectorButton과 동일 */
+  padding: 0.75rem 1.4375rem 0.75rem 2.3125rem; /* 12px 23px 12px 37px */
+  align-items: center;
+  background: white;
   border: none;
-  text-align: left;
   cursor: pointer;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.19rem;
-  color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
+  transition: background 0.2s ease;
 
   &:hover {
-    background: #f4f4f4;
+    background: #f8f8f8;
   }
+`;
 
-  &:first-child {
-    border-radius: 8px 8px 0 0;
-  }
+const MenuItemIcon = styled.img`
+  width: 1.5rem; /* 24px */
+  height: 1.5rem;
+  flex-shrink: 0;
+`;
 
-  &:last-child {
-    border-radius: 0 0 8px 8px;
-  }
+const MenuItemText = styled.span`
+  font-family: "Inter", sans-serif;
+  font-size: 1.4375rem; /* 23px */
+  font-weight: 400;
+  color: black;
+  margin-left: 0.6875rem; /* 11px - 아이콘과 텍스트 간격 */
+  margin-right: auto; /* 텍스트를 왼쪽으로 */
+`;
+
+const MenuItemArrow = styled.img`
+  width: 1.625rem; /* 26px */
+  height: 1.625rem;
+  transform: scaleY(-1); /* 위쪽 화살표 */
+  flex-shrink: 0;
+  margin-left: 0.9375rem; /* 15px - 텍스트와 화살표 간격 */
 `;
