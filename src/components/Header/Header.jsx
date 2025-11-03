@@ -1,13 +1,27 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import GNB from "./GNB";
 import UserMenu from "./UserMenu";
+import UploadIcon from "./uploadIcon.svg";
 
 export default function Header() {
+  const navigate = useNavigate();
+
+  const handleUploadClick = () => {
+    navigate("/upload");
+  };
+
   return (
     <HeaderBar>
       <HeaderInner>
         <GNB />
-        <UserMenu />
+        <RightGroup>
+          <UploadButton onClick={handleUploadClick}>
+            <UploadText>프롬프트 올리기</UploadText>
+            <UploadIconImg src={UploadIcon} alt="Upload" />
+          </UploadButton>
+          <UserMenu />
+        </RightGroup>
       </HeaderInner>
     </HeaderBar>
   );
@@ -30,4 +44,39 @@ const HeaderInner = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+`;
+
+const RightGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+`;
+
+const UploadButton = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 11.97vw;
+  height: 3.98148148vh;
+  padding: 0.5rem 1.56rem;
+  min-height: 26px;
+  border-radius: 8px;
+  background: var(--Icon-, #001e40);
+  cursor: pointer;
+`;
+
+const UploadIconImg = styled.img`
+  width: 1.3vw;
+  height: 1.3vw;
+  min-width: 16px;
+  min-height: 16px;
+  margin-left: 0.75rem;
+`;
+
+const UploadText = styled.span`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 0.99vw;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
 `;

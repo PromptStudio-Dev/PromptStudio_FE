@@ -21,8 +21,8 @@ const LogoutButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.26vw;
-  height: 3.24vh;
-  padding: 0.46vh 0.52vw;
+  height: 3.98148148vh;
+  padding: 0.62rem 1rem;
   border-radius: 7.5rem;
   border: none;
   background: transparent;
@@ -30,6 +30,8 @@ const LogoutButton = styled.button`
   font-size: 0.99vw;
   font-weight: 600;
   color: #00aeff;
+  border-radius: 7.5rem;
+  background: #e6f2ff;
   cursor: pointer;
   transition: background-color 0.15s ease;
 `;

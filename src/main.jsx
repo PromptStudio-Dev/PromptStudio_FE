@@ -4,6 +4,7 @@ import App from "./App.jsx";
 import HubPage from "./pages/HubPage/HubPage.jsx";
 import ArchivePage from "./pages/ArchivePage/ArchivePage.jsx";
 import MakerPage from "./pages/MakerPage/MakerPage.jsx";
+import UploadPage from "./pages/UploadPage/UploadPage.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "maker",
         element: <MakerPage />,
+      },
+      {
+        path: "upload",
+        element: <UploadPage />,
       },
     ],
   },
