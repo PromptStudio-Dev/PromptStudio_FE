@@ -1,16 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../../assets/icon/hub-modal-dropdown.svg";
 
 function HubModalSelector() {
   const [selectedModel, setSelectedModel] = useState("모든 허브");
   const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
 
   const models = ["모든 허브", "아카이브", "좋아요"];
 
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // 키보드 이벤트 핸들러
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <SelectorWrapper>
-      <SelectorButton onClick={() => setIsOpen(!isOpen)}>
+    <SelectorWrapper ref={wrapperRef}>
+      <SelectorButton
+        onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
         <ModelInfo>
           <ModelName>{selectedModel}</ModelName>
         </ModelInfo>
@@ -18,7 +45,7 @@ function HubModalSelector() {
       </SelectorButton>
 
       {isOpen && (
-        <DropdownMenu>
+        <DropdownMenu role="listbox">
           {models.map((model) => (
             <MenuItem
               key={model}
@@ -27,6 +54,9 @@ function HubModalSelector() {
                 setIsOpen(false);
               }}
               $isSelected={model === selectedModel}
+              role="option"
+              aria-selected={model === selectedModel}
+              tabIndex={0}
             >
               {model}
             </MenuItem>
