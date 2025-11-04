@@ -52,7 +52,7 @@ const SelectorButton = styled.button`
   display: flex;
   width: 15.9375rem; /* 255px */
   height: 3.125rem; /* 50px */
-  padding: 0.75rem 1.4375rem 0.75rem 2.3125rem; /* 12px 23px 12px 37px */
+  padding: 0.75rem 1.4375rem 0.75rem 2rem; /* 12px 23px 12px 37px */
   justify-content: flex-end;
   align-items: center;
   flex-shrink: 0;

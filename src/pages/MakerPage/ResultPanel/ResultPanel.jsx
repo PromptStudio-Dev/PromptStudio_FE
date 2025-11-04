@@ -36,7 +36,7 @@ const ResultPanelWrapper = styled.div`
 `;
 
 const ResultPanelHeader = styled.div`
-  padding: 2vh 1.6vw;
+  padding: 2rem 1rem;
   display: flex;
   align-items: center;
   gap: 1vw;
@@ -46,8 +46,7 @@ const RunButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18vw;
-  height: auto;
+  width: 15.9375rem;
   gap: 0.5rem;
   padding: 0.8rem 1.5rem;
   background: #49d8ff;
