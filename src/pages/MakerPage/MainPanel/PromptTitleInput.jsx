@@ -7,9 +7,26 @@ function PromptTitleInput() {
   const measureRef = useRef(null);
 
   useLayoutEffect(() => {
-    if (measureRef.current) {
-      setUnderlineWidth(measureRef.current.offsetWidth);
+    const updateWidth = () => {
+      if (measureRef.current) {
+        setUnderlineWidth(measureRef.current.offsetWidth);
+      }
+    };
+    updateWidth();
+
+    let observer;
+    if (typeof ResizeObserver !== "undefined" && measureRef.current) {
+      observer = new ResizeObserver(updateWidth);
+      observer.observe(measureRef.current);
+    } else {
+      window.addEventListener("resize", updateWidth);
     }
+    return () => {
+      if (observer) {
+        observer.disconnect();
+        window.removeEventListener("resize", updateWidth);
+      }
+    };
   }, [title]);
 
   return (
