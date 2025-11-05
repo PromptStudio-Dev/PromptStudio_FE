@@ -11,15 +11,20 @@ export default function PromptEditor({
   const [content, setContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [selectedText, setSelectedText] = useState("");
   const textareaRef = useRef(null);
 
   const handleMouseUp = () => {
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selectedText = content.substring(start, end);
+    const draggedText = content.substring(start, end);
 
-    if (selectedText.trim().length > 0) {
+    if (draggedText.trim().length > 0) {
+      // 드래그한 텍스트 저장
+      setSelectedText(draggedText);
+      console.log("드래그된 텍스트:", draggedText);
+
       const style = getComputedStyle(textarea);
       const lineHeight =
         parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
@@ -50,8 +55,9 @@ export default function PromptEditor({
 
   const handleUpgradeSubmit = (upgradeRequest) => {
     // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
+    console.log("업그레이드 전송:", { selectedText, upgradeRequest });
     if (onUpgradeRequest) {
-      onUpgradeRequest(upgradeRequest);
+      onUpgradeRequest({ selectedText, upgradeRequest });
     }
   };
 
