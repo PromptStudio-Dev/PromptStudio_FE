@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import heartIcon from "./assets/heartIcon.svg";
+import colorHeartIcon from "./assets/colorHeartIcon.svg";
 import copyIcon from "./assets/copyIcon.svg";
 
 export default function PromptCard({
@@ -11,6 +12,12 @@ export default function PromptCard({
   subtitle = "defaultsubtitlesdfsdfdsfdssdfdfsfdsjkfsjfsdsdfjlkdsfjklsdfjsflsjdkfljfsklfjdsflksjlfssfjslskf",
   backgroundImage = "",
 }) {
+  const [isHeartClicked, setIsHeartClicked] = useState(false);
+
+  const handleHeartClick = () => {
+    setIsHeartClicked((prev) => !prev);
+  };
+
   return (
     <PromptCardContainer backgroundImage={backgroundImage}>
       <CardHeader>
@@ -20,8 +27,11 @@ export default function PromptCard({
       <CardTitle>{title}</CardTitle>
       <CardSubTitle>{subtitle}</CardSubTitle>
       <ButtonSection>
-        <HeartIcon src={heartIcon}/>
-        <CopyIcon src={copyIcon}/>
+        <HeartIcon
+          src={isHeartClicked ? colorHeartIcon : heartIcon}
+          onClick={handleHeartClick}
+        />
+        <CopyIcon src={copyIcon} />
       </ButtonSection>
     </PromptCardContainer>
   );
@@ -30,6 +40,12 @@ export default function PromptCard({
 const HeartIcon = styled.img`
   width: 1.75rem;
   height: 1.75rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
 `;
 
 const CopyIcon = styled.img`
