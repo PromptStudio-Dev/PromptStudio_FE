@@ -11,6 +11,10 @@ function MainPanel({
   isResultPanelOpen,
   onToggleSidebar,
   onToggleResultPanel,
+  onUpgradeRequest,
+  onAcceptUpgrade,
+  onCancelUpgrade,
+  onEditUpgrade,
 }) {
   return (
     <MakerPanelWrapper
@@ -28,7 +32,12 @@ function MainPanel({
       <ContentArea>
         <PromptInputWrapper>
           <PromptTitleInput />
-          <PromptEditor />
+          <PromptEditor
+            onUpgradeRequest={onUpgradeRequest}
+            onAcceptUpgrade={onAcceptUpgrade}
+            onCancelUpgrade={onCancelUpgrade}
+            onEditUpgrade={onEditUpgrade}
+          />
         </PromptInputWrapper>
         <ImageUploader />
       </ContentArea>
