@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
 
-function PromptEditor({
+export default function PromptEditor({
   onUpgradeRequest,
   onAcceptUpgrade,
   onCancelUpgrade,
@@ -86,8 +86,6 @@ function PromptEditor({
     </EditorWrapper>
   );
 }
-
-export default PromptEditor;
 
 // --- styled-components ---
 

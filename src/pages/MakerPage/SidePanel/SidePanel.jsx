@@ -5,7 +5,7 @@ import PromptHublist from "./PromptHublist";
 import UpgradeSection from "./UpgradeSection";
 
 // props는 나중에 백엔드 연동 시 처리를 위해 선언
-function SidePanel({
+export default function SidePanel({
   onToggle,
   upgrades,
   onAcceptUpgrade,
@@ -27,8 +27,6 @@ function SidePanel({
     </SidebarWrapper>
   );
 }
-
-export default SidePanel;
 
 const SidebarWrapper = styled.div`
   width: 23.8vw; /* 457px / 1920px */

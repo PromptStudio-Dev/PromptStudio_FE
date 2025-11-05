@@ -4,7 +4,7 @@ import SearchInput from "./SearchInput";
 import HubModalSelector from "./HubModalSelector";
 import SidePanelCloseImg from "../../../../assets/icon/side-panel-close.svg";
 
-function TopPanel({ onClose }) {
+export default function TopPanel({ onClose }) {
   return (
     <TopContainer>
       <SearchInput />
@@ -18,10 +18,7 @@ function TopPanel({ onClose }) {
   );
 }
 
-export default TopPanel;
-
 // styled-components
-
 const TopContainer = styled.div`
   display: flex;
   flex-direction: column;

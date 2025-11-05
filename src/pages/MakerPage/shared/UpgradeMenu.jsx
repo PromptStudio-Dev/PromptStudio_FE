@@ -4,7 +4,7 @@ import CheckIconImg from "../../../assets/icon/check-prompt-upgrade.svg";
 import DeleteIconImg from "../../../assets/icon/cancel-prompt-upgrade.svg";
 import EditIconImg from "../../../assets/icon/edit-prompt-upgrade.svg";
 
-function UpgradeMenu({ onAccept, onCancel, onEdit, isVisible }) {
+export default function UpgradeMenu({ onAccept, onCancel, onEdit, isVisible }) {
   if (!isVisible) return null;
 
   return (
@@ -24,8 +24,6 @@ function UpgradeMenu({ onAccept, onCancel, onEdit, isVisible }) {
     </MenuWrapper>
   );
 }
-
-export default UpgradeMenu;
 
 // Styled Components
 

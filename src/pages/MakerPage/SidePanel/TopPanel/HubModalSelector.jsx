@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../../../assets/icon/hub-modal-dropdown.svg";
 
-function HubModalSelector() {
+export default function HubModalSelector() {
   const [selectedModel, setSelectedModel] = useState("모든 허브");
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -66,8 +66,6 @@ function HubModalSelector() {
     </SelectorWrapper>
   );
 }
-
-export default HubModalSelector;
 
 const SelectorWrapper = styled.div`
   position: relative;

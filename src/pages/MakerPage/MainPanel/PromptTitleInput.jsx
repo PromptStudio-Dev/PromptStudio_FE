@@ -1,7 +1,7 @@
 import React, { useState, useRef, useLayoutEffect } from "react";
 import styled from "styled-components";
 
-function PromptTitleInput() {
+export default function PromptTitleInput() {
   const [title, setTitle] = useState("");
   const [underlineWidth, setUnderlineWidth] = useState(0);
   const measureRef = useRef(null);
@@ -44,8 +44,6 @@ function PromptTitleInput() {
     </TitleInputWrapper>
   );
 }
-
-export default PromptTitleInput;
 
 const TitleInputWrapper = styled.div`
   width: 100%;

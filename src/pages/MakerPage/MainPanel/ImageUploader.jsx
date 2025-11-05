@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import styled from "styled-components";
 import ImgUploadButtonImg from "../../../assets/icon/image-upload-button.svg";
 
-function ImageUploader() {
+export default function ImageUploader() {
   const fileInputRef = useRef(null);
 
   const handleClick = () => {
@@ -33,8 +33,6 @@ function ImageUploader() {
     </UploaderWrapper>
   );
 }
-
-export default ImageUploader;
 
 const UploaderWrapper = styled.div`
   width: 100%;

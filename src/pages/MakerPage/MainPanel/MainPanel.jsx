@@ -6,7 +6,7 @@ import ImageUploader from "./ImageUploader";
 import ResultPanelOpenImg from "../../../assets/icon/tabler_chevrons-open.svg";
 import SidePanelOpenImg from "../../../assets/icon/panel-close-open.svg";
 
-function MainPanel({
+export default function MainPanel({
   isSidebarOpen,
   isResultPanelOpen,
   onToggleSidebar,
@@ -54,8 +54,6 @@ function MainPanel({
     </MakerPanelWrapper>
   );
 }
-
-export default MainPanel;
 
 const MakerPanelWrapper = styled.div`
   flex: 1;
