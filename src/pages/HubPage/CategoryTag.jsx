@@ -42,18 +42,19 @@ const ImageContainer = styled.div`
 `;
 
 const Tag = styled.div`
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: 0.62rem 1rem;
+  padding: 0.62rem 1.2rem;
   border-radius: 7.5rem;
   background: ${({ isSelected }) => (isSelected ? "#00C8FF" : "#EBFAFF")};
-  color: ${({ isSelected }) => (isSelected ? "#fff" : "#1E1E1E")};
+  color: ${({ isSelected }) => (isSelected ? "#fff" : "#6ED1FF")};
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
+  box-sizing: border-box;
 `;
 
 const TagLabel = styled.span`
