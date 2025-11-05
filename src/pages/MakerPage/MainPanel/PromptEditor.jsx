@@ -1,9 +1,13 @@
 import React, { useState, useRef } from "react";
 import styled from "styled-components";
-import PromptUpgradeIcon from "../../../assets/icon/prompt-upgrade-icon.svg";
-import PromptUpgradeButton from "../../../assets/icon/prompt-upgrade-button.svg";
+import AIUpgradeModal from "../shared/AIUpgradeModal";
 
-function PromptEditor() {
+function PromptEditor({
+  onUpgradeRequest,
+  onAcceptUpgrade,
+  onCancelUpgrade,
+  onEditUpgrade,
+}) {
   const [content, setContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
@@ -44,9 +48,16 @@ function PromptEditor() {
     setShowModal(false);
   };
 
+  const handleUpgradeSubmit = (upgradeRequest) => {
+    // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
+    if (onUpgradeRequest) {
+      onUpgradeRequest(upgradeRequest);
+    }
+  };
+
   return (
     <EditorWrapper>
-      {/* 3. 내용이 없을 때만 FakePlaceholder를 보여줍니다. */}
+      {/* {내용이 없을 때만 placeholder를 보여줌} */}
       {content === "" && (
         <FakePlaceholder>
           <p>
@@ -64,23 +75,13 @@ function PromptEditor() {
       />
 
       {showModal && (
-        <SelectionModal
-          style={{
-            top: `${modalPosition.top}px`,
-            left: `${modalPosition.left}px`,
-          }}
-        >
-          <LeftSection>
-            <LeftButton>AI 맞춤 추천</LeftButton>
-          </LeftSection>
-          <MiddleSection>
-            <UpgradeIcon src={PromptUpgradeIcon} alt="업그레이드 아이콘" />
-            <UpgradeInput />
-            <UpgradeButton>
-              <ButtonIcon src={PromptUpgradeButton} alt="업그레이드 버튼" />
-            </UpgradeButton>
-          </MiddleSection>
-        </SelectionModal>
+        <AIUpgradeModal
+          position={modalPosition}
+          onSubmit={handleUpgradeSubmit}
+          onAcceptUpgrade={onAcceptUpgrade}
+          onCancelUpgrade={onCancelUpgrade}
+          onEditUpgrade={onEditUpgrade}
+        />
       )}
     </EditorWrapper>
   );
@@ -133,95 +134,4 @@ const EditorTextarea = styled.textarea`
   padding: 1rem 0;
   position: relative; /* z-index를 주기 위해 추가 */
   z-index: 1; /* FakePlaceholder보다 위에 있도록 설정 */
-`;
-
-// 드래그 시 모달 스타일
-const SelectionModal = styled.div`
-  position: absolute;
-  display: flex;
-  width: 38vw; /* 787px @ 1920px */
-  height: 4.5vh; /* 46px @ 1080px */
-  border: 0.16vw solid #49d8ff; /* 3px @ 1920px */
-  border-radius: 0.42vw; /* 8px @ 1920px */
-  background: #fff;
-  overflow: hidden;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-0.37vh);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-`;
-
-const LeftSection = styled.div`
-  width: 7.55vw; /* 145px @ 1920px */
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 0.16vw solid #49d8ff; /* 3px @ 1920px */
-  margin-right: 1rem;
-`;
-
-const LeftButton = styled.button`
-  background: transparent;
-  border: none;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 0.83vw; /* 16px @ 1920px */
-  font-weight: 500;
-  color: #454545;
-  cursor: pointer;
-  white-space: nowrap;
-`;
-
-const MiddleSection = styled.div`
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5vw; /* 16px @ 1920px */
-`;
-
-const UpgradeInput = styled.input`
-  flex: 1;
-  width: 100%;
-  border: none;
-  outline: none;
-  background-color: transparent;
-  padding: 0;
-  font-size: 1vw; /* 23px @ 1920px */
-  font-family: "Pretendard Variable", sans-serif;
-  font-weight: 500;
-  color: #454545;
-
-  &::placeholder {
-    color: #aadff7;
-  }
-`;
-
-const UpgradeIcon = styled.img`
-  width: 1.25vw; /* 24px @ 1920px */
-  height: 2.22vh; /* 24px @ 1080px */
-`;
-
-const ButtonIcon = styled.img`
-  width: 3vw; /* 24px @ 1920px */
-  height: 3vh; /* 24px @ 1080px */
-`;
-
-const UpgradeButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
 `;
