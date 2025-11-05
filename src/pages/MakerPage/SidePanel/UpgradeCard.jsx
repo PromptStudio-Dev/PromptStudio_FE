@@ -6,7 +6,7 @@ export default function UpgradeCard({ title, content, isApplied }) {
     <CardWrapper>
       <CardTitle $isApplied={isApplied}>{title}</CardTitle>
       <CardContentWrapper $isApplied={isApplied}>
-        <CardContent>{content}</CardContent>
+        <CardContent $isApplied={isApplied}>{content}</CardContent>
       </CardContentWrapper>
     </CardWrapper>
   );
