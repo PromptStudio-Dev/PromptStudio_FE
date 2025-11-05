@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import AIDropdownImg from "../../../assets/icon/ai-modal-dropdown.svg";
-import GPT5PlusImg from "../../../assets/icon/chatgpt-icon.svg";
+import AIDropdownImg from "../assets/ai-modal-dropdown.svg";
+import GPT5PlusImg from "../assets/chatgpt-icon.svg";
 
 export default function AIModalSelector() {
   const [selectedModel, setSelectedModel] = useState("GPT 5 Plus");

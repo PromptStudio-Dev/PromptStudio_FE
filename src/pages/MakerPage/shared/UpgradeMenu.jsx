@@ -1,8 +1,8 @@
 import React from "react";
 import styled from "styled-components";
-import CheckIconImg from "../../../assets/icon/check-prompt-upgrade.svg";
-import DeleteIconImg from "../../../assets/icon/cancel-prompt-upgrade.svg";
-import EditIconImg from "../../../assets/icon/edit-prompt-upgrade.svg";
+import CheckIconImg from "../assets/check-prompt-upgrade.svg";
+import DeleteIconImg from "../assets/cancel-prompt-upgrade.svg";
+import EditIconImg from "../assets/edit-prompt-upgrade.svg";
 
 export default function UpgradeMenu({ onAccept, onCancel, onEdit, isVisible }) {
   if (!isVisible) return null;
