@@ -4,7 +4,7 @@ import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
 import ResultPanel from "./ResultPanel/ResultPanel";
 
-function MakerPage() {
+export default function MakerPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(true);
   const [upgrades, setUpgrades] = useState([]);
@@ -96,8 +96,6 @@ function MakerPage() {
     </MakerPageWrapper>
   );
 }
-
-export default MakerPage;
 
 const MakerPageWrapper = styled.div`
   display: flex;

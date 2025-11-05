@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AIDropdownImg from "../../../assets/icon/ai-modal-dropdown.svg";
 import GPT5PlusImg from "../../../assets/icon/chatgpt-icon.svg";
 
-function ModalSelector() {
+export default function AIModalSelector() {
   const [selectedModel, setSelectedModel] = useState("GPT 5 Plus");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,8 +40,6 @@ function ModalSelector() {
     </SelectorWrapper>
   );
 }
-
-export default ModalSelector;
 
 // styled-components
 const SelectorWrapper = styled.div`

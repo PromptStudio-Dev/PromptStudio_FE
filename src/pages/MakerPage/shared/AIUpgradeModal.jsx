@@ -4,7 +4,7 @@ import styled from "styled-components";
 import PromptUpgradeIcon from "../../../assets/icon/prompt-upgrade-icon.svg";
 import PromptUpgradeButton from "../../../assets/icon/prompt-upgrade-button.svg";
 
-function AIUpgradeModal({
+export default function AIUpgradeModal({
   position,
   onSubmit,
   onAcceptUpgrade,
@@ -86,8 +86,6 @@ function AIUpgradeModal({
     </SelectionModal>
   );
 }
-
-export default AIUpgradeModal;
 
 // --- styled-components ---
 

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AIModalSelector from "./AIModalSelector";
 import ResultPanelCloseImg from "../../../assets/icon/panel-close-open.svg";
 
-function ResultPanel({ onToggle }) {
+export default function ResultPanel({ onToggle }) {
   return (
     <ResultPanelWrapper>
       <ResultPanelHeader>
@@ -22,8 +22,6 @@ function ResultPanel({ onToggle }) {
     </ResultPanelWrapper>
   );
 }
-
-export default ResultPanel;
 
 const ResultPanelWrapper = styled.div`
   width: 31.77vw;
@@ -47,11 +45,11 @@ const RunButton = styled.button`
   align-items: center;
   justify-content: center;
   width: 15.9375rem;
-  gap: 0.5rem;
-  padding: 0.8rem 1.5rem;
-  background: #49d8ff;
+  gap: 0.625rem;
+  padding: 0.625rem 1.5rem;
+  background: #001e40;
   border: none;
-  border-radius: 12px;
+  border-radius: 0.5rem;
   cursor: pointer;
 
   &:hover {
@@ -66,7 +64,7 @@ const RunButton = styled.button`
 const ButtonText = styled.span`
   font-family: "Pretendard Variable", sans-serif;
   font-weight: 800;
-  font-size: 1.44rem;
+  font-size: 1.5625rem;
   color: white;
   letter-spacing: 1.38px;
 `;

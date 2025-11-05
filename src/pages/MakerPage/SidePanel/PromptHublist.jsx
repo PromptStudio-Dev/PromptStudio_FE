@@ -1,11 +1,9 @@
 import React from "react";
 import styled from "styled-components";
 
-function PromptHublist() {
+export default function PromptHublist() {
   return <Wrapper>PromptHublist</Wrapper>;
 }
-
-export default PromptHublist;
 
 const Wrapper = styled.div`
   width: 100%;
