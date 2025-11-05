@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import AIModalSelector from "./AIModalSelector";
-import ResultPanelCloseImg from "../../../assets/icon/panel-close-open.svg";
+import ResultPanelCloseImg from "../assets/panel-close-open.svg";
 
 export default function ResultPanel({ onToggle }) {
   return (

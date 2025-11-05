@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 import SearchInput from "./SearchInput";
 import HubModalSelector from "./HubModalSelector";
-import SidePanelCloseImg from "../../../../assets/icon/side-panel-close.svg";
+import SidePanelCloseImg from "../../assets/side-panel-close.svg";
 
 export default function TopPanel({ onClose }) {
   return (

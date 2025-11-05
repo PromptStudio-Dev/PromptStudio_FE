@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import HubDropdownImg from "../../../../assets/icon/hub-modal-dropdown.svg";
+import HubDropdownImg from "../../assets/hub-modal-dropdown.svg";
 
 export default function HubModalSelector() {
   const [selectedModel, setSelectedModel] = useState("모든 허브");

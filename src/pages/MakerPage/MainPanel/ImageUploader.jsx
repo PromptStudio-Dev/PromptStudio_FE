@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import styled from "styled-components";
-import ImgUploadButtonImg from "../../../assets/icon/image-upload-button.svg";
+import ImgUploadButtonImg from "../assets/image-upload-button.svg";
 
 export default function ImageUploader() {
   const fileInputRef = useRef(null);

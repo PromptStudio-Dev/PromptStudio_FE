@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import UpgradeMenu from "./UpgradeMenu";
 import styled from "styled-components";
-import PromptUpgradeIcon from "../../../assets/icon/prompt-upgrade-icon.svg";
-import PromptUpgradeButton from "../../../assets/icon/prompt-upgrade-button.svg";
+import PromptUpgradeIcon from "../assets/prompt-upgrade-icon.svg";
+import PromptUpgradeButton from "../assets/prompt-upgrade-button.svg";
 
 export default function AIUpgradeModal({
   position,

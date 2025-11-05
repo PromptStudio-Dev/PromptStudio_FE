@@ -3,8 +3,8 @@ import styled from "styled-components";
 import PromptTitleInput from "./PromptTitleInput";
 import PromptEditor from "./PromptEditor";
 import ImageUploader from "./ImageUploader";
-import ResultPanelOpenImg from "../../../assets/icon/tabler_chevrons-open.svg";
-import SidePanelOpenImg from "../../../assets/icon/panel-close-open.svg";
+import ResultPanelOpenImg from "../assets/tabler_chevrons-open.svg";
+import SidePanelOpenImg from "../assets/panel-close-open.svg";
 
 export default function MainPanel({
   isSidebarOpen,

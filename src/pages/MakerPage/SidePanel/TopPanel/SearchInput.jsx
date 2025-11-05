@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import SearchButtonImg from "../../../../assets/icon/search-icon.svg";
+import SearchButtonImg from "../../assets/search-icon.svg";
 
 // 조립된 검색창 컴포넌트
 export default function SearchInput() {
