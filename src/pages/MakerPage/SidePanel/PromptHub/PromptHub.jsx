@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import PromptCardList from "./PromptCardList";
+import PromptSectionDetail from "./PromptSectionDetail";
 
 export default function PromptHub() {
+  const [currentView, setCurrentView] = useState("main"); // "main" | "detail"
+  const [selectedSection, setSelectedSection] = useState(null);
+
   // 임시 mock 데이터 (나중에 API 연동 시 교체)
+
+  // 현재 최근 본 프롬프트, 안기 프롬프트만 정렬 (api)
   const [recentPrompts, setRecentPrompts] = useState([
     {
       id: 1,
@@ -74,41 +80,77 @@ export default function PromptHub() {
     // 나중에 카드 클릭 시 동작 구현
   };
 
-  const handleMoreClick = (sectionName) => {
-    console.log(`${sectionName} 더보기 클릭`);
-    // 나중에 더보기 버튼 클릭 시 동작 구현
+  const handleMoreClick = (sectionName, prompts) => {
+    setSelectedSection({ title: sectionName, prompts });
+    setCurrentView("detail");
   };
 
+  const handleBack = () => {
+    setCurrentView("main");
+    setSelectedSection(null);
+  };
+
+  // 상세 뷰 렌더링
+  if (currentView === "detail" && selectedSection) {
+    return (
+      <PromptSectionDetail
+        sectionTitle={selectedSection.title}
+        prompts={selectedSection.prompts}
+        onCardClick={handleCardClick}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  // 메인 뷰 렌더링
   return (
     <Wrapper>
       <ContentArea>
         {/* 최근 본 섹션 */}
         <Section>
-          <SectionTitle>최근 본 프롬프트</SectionTitle>
+          <SectionHeader>
+            <SectionTitle>최근 본 프롬프트</SectionTitle>
+            <ViewAllButton
+              onClick={() => handleMoreClick("최근 본 프롬프트", recentPrompts)}
+            >
+              더보기
+            </ViewAllButton>
+          </SectionHeader>
           <PromptCardList
             prompts={recentPrompts}
             onCardClick={handleCardClick}
-            onMoreClick={() => handleMoreClick("최근 본 프롬프트")}
           />
         </Section>
 
         {/* 인기 섹션 */}
         <Section>
-          <SectionTitle>인기 프롬프트</SectionTitle>
+          <SectionHeader>
+            <SectionTitle>인기 프롬프트</SectionTitle>
+            <ViewAllButton
+              onClick={() => handleMoreClick("인기 프롬프트", popularPrompts)}
+            >
+              더보기
+            </ViewAllButton>
+          </SectionHeader>
           <PromptCardList
             prompts={popularPrompts}
             onCardClick={handleCardClick}
-            onMoreClick={() => handleMoreClick("인기 프롬프트")}
           />
         </Section>
 
         {/* 추천 섹션 */}
         <Section>
-          <SectionTitle>추천 프롬프트</SectionTitle>
+          <SectionHeader>
+            <SectionTitle>추천 프롬프트</SectionTitle>
+            <ViewAllButton
+              onClick={() => handleMoreClick("추천 프롬프트", recommendPrompts)}
+            >
+              더보기
+            </ViewAllButton>
+          </SectionHeader>
           <PromptCardList
             prompts={recommendPrompts}
             onCardClick={handleCardClick}
-            onMoreClick={() => handleMoreClick("추천 프롬프트")}
           />
         </Section>
       </ContentArea>
@@ -138,11 +180,34 @@ const Section = styled.div`
   }
 `;
 
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+`;
+
 const SectionTitle = styled.h3`
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.375rem; /* 22px */
   font-weight: 600;
   line-height: normal;
   color: #000000;
-  margin: 0 0 1rem 0;
+  margin: 0;
+`;
+
+const ViewAllButton = styled.button`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem; /* 14px */
+  font-weight: 500;
+  color: #454545;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #000000;
+  }
 `;
