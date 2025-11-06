@@ -1,36 +1,84 @@
-import React from "react";
+import React, { useRef } from "react";
 import styled from "styled-components";
 import PromptCard from "./PromptCard";
+import moreButtonIcon from "../../assets/card-slider-more-button.svg";
+import prevButtonIcon from "../../assets/card-slider-prev-button.svg";
 
 export default function PromptCardList({ prompts = [], onCardClick }) {
+  const listWrapperRef = useRef(null);
+
+  const handleScrollLeft = () => {
+    if (listWrapperRef.current) {
+      const scrollAmount = 250;
+
+      listWrapperRef.current.scrollBy({
+        left: -scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const handleScrollRight = () => {
+    if (listWrapperRef.current) {
+      const scrollAmount = 250;
+
+      listWrapperRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <ListWrapper>
-      {prompts.length > 0 ? (
-        prompts.map((prompt) => (
-          <PromptCard
-            key={prompt.id}
-            category={prompt.category}
-            aiName={prompt.aiName}
-            title={prompt.title}
-            subtitle={prompt.subtitle}
-            backgroundImage={prompt.backgroundImage}
-            onClick={() => onCardClick?.(prompt.id)}
-          />
-        ))
-      ) : (
-        <EmptyMessage>프롬프트가 없습니다.</EmptyMessage>
+    <ListContainer>
+      <ListWrapper ref={listWrapperRef}>
+        {prompts.length > 0 ? (
+          prompts.map((prompt) => (
+            <PromptCard
+              key={prompt.id}
+              category={prompt.category}
+              aiName={prompt.aiName}
+              title={prompt.title}
+              subtitle={prompt.subtitle}
+              backgroundImage={prompt.backgroundImage}
+              onClick={() => onCardClick?.(prompt.id)}
+            />
+          ))
+        ) : (
+          <EmptyMessage>프롬프트가 없습니다.</EmptyMessage>
+        )}
+      </ListWrapper>
+      {prompts.length > 0 && (
+        <>
+          <PrevButton onClick={handleScrollLeft}>
+            <img src={prevButtonIcon} alt="이전" />
+          </PrevButton>
+          <NextButton onClick={handleScrollRight}>
+            <img src={moreButtonIcon} alt="다음" />
+          </NextButton>
+        </>
       )}
-    </ListWrapper>
+    </ListContainer>
   );
 }
+
+const ListContainer = styled.div`
+  position: relative;
+
+  &:hover button {
+    opacity: 1;
+    visibility: visible;
+  }
+`;
 
 const ListWrapper = styled.div`
   display: flex;
   flex-direction: row;
   gap: 1rem;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   padding-bottom: 0.5rem;
+  scroll-behavior: smooth;
 `;
 
 const EmptyMessage = styled.div`
@@ -39,4 +87,72 @@ const EmptyMessage = styled.div`
   font-size: 1rem;
   color: #999;
   width: 100%;
+`;
+
+const PrevButton = styled.button`
+  position: absolute;
+  left: -1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+  padding: 0;
+
+  img {
+    height: 2.25rem; /* 카드 높이와 동일 */
+    width: auto;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
+  }
+
+  &:active img {
+    transform: scale(0.98);
+  }
+`;
+
+const NextButton = styled.button`
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  height: auto;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 10;
+  padding: 0;
+
+  img {
+    height: 10.375rem; /* 카드 높이와 동일 */
+    width: auto;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.05);
+  }
+
+  &:active img {
+    transform: scale(0.98);
+  }
 `;

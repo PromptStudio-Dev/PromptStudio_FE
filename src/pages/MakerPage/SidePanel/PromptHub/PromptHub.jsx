@@ -74,6 +74,11 @@ export default function PromptHub() {
     // 나중에 카드 클릭 시 동작 구현
   };
 
+  const handleMoreClick = (sectionName) => {
+    console.log(`${sectionName} 더보기 클릭`);
+    // 나중에 더보기 버튼 클릭 시 동작 구현
+  };
+
   return (
     <Wrapper>
       <ContentArea>
@@ -83,6 +88,7 @@ export default function PromptHub() {
           <PromptCardList
             prompts={recentPrompts}
             onCardClick={handleCardClick}
+            onMoreClick={() => handleMoreClick("최근 본 프롬프트")}
           />
         </Section>
 
@@ -92,6 +98,7 @@ export default function PromptHub() {
           <PromptCardList
             prompts={popularPrompts}
             onCardClick={handleCardClick}
+            onMoreClick={() => handleMoreClick("인기 프롬프트")}
           />
         </Section>
 
@@ -101,6 +108,7 @@ export default function PromptHub() {
           <PromptCardList
             prompts={recommendPrompts}
             onCardClick={handleCardClick}
+            onMoreClick={() => handleMoreClick("추천 프롬프트")}
           />
         </Section>
       </ContentArea>
