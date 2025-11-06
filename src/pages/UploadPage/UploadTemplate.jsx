@@ -63,22 +63,22 @@ const UploadTemplateWrapper = styled.div`
 const Title = styled.h1`
   color: var(--B-Blue-line, #00aeff);
   font-family: Pretendard;
-  font-size: 32px;
+  font-size: 2rem;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
-  letter-spacing: 0.32px;
+  letter-spacing: 0.02rem;
   margin-bottom: 1.5rem;
 `;
 
 const Explain = styled.span`
   color: var(--B-T, #454545);
   font-family: Pretendard;
-  font-size: 23px;
+  font-size: 1.4375rem;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
-  letter-spacing: 0.23px;
+  letter-spacing: 0.014375rem;
   margin-left: 1rem;
   margin-bottom: 1.5rem;
 `;
@@ -86,7 +86,7 @@ const Explain = styled.span`
 const ContentInput = styled.input`
   width: 100%;
   height: 35vh;
-  border-radius: 16px;
+  border-radius: 1rem;
   margin-bottom: 5.06rem;
-  border: 2px solid var(--Light-blue, #49d8ff);
+  border: 0.125rem solid var(--Light-blue, #49d8ff);
 `;

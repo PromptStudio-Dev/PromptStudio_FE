@@ -180,7 +180,7 @@ const SearchBar = styled.div`
   width: 50%;
   height: 40%;
   border-radius: 7.5rem;
-  border: 1px solid var(--Light-blue, #49d8ff);
+  border: 0.0625rem solid var(--Light-blue, #49d8ff);
   background: #fff;
 `;
 
