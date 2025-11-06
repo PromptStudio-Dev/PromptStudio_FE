@@ -1,7 +1,7 @@
 import React from "react";
 import TopPanel from "./TopPanel/TopPanel.jsx";
 import styled from "styled-components";
-import PromptHublist from "./PromptHub/PromptHublist.jsx";
+import PromptHub from "./PromptHub/PromptHub";
 import UpgradeSection from "./UpgradeSection";
 
 // props는 나중에 백엔드 연동 시 처리를 위해 선언
@@ -22,7 +22,7 @@ export default function SidePanel({
           onCancel={onCancelUpgrade}
           onEdit={onEditUpgrade}
         />
-        <PromptHublist />
+        <PromptHub />
       </ContentWrapper>
     </SidebarWrapper>
   );
