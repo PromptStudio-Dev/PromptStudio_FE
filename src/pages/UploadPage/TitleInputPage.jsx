@@ -59,7 +59,7 @@ const Title = styled.span`
 
 const TitleInput = styled.input`
   border-radius: 1rem;
-  border: 2px solid var(--Light-blue, #49d8ff);
+  border: 0.125rem solid var(--Light-blue, #49d8ff);
   padding: 1.38rem 2.25rem;
   font-size: 1.8125rem;
   font-style: normal;

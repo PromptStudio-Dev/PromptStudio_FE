@@ -98,7 +98,7 @@ const ProgressBarItem = styled.div`
     left: calc(50% + 1.6rem);
     top: calc(50% + 1.1rem);
     width: calc(100% - 4rem);
-    height: 1px;
+    height: 0.0625rem;
     background-color: var(--Line_Blue-light, #aadff7);
   }
 `;

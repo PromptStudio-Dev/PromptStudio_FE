@@ -133,7 +133,7 @@ const ScopeItem = styled.div`
   display: flex;
   padding: 0.38rem 1.25rem;
   border-radius: 7.5rem;
-  border: 1px solid var(--Light-blue, #49d8ff);
+  border: 0.0625rem solid var(--Light-blue, #49d8ff);
   background: ${({ $isSelected }) => ($isSelected ? "#00C8FF" : "#fff")};
   align-items: center;
   gap: 0.75rem;
@@ -195,7 +195,7 @@ const AiSelectSection = styled.div`
   height: fit-content;
   padding: 1.5rem 2rem;
   border-radius: 1rem;
-  border: 2px solid var(--Light-blue, #49d8ff);
+  border: 0.125rem solid var(--Light-blue, #49d8ff);
   margin-top: 1.5rem;
 `;
 
@@ -222,7 +222,8 @@ const CustomRadioButton = styled.div`
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 50%;
-  border: 2px solid ${({ $isChecked }) => ($isChecked ? "#00aeff" : "#D9D9D9")};
+  border: 0.125rem solid
+    ${({ $isChecked }) => ($isChecked ? "#00aeff" : "#D9D9D9")};
   background-color: transparent;
   display: flex;
   align-items: center;
@@ -282,11 +283,11 @@ const TitleText = styled.span`
 const Content = styled.div`
   color: var(--B-T, #454545);
   font-family: Pretendard;
-  font-size: 23px;
+  font-size: 1.4375rem;
   font-style: normal;
   font-weight: 500;
   line-height: normal;
-  letter-spacing: 0.23px;
+  letter-spacing: 0.014375rem;
 `;
 
 const ButtonContainer = styled.div`

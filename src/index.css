@@ -4,6 +4,28 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 16px; /* 1920px 기준 */
+}
+
+@media (max-width: 1920px) {
+  html {
+    font-size: 14px; /* 1512px 맥북 기준으로 약 87.5% 스케일 */
+  }
+}
+
+@media (max-width: 1512px) {
+  html {
+    font-size: 12px; /* 더 작은 화면은 75% 스케일 */
+  }
+}
+
+@media (max-width: 1280px) {
+  html {
+    font-size: 11px; /* 태블릿 크기 */
+  }
+}
+
 body,
 h1,
 p,
