@@ -47,7 +47,7 @@ const Tag = styled.div`
   padding: 0.62rem 1rem;
   border-radius: 7.5rem;
   background: ${({ isSelected }) => (isSelected ? "#00C8FF" : "#EBFAFF")};
-  color: ${({ isSelected }) => (isSelected ? "#fff" : "#1E1E1E")};
+  color: ${({ isSelected }) => (isSelected ? "#fff" : "#6ED1FF")};
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
