@@ -1,96 +1,372 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import PromptCardList from "./PromptCardList";
 import PromptSectionDetail from "./PromptSectionDetail";
+import PromptCard from "./PromptCard";
+import backButtonIcon from "../../assets/side-panel-close.svg";
+import apiClient from "../../../../api/client";
 
-export default function PromptHub() {
+export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   const [currentView, setCurrentView] = useState("main"); // "main" | "detail"
   const [selectedSection, setSelectedSection] = useState(null);
 
-  // 임시 mock 데이터 (나중에 API 연동 시 교체)
+  // 로딩 및 에러
+  const [isAllLoading, setIsAllLoading] = useState(false);
+  const [allError, setAllError] = useState(null);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState(null);
 
-  // 현재 최근 본 프롬프트, 안기 프롬프트만 정렬 (api)
-  const [recentPrompts, setRecentPrompts] = useState([
-    {
-      id: 1,
-      category: "디자인",
-      aiName: "ChatGPT",
-      title: "로고 디자인 프롬프트",
-      subtitle: "전문적인 로고를 만들기 위한 상세한 프롬프트입니다.",
-      backgroundImage: "",
-    },
-    {
-      id: 2,
-      category: "코딩",
-      aiName: "Claude",
-      title: "React 컴포넌트 생성",
-      subtitle: "재사용 가능한 React 컴포넌트를 만드는 프롬프트",
-      backgroundImage: "",
-    },
-    {
-      id: 3,
-      category: "디자인",
-      aiName: "ChatGPT",
-      title: "로고 디자인 프롬프트",
-      subtitle: "전문적인 로고를 만들기 위한 상세한 프롬프트입니다.",
-      backgroundImage: "",
-    },
-  ]);
+  // 인기 프롬프트 상태
+  const [popularPrompts, setPopularPrompts] = useState([]);
+  const [isPopularLoading, setIsPopularLoading] = useState(false);
+  const [popularError, setPopularError] = useState(null);
 
-  const [popularPrompts, setPopularPrompts] = useState([
-    {
-      id: 3,
-      category: "마케팅",
-      aiName: "ChatGPT",
-      title: "SNS 콘텐츠 작성",
-      subtitle: "효과적인 SNS 마케팅 콘텐츠를 만드는 프롬프트",
-      backgroundImage: "",
-    },
-    {
-      id: 4,
-      category: "비즈니스",
-      aiName: "Claude",
-      title: "이메일 작성",
-      subtitle: "전문적인 비즈니스 이메일 작성 프롬프트",
-      backgroundImage: "",
-    },
-  ]);
+  // 최근 본 프롬프트 상태
+  const [recentPrompts, setRecentPrompts] = useState([]);
+  const [isRecentLoading, setIsRecentLoading] = useState(false);
+  const [recentError, setRecentError] = useState(null);
 
-  const [recommendPrompts, setRecommendPrompts] = useState([
-    {
-      id: 5,
-      category: "분석",
-      aiName: "Claude",
-      title: "데이터 분석 요청",
-      subtitle: "복잡한 데이터를 분석하고 인사이트를 도출하는 프롬프트",
-      backgroundImage: "",
-    },
-    {
-      id: 6,
-      category: "창작",
-      aiName: "ChatGPT",
-      title: "스토리 작성",
-      subtitle: "창의적인 스토리를 만드는 프롬프트",
-      backgroundImage: "",
-    },
-  ]);
+  // 추천 프롬프트 (임시 - 나중에 API 연동)
+  const [recommendPrompts, setRecommendPrompts] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
-  const handleCardClick = (promptId) => {
+  useEffect(() => {
+    if (searchKeyword) {
+      setCurrentView("main");
+      setSelectedSection(null);
+    }
+  }, [searchKeyword]);
+
+  // 최근 조회한 프롬프트 조회
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchRecentPrompts = async () => {
+      setIsRecentLoading(true);
+      setRecentError(null);
+
+      try {
+        const memberId = 1; // TODO: 실제 로그인한 사용자 ID로 교체
+        const { data } = await apiClient.get(
+          `/api/prompts/recent/members/${memberId}`,
+          {
+            signal: controller.signal,
+          }
+        );
+
+        console.log("최근 조회한 프롬프트 응답 데이터:", data);
+
+        // API 응답을 컴포넌트에서 사용하는 형식으로 변환
+        const formattedPrompts = Array.isArray(data)
+          ? data.map((prompt) => ({
+              id: prompt.promptId,
+              category: prompt.category ?? "미분류",
+              aiName: prompt.aiEnvironment ?? "AI",
+              title: prompt.title ?? "제목 미상",
+              subtitle: prompt.introduction ?? "",
+              backgroundImage: prompt.imageUrl ?? "",
+            }))
+          : [];
+
+        setRecentPrompts(formattedPrompts);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error(
+          "최근 조회한 프롬프트를 불러오지 못했습니다.",
+          fetchError
+        );
+
+        let errorMessage = "최근 조회한 프롬프트를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setRecentError(errorMessage);
+      } finally {
+        setIsRecentLoading(false);
+      }
+    };
+
+    fetchRecentPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  // 인기 프롬프트 조회
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchPopularPrompts = async () => {
+      setIsPopularLoading(true);
+      setPopularError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts/hot", {
+          params: {
+            memberId: 1,
+            category: "전체",
+          },
+          signal: controller.signal,
+        });
+
+        console.log("인기 프롬프트 응답 데이터:", data);
+
+        // API 응답을 컴포넌트에서 사용하는 형식으로 변환
+        const formattedPrompts = Array.isArray(data)
+          ? data.map((prompt) => ({
+              id: prompt.promptId,
+              category: prompt.category ?? "미분류",
+              aiName: prompt.aiEnvironment ?? "AI",
+              title: prompt.title ?? "제목 미상",
+              subtitle: prompt.introduction ?? "",
+              backgroundImage: "",
+            }))
+          : [];
+
+        setPopularPrompts(formattedPrompts);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("인기 프롬프트를 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "인기 프롬프트를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setPopularError(errorMessage);
+      } finally {
+        setIsPopularLoading(false);
+      }
+    };
+
+    fetchPopularPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  // 전체 프롬프트 조회
+  // (추천용 api 연동이 되어 있지 않아, 전체 프롬프트 조회로 진행)
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchAllPrompts = async () => {
+      setIsAllLoading(true);
+      setAllError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts", {
+          params: {
+            memberId: 1,
+            category: "전체",
+          },
+          signal: controller.signal,
+        });
+
+        console.log("전체 프롬프트 응답 데이터:", data);
+
+        const formattedPrompts = Array.isArray(data)
+          ? data.map((prompt) => ({
+              id: prompt.promptId,
+              category: prompt.category ?? "미분류",
+              aiName: prompt.aiEnvironment ?? "AI",
+              title: prompt.title ?? "제목 미상",
+              subtitle: prompt.introduction ?? "",
+              backgroundImage: prompt.imageUrl ?? "",
+            }))
+          : [];
+
+        setRecommendPrompts(formattedPrompts.slice(0, 6));
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("전체 프롬프트를 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "프롬프트를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setAllError(errorMessage);
+        setRecommendPrompts([]);
+      } finally {
+        setIsAllLoading(false);
+      }
+    };
+
+    fetchAllPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  // 검색 프롬프트 조회
+  // AI 검색으로, 30개 이하면 전체보기로 보임 - query 의미 없음(현재)
+  useEffect(() => {
+    const trimmedKeyword = searchKeyword.trim();
+
+    if (trimmedKeyword === "") {
+      setSearchResults([]);
+      setSearchError(null);
+      setIsSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const fetchSearchResults = async () => {
+      setIsSearchLoading(true);
+      setSearchError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts/search", {
+          params: {
+            memberId: 1,
+            category: "전체",
+            q: trimmedKeyword,
+            query: trimmedKeyword,
+          },
+          signal: controller.signal,
+        });
+
+        console.log("프롬프트 검색 결과:", data);
+
+        const formattedPrompts = Array.isArray(data)
+          ? data.map((prompt) => ({
+              id: prompt.promptId,
+              category: prompt.category ?? "미분류",
+              aiName: prompt.aiEnvironment ?? "AI",
+              title: prompt.title ?? "제목 미상",
+              subtitle: prompt.introduction ?? "",
+              backgroundImage: prompt.imageUrl ?? "",
+            }))
+          : [];
+
+        setSearchResults(formattedPrompts);
+      } catch (fetchError) {
+        // 에러 처리 로직
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("프롬프트 검색에 실패했습니다.", fetchError);
+
+        let errorMessage = "프롬프트 검색에 실패했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          if (fetchError.response.status === 404) {
+            errorMessage = "검색 결과가 없습니다.";
+          } else {
+            errorMessage = `서버 오류: ${fetchError.response.status}`;
+          }
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setSearchError(errorMessage);
+        setSearchResults([]);
+      } finally {
+        setIsSearchLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+
+    return () => {
+      controller.abort();
+    };
+  }, [searchKeyword]);
+
+  // 카드 클릭 시 동작 (프롬프트 상세 보기 페이지 UI 없어서 API 호출만 진행 - 최근 정렬 위해서)
+  // 프롬프트 상세보기 API
+  const handleCardClick = async (promptId) => {
     console.log("카드 클릭:", promptId);
-    // 나중에 카드 클릭 시 동작 구현
+
+    try {
+      const { data } = await apiClient.get(`/api/prompts/${promptId}`, {
+        params: {
+          memberId: 1,
+        },
+      });
+
+      console.log("프롬프트 상세 응답 데이터:", data);
+
+      const formattedPrompt = {
+        id: data.promptId,
+        category: data.category ?? "미분류",
+        aiName: data.aiEnvironment ?? "AI",
+        title: data.title ?? "제목 미상",
+        subtitle: data.introduction ?? data.content ?? "",
+        backgroundImage: data.imageUrl ?? "",
+      };
+
+      setRecentPrompts((prev) => {
+        const filtered = prev.filter(
+          (prompt) => prompt.id !== formattedPrompt.id
+        );
+        return [formattedPrompt, ...filtered];
+      });
+    } catch (error) {
+      console.error("프롬프트 상세 조회에 실패했습니다.", error);
+    }
   };
 
+  // 카드 리스트 더보기 버튼 클릭 시 동작
   const handleMoreClick = (sectionName, prompts) => {
     setSelectedSection({ title: sectionName, prompts });
     setCurrentView("detail");
   };
 
+  // 카드 리스트 이전 버튼 클릭 시 동작
   const handleBack = () => {
     setCurrentView("main");
     setSelectedSection(null);
   };
 
-  // 상세 뷰 렌더링
+  const hasActiveSearch = searchKeyword.trim() !== "";
+
+  // 상세 뷰 렌더링 (프롬프트 더보기 시)
   if (currentView === "detail" && selectedSection) {
     return (
       <PromptSectionDetail
@@ -102,6 +378,44 @@ export default function PromptHub() {
     );
   }
 
+  if (hasActiveSearch) {
+    return (
+      <SearchWrapper>
+        <SearchHeader>
+          <BackButton onClick={onClearSearch}>
+            <img src={backButtonIcon} alt="뒤로" />
+          </BackButton>
+          <SearchTitle>{`"${searchKeyword}" 검색 결과`}</SearchTitle>
+        </SearchHeader>
+        <SearchContent>
+          {isSearchLoading ? (
+            <SearchStatusMessage>
+              프롬프트를 검색 중입니다...
+            </SearchStatusMessage>
+          ) : searchError ? (
+            <SearchStatusMessage>{searchError}</SearchStatusMessage>
+          ) : searchResults.length === 0 ? (
+            <SearchStatusMessage>검색 결과가 없습니다.</SearchStatusMessage>
+          ) : (
+            <SearchCardList>
+              {searchResults.map((prompt) => (
+                <PromptCard
+                  key={prompt.id}
+                  category={prompt.category}
+                  aiName={prompt.aiName}
+                  title={prompt.title}
+                  subtitle={prompt.subtitle}
+                  backgroundImage={prompt.backgroundImage}
+                  onClick={() => handleCardClick(prompt.id)}
+                />
+              ))}
+            </SearchCardList>
+          )}
+        </SearchContent>
+      </SearchWrapper>
+    );
+  }
+
   // 메인 뷰 렌더링
   return (
     <Wrapper>
@@ -110,48 +424,84 @@ export default function PromptHub() {
         <Section>
           <SectionHeader>
             <SectionTitle>최근 본 프롬프트</SectionTitle>
-            <ViewAllButton
-              onClick={() => handleMoreClick("최근 본 프롬프트", recentPrompts)}
-            >
-              더보기
-            </ViewAllButton>
+            {!isRecentLoading && recentPrompts.length > 0 && (
+              <ViewAllButton
+                onClick={() =>
+                  handleMoreClick("최근 본 프롬프트", recentPrompts)
+                }
+              >
+                더보기
+              </ViewAllButton>
+            )}
           </SectionHeader>
-          <PromptCardList
-            prompts={recentPrompts}
-            onCardClick={handleCardClick}
-          />
+          {isRecentLoading ? (
+            <StatusMessage>
+              최근 본 프롬프트를 불러오는 중입니다...
+            </StatusMessage>
+          ) : recentError ? (
+            <StatusMessage>{recentError}</StatusMessage>
+          ) : recentPrompts.length === 0 ? (
+            <StatusMessage>최근 본 프롬프트가 없습니다.</StatusMessage>
+          ) : (
+            <PromptCardList
+              prompts={recentPrompts.slice(0, 3)}
+              onCardClick={handleCardClick}
+            />
+          )}
         </Section>
 
         {/* 인기 섹션 */}
         <Section>
           <SectionHeader>
             <SectionTitle>인기 프롬프트</SectionTitle>
-            <ViewAllButton
-              onClick={() => handleMoreClick("인기 프롬프트", popularPrompts)}
-            >
-              더보기
-            </ViewAllButton>
+            {!isPopularLoading && popularPrompts.length > 0 && (
+              <ViewAllButton
+                onClick={() => handleMoreClick("인기 프롬프트", popularPrompts)}
+              >
+                더보기
+              </ViewAllButton>
+            )}
           </SectionHeader>
-          <PromptCardList
-            prompts={popularPrompts}
-            onCardClick={handleCardClick}
-          />
+          {isPopularLoading ? (
+            <StatusMessage>인기 프롬프트를 불러오는 중입니다...</StatusMessage>
+          ) : popularError ? (
+            <StatusMessage>{popularError}</StatusMessage>
+          ) : popularPrompts.length === 0 ? (
+            <StatusMessage>표시할 인기 프롬프트가 없습니다.</StatusMessage>
+          ) : (
+            <PromptCardList
+              prompts={popularPrompts.slice(0, 3)}
+              onCardClick={handleCardClick}
+            />
+          )}
         </Section>
 
         {/* 추천 섹션 */}
         <Section>
           <SectionHeader>
             <SectionTitle>추천 프롬프트</SectionTitle>
-            <ViewAllButton
-              onClick={() => handleMoreClick("추천 프롬프트", recommendPrompts)}
-            >
-              더보기
-            </ViewAllButton>
+            {!isAllLoading && recommendPrompts.length > 0 && (
+              <ViewAllButton
+                onClick={() =>
+                  handleMoreClick("추천 프롬프트", recommendPrompts)
+                }
+              >
+                더보기
+              </ViewAllButton>
+            )}
           </SectionHeader>
-          <PromptCardList
-            prompts={recommendPrompts}
-            onCardClick={handleCardClick}
-          />
+          {isAllLoading ? (
+            <StatusMessage>추천 프롬프트를 불러오는 중입니다...</StatusMessage>
+          ) : allError ? (
+            <StatusMessage>{allError}</StatusMessage>
+          ) : recommendPrompts.length === 0 ? (
+            <StatusMessage>표시할 추천 프롬프트가 없습니다.</StatusMessage>
+          ) : (
+            <PromptCardList
+              prompts={recommendPrompts.slice(0, 3)}
+              onCardClick={handleCardClick}
+            />
+          )}
         </Section>
       </ContentArea>
     </Wrapper>
@@ -210,4 +560,76 @@ const ViewAllButton = styled.button`
   &:hover {
     color: #000000;
   }
+`;
+
+const StatusMessage = styled.p`
+  width: 100%;
+  text-align: center;
+  padding: 2rem 0;
+  color: #7a7a7a;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  margin: 0;
+`;
+
+const SearchWrapper = styled.div`
+  width: 100%;
+  background-color: #ffffff;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const SearchHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 1.77vw 1rem 1.77vw;
+`;
+
+const BackButton = styled.button`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666666;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #000000;
+  }
+`;
+
+const SearchTitle = styled.h2`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+`;
+
+const SearchContent = styled.div`
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+`;
+
+const SearchStatusMessage = styled.div`
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1rem;
+  color: #7a7a7a;
+`;
+
+const SearchCardList = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.88rem;
+  width: 100%;
 `;
