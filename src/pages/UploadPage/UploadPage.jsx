@@ -3,7 +3,7 @@ import styled from "styled-components";
 import promptTemplate from "./assets/promptTemplate.svg";
 import infoIcon from "./assets/infoIcon.svg";
 import otherIcon from "./assets/otherIcon.svg";
-import UploadTemplate from "./UploadTemplate";
+import UploadTemplate from "./UploadTemplatePage";
 import TitleInputPage from "./TitleInputPage";
 import OtherInputPage from "./OtherInputPage";
 
