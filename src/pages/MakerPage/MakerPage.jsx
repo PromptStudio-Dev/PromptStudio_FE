@@ -9,9 +9,16 @@ export default function MakerPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(true);
   const [upgrades, setUpgrades] = useState([]);
+  const [promptContent, setPromptContent] = useState("");
+  const [latestUpgradeId, setLatestUpgradeId] = useState(null);
 
-  // AI 업그레이드 요청 처리
-  const handleUpgradeRequest = async ({ selectedText, upgradeRequest }) => {
+  // 프롬프트 업그레이드 API 연동
+  const handleUpgradeRequest = async ({
+    selectedText,
+    upgradeRequest,
+    selectionRange,
+    contentSnapshot,
+  }) => {
     console.log("업그레이드 요청:", { selectedText, upgradeRequest });
 
     try {
@@ -35,10 +42,13 @@ export default function MakerPage() {
         originalText: data.originalText,
         direction: data.direction,
         isApplied: false,
+        selectionRange,
+        contentSnapshot,
       };
 
       // 기존 업그레이드 목록에 추가
       setUpgrades((prev) => [...prev, newUpgrade]);
+      setLatestUpgradeId(newUpgrade.id);
     } catch (error) {
       console.error("텍스트 업그레이드 실패:", error);
 
@@ -62,26 +72,73 @@ export default function MakerPage() {
 
   // 업그레이드 수락
   const handleAcceptUpgrade = (upgradeId) => {
-    console.log("수락:", upgradeId);
-    setUpgrades((prev) =>
-      prev.map((upgrade) =>
-        upgrade.id === upgradeId
-          ? { ...upgrade, isApplied: true }
-          : { ...upgrade, isApplied: false }
-      )
-    );
+    setUpgrades((prev) => {
+      const target = prev.find((upgrade) => upgrade.id === upgradeId);
+      if (!target) {
+        return prev;
+      }
+
+      if (target.selectionRange) {
+        const { start, end } = target.selectionRange;
+        if (typeof start === "number" && typeof end === "number") {
+          setPromptContent((currentContent) => {
+            const before = currentContent.slice(0, start);
+            const after = currentContent.slice(end);
+            return `${before}${target.content}${after}`;
+          });
+        }
+      }
+
+      setTimeout(() => {
+        setUpgrades((current) =>
+          current.filter((upgrade) => upgrade.id !== upgradeId)
+        );
+      }, 5000);
+
+      return prev.map((upgrade) =>
+        // isApplied: true 로 변경하여 수락 상태 표시
+        upgrade.id === upgradeId ? { ...upgrade, isApplied: true } : upgrade
+      );
+    });
+
+    // 완료되어 오버레이 효과 제거
+    if (latestUpgradeId === upgradeId) {
+      setLatestUpgradeId(null);
+    }
   };
 
   // 업그레이드 취소
   const handleCancelUpgrade = (upgradeId) => {
-    console.log("취소:", upgradeId);
     setUpgrades((prev) => prev.filter((upgrade) => upgrade.id !== upgradeId));
+
+    if (latestUpgradeId === upgradeId) {
+      setLatestUpgradeId(null);
+    }
   };
 
-  // 업그레이드 아래에 삽입(로직 추가 예정)
+  // 업그레이드 아래에 삽입
   const handleEditUpgrade = (upgradeId) => {
-    console.log("아래에 삽입:", upgradeId);
-    // TODO: 수정 모달 구현
+    const target = upgrades.find((upgrade) => upgrade.id === upgradeId);
+    if (!target) return;
+
+    if (target.selectionRange) {
+      const { end } = target.selectionRange;
+      if (typeof end === "number") {
+        setPromptContent((currentContent) => {
+          const before = currentContent.slice(0, end);
+          const after = currentContent.slice(end);
+          // 선택된 텍스트 다음에 줄바꿈과 함께 업그레이드된 텍스트 삽입
+          return `${before}\n${target.content}${after}`;
+        });
+      }
+    }
+
+    // 업그레이드 제거
+    setUpgrades((prev) => prev.filter((upgrade) => upgrade.id !== upgradeId));
+
+    if (latestUpgradeId === upgradeId) {
+      setLatestUpgradeId(null);
+    }
   };
 
   return (
@@ -100,10 +157,14 @@ export default function MakerPage() {
         isResultPanelOpen={isResultPanelOpen}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onToggleResultPanel={() => setIsResultPanelOpen(!isResultPanelOpen)}
+        promptContent={promptContent}
+        onPromptContentChange={setPromptContent}
         onUpgradeRequest={handleUpgradeRequest}
         onAcceptUpgrade={handleAcceptUpgrade}
         onCancelUpgrade={handleCancelUpgrade}
         onEditUpgrade={handleEditUpgrade}
+        activeUpgradeId={latestUpgradeId}
+        activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
       />
 
       <ResultPanel

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UpgradeMenu from "./UpgradeMenu";
 import styled from "styled-components";
 import PromptUpgradeIcon from "../assets/prompt-upgrade-icon.svg";
@@ -10,10 +10,18 @@ export default function AIUpgradeModal({
   onAcceptUpgrade,
   onCancelUpgrade,
   onEditUpgrade,
+  activeUpgradeId,
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+
+  // activeUpgradeId가 생기면 자동으로 메뉴 표시
+  useEffect(() => {
+    if (activeUpgradeId != null) {
+      setShowMenu(true);
+    }
+  }, [activeUpgradeId]);
 
   const handleSubmit = () => {
     if (inputValue.trim()) {
@@ -37,16 +45,19 @@ export default function AIUpgradeModal({
 
   // 드래그 모달에서 실제 수락/취소/수정 가능
   const handleAccept = (upgradeId) => {
+    if (upgradeId == null) return;
     setShowMenu(false);
     onAcceptUpgrade?.(upgradeId);
   };
 
   const handleCancel = (upgradeId) => {
+    if (upgradeId == null) return;
     setShowMenu(false);
     onCancelUpgrade?.(upgradeId);
   };
 
   const handleEdit = (upgradeId) => {
+    if (upgradeId == null) return;
     setShowMenu(false);
     onEditUpgrade?.(upgradeId);
   };
@@ -62,9 +73,9 @@ export default function AIUpgradeModal({
         <LeftButton>AI 맞춤 추천</LeftButton>
         <UpgradeMenu
           isVisible={showMenu}
-          onAccept={handleAccept}
-          onCancel={handleCancel}
-          onEdit={handleEdit}
+          onAccept={() => handleAccept(activeUpgradeId)}
+          onCancel={() => handleCancel(activeUpgradeId)}
+          onEdit={() => handleEdit(activeUpgradeId)}
         />
       </LeftSection>
       <MiddleSection>
@@ -75,7 +86,6 @@ export default function AIUpgradeModal({
           onKeyDown={handleKeyPress}
           placeholder="AI 사용으로 업그레이드하기"
           disabled={isSubmitted}
-          // isSubmitted 상태에 따라 입력 필드 비활성화
         />
         {!isSubmitted && (
           <UpgradeButton onClick={handleSubmit}>
