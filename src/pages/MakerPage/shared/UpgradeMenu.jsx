@@ -19,7 +19,7 @@ export default function UpgradeMenu({ onAccept, onCancel, onEdit, isVisible }) {
       </MenuItem>
       <MenuItem onClick={onEdit}>
         <EditIcon src={EditIconImg} />
-        <MenuText>수정</MenuText>
+        <MenuText>아래에 삽입</MenuText>
       </MenuItem>
     </MenuWrapper>
   );

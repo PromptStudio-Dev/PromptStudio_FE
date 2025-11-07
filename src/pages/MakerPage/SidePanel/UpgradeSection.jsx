@@ -37,7 +37,6 @@ const SectionWrapper = styled.div`
   width: 100%;
   padding: 3vh 1.77vw 0; /* 50px 34px 0 @ 1920x1080 */
   background-color: #ffffff;
-  overflow-y: auto;
 `;
 
 const SectionTitle = styled.h2`
