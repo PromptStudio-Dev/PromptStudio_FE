@@ -3,13 +3,38 @@ import styled from "styled-components";
 import SearchButtonImg from "../../assets/search-icon.svg";
 
 // 조립된 검색창 컴포넌트
-export default function SearchInput() {
+export default function SearchInput({
+  value = "",
+  onChange,
+  onSearch,
+  placeholder = "검색어를 입력하세요",
+}) {
+  const handleInputChange = (event) => {
+    onChange?.(event.target.value);
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      onSearch?.();
+    }
+  };
+
+  const handleSearchClick = () => {
+    onSearch?.();
+  };
+
   return (
     <SearchContainer>
-      <SearchButton>
+      <SearchButton onClick={handleSearchClick}>
         <SearchButtonIcon src={SearchButtonImg} />
       </SearchButton>
-      <StyledInput />
+      <StyledInput
+        value={value}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+      />
     </SearchContainer>
   );
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import TopPanel from "./TopPanel/TopPanel.jsx";
 import styled from "styled-components";
 import PromptHub from "./PromptHub/PromptHub";
@@ -14,10 +14,37 @@ export default function SidePanel({
   onEditUpgrade,
 }) {
   const hasUpgrades = Array.isArray(upgrades) && upgrades.length > 0;
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  useEffect(() => {
+    if (searchInput.trim() === "") {
+      setSearchKeyword("");
+    }
+  }, [searchInput]);
+
+  const handleSearchChange = (value) => {
+    setSearchInput(value);
+  };
+
+  const handleSearchSubmit = () => {
+    const trimmed = searchInput.trim();
+    setSearchKeyword(trimmed);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchKeyword("");
+  };
 
   return (
     <SidebarWrapper $isOpen={isOpen}>
-      <TopPanel onClose={onToggle} />
+      <TopPanel
+        onClose={onToggle}
+        searchValue={searchInput}
+        onSearchChange={handleSearchChange}
+        onSearchSubmit={handleSearchSubmit}
+      />
       <ContentWrapper>
         {hasUpgrades ? (
           <UpgradeOnlyContainer>
@@ -30,7 +57,10 @@ export default function SidePanel({
           </UpgradeOnlyContainer>
         ) : (
           <PromptHubContainer>
-            <PromptHub />
+            <PromptHub
+              searchKeyword={searchKeyword}
+              onClearSearch={handleClearSearch}
+            />
           </PromptHubContainer>
         )}
       </ContentWrapper>

@@ -4,10 +4,19 @@ import SearchInput from "./SearchInput";
 import HubModalSelector from "./HubModalSelector";
 import SidePanelCloseImg from "../../assets/side-panel-close.svg";
 
-export default function TopPanel({ onClose }) {
+export default function TopPanel({
+  onClose,
+  searchValue = "",
+  onSearchChange,
+  onSearchSubmit,
+}) {
   return (
     <TopContainer>
-      <SearchInput />
+      <SearchInput
+        value={searchValue}
+        onChange={onSearchChange}
+        onSearch={onSearchSubmit}
+      />
       <HubModalSelector />
       {onClose && (
         <CloseButton onClick={onClose} aria-label="사이드바 닫기">
