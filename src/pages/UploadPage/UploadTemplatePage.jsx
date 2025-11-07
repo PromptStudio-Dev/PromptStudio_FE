@@ -1,9 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import NextButtonIconImage from "./assets/nextButtonIcon.svg";
+import CheckImageRequiredCheckButtonImg from "./assets/imageContainButton.svg";
 
-export default function UploadTemplatePage({ onNext }) {
-  const [content, setContent] = useState("");
+export default function UploadTemplatePage({
+  onNext,
+  content,
+  setContent,
+  imageRequired,
+  setImageRequired,
+}) {
   const [showInputBlock, setShowInputBlock] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [blockPosition, setBlockPosition] = useState({ top: 0, left: 0 });
@@ -12,142 +18,11 @@ export default function UploadTemplatePage({ onNext }) {
     end: 0,
     text: "",
   });
-  const [highlightPosition, setHighlightPosition] = useState(null);
   const textareaRef = useRef(null);
   const inputBlockRef = useRef(null);
-  const highlightRef = useRef(null);
 
-  const calculateHighlightPosition = (textarea, start, end) => {
-    // textarea의 스타일 정보 가져오기
-    const computedStyle = window.getComputedStyle(textarea);
-    const textareaRect = textarea.getBoundingClientRect();
-    const scrollTop = textarea.scrollTop;
-    const scrollLeft = textarea.scrollLeft;
-
-    // 임시 div를 생성하여 textarea와 동일한 스타일로 텍스트 렌더링
-    const mirror = document.createElement("div");
-    const mirrorStyle = mirror.style;
-
-    // textarea와 동일한 스타일 적용
-    mirrorStyle.position = "absolute";
-    mirrorStyle.visibility = "hidden";
-    mirrorStyle.whiteSpace = "pre-wrap";
-    mirrorStyle.wordWrap = "break-word";
-    mirrorStyle.font = computedStyle.font;
-    mirrorStyle.fontSize = computedStyle.fontSize;
-    mirrorStyle.fontFamily = computedStyle.fontFamily;
-    mirrorStyle.fontWeight = computedStyle.fontWeight;
-    mirrorStyle.lineHeight = computedStyle.lineHeight;
-    mirrorStyle.padding = computedStyle.padding;
-    mirrorStyle.border = computedStyle.border;
-    mirrorStyle.width = `${textarea.offsetWidth}px`;
-    mirrorStyle.boxSizing = computedStyle.boxSizing;
-
-    // 텍스트를 줄 단위로 분리하여 각 줄을 span으로 감싸기
-    const allLines = textarea.value.split("\n");
-    const textBeforeStart = textarea.value.substring(0, start);
-    const textBeforeEnd = textarea.value.substring(0, end);
-    const linesBeforeStart = textBeforeStart.split("\n");
-    const linesBeforeEnd = textBeforeEnd.split("\n");
-
-    const startLine = linesBeforeStart.length - 1;
-    const endLine = linesBeforeEnd.length - 1;
-    const startChar = linesBeforeStart[linesBeforeStart.length - 1].length;
-    const endChar = linesBeforeEnd[linesBeforeEnd.length - 1].length;
-
-    // 각 줄을 처리
-    allLines.forEach((line, lineIndex) => {
-      const lineSpan = document.createElement("span");
-      lineSpan.style.display = "block";
-
-      if (lineIndex === startLine && lineIndex === endLine) {
-        // 한 줄 내 선택
-        const before = line.substring(0, startChar);
-        const selected = line.substring(startChar, endChar);
-        const after = line.substring(endChar);
-
-        lineSpan.innerHTML = `${escapeHtml(
-          before
-        )}<mark style="background: transparent; border: 2px solid red;">${escapeHtml(
-          selected
-        )}</mark>${escapeHtml(after)}`;
-      } else if (lineIndex === startLine) {
-        // 첫 줄 (일부 선택)
-        const before = line.substring(0, startChar);
-        const selected = line.substring(startChar);
-
-        lineSpan.innerHTML = `${escapeHtml(
-          before
-        )}<mark style="background: transparent; border: 2px solid red;">${escapeHtml(
-          selected
-        )}</mark>`;
-      } else if (lineIndex === endLine) {
-        // 마지막 줄 (일부 선택)
-        const selected = line.substring(0, endChar);
-        const after = line.substring(endChar);
-
-        lineSpan.innerHTML = `<mark style="background: transparent; border: 2px solid red;">${escapeHtml(
-          selected
-        )}</mark>${escapeHtml(after)}`;
-      } else if (lineIndex > startLine && lineIndex < endLine) {
-        // 중간 줄 (전체 선택)
-        lineSpan.innerHTML = `<mark style="background: transparent; border: 2px solid red;">${escapeHtml(
-          line
-        )}</mark>`;
-      } else {
-        // 선택되지 않은 줄
-        lineSpan.textContent = line;
-      }
-
-      mirror.appendChild(lineSpan);
-    });
-
-    document.body.appendChild(mirror);
-
-    // 선택된 부분의 mark 요소 찾기
-    const marks = mirror.querySelectorAll("mark");
-    if (marks.length === 0) {
-      document.body.removeChild(mirror);
-      return null;
-    }
-
-    // 첫 번째 mark의 위치 계산
-    const firstMark = marks[0];
-    const firstMarkRect = firstMark.getBoundingClientRect();
-    const mirrorRect = mirror.getBoundingClientRect();
-
-    // 전체 선택 영역의 너비 계산 (여러 줄인 경우)
-    let maxWidth = 0;
-    let totalHeight = 0;
-
-    marks.forEach((mark) => {
-      const markRect = mark.getBoundingClientRect();
-      maxWidth = Math.max(maxWidth, markRect.width);
-      totalHeight += markRect.height;
-    });
-
-    // textarea의 실제 위치와 비교하여 조정
-    const top =
-      textareaRect.top + (firstMarkRect.top - mirrorRect.top) - scrollTop;
-    const left =
-      textareaRect.left + (firstMarkRect.left - mirrorRect.left) - scrollLeft;
-    const width = endLine === startLine ? firstMarkRect.width : maxWidth;
-    const height = endLine === startLine ? firstMarkRect.height : totalHeight;
-
-    document.body.removeChild(mirror);
-
-    return {
-      top,
-      left,
-      width,
-      height,
-    };
-  };
-
-  const escapeHtml = (text) => {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
+  const handleImageRequiredChange = (value) => {
+    setImageRequired(value);
   };
 
   const handleMouseUp = (e) => {
@@ -164,13 +39,14 @@ export default function UploadTemplatePage({ onNext }) {
         const selected = textarea.value.substring(start, end);
 
         if (selected.length > 0) {
+          // 선택 영역 유지 (파란색 하이라이트를 위해)
+          textarea.setSelectionRange(start, end);
+
           const top = e.clientY + 10;
           const left = e.clientX;
-          const highlightPos = calculateHighlightPosition(textarea, start, end);
 
           setBlockPosition({ top, left });
           setSelectedText({ start, end, text: selected });
-          setHighlightPosition(highlightPos);
           setInputValue("");
           setShowInputBlock(true);
         }
@@ -183,14 +59,15 @@ export default function UploadTemplatePage({ onNext }) {
     const selected = textarea.value.substring(start, end);
 
     if (selected.length > 0) {
+      // 선택 영역 유지 (파란색 하이라이트를 위해)
+      textarea.setSelectionRange(start, end);
+
       // 마우스 포인터 위치를 뷰포트 기준 좌표로 사용
       const top = e.clientY + 10; // 마우스 포인터 아래 10px
       const left = e.clientX; // 마우스 포인터 X 좌표
-      const highlightPos = calculateHighlightPosition(textarea, start, end);
 
       setBlockPosition({ top, left });
       setSelectedText({ start, end, text: selected });
-      setHighlightPosition(highlightPos);
       setInputValue("");
       setShowInputBlock(true);
     }
@@ -214,7 +91,6 @@ export default function UploadTemplatePage({ onNext }) {
     setContent(updatedContent);
     setShowInputBlock(false);
     setInputValue("");
-    setHighlightPosition(null);
 
     // 커서 위치 조정
     setTimeout(() => {
@@ -229,7 +105,6 @@ export default function UploadTemplatePage({ onNext }) {
   const handleCancel = () => {
     setShowInputBlock(false);
     setInputValue("");
-    setHighlightPosition(null);
     // 포커스를 제거하지 않고 그대로 유지
   };
 
@@ -280,17 +155,6 @@ export default function UploadTemplatePage({ onNext }) {
           onMouseUp={handleMouseUp}
           placeholder="프롬프트 템플릿을 입력해주세요."
         />
-        {showInputBlock && highlightPosition && (
-          <HighlightOverlay
-            ref={highlightRef}
-            style={{
-              top: `${highlightPosition.top}px`,
-              left: `${highlightPosition.left}px`,
-              width: `${highlightPosition.width}px`,
-              height: `${highlightPosition.height}px`,
-            }}
-          />
-        )}
       </ContentInputWrapper>
       {showInputBlock && (
         <InputBlock
@@ -305,11 +169,70 @@ export default function UploadTemplatePage({ onNext }) {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleInputKeyDown}
             placeholder="항목 이름을 입력하세요"
-            autoFocus
           />
         </InputBlock>
       )}
-      <NextButton onClick={onNext}>
+      <CheckImageRequiredSection>
+        <CheckImageRequiredText>
+          이 프롬프트에는 이미지를 입력받아요 해요.
+        </CheckImageRequiredText>
+        <CheckImageRequiredCheckButton
+          onClick={() => handleImageRequiredChange(true)}
+          $isSelected={imageRequired === true}
+        >
+          <CheckImageRequiredCheckButtonImage
+            $isSelected={imageRequired === true}
+          >
+            <svg
+              width="8"
+              height="8"
+              viewBox="0 0 8 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="4"
+                cy="4"
+                r="4"
+                fill={imageRequired === true ? "#49D8FF" : "#D9D9D9"}
+              />
+            </svg>
+          </CheckImageRequiredCheckButtonImage>
+          <CheckImageRequiredCheckButtonText style={{ marginRight: "1.75rem" }}>
+            예
+          </CheckImageRequiredCheckButtonText>
+        </CheckImageRequiredCheckButton>
+        <CheckImageRequiredCheckButton
+          onClick={() => handleImageRequiredChange(false)}
+          $isSelected={imageRequired === false}
+        >
+          <CheckImageRequiredCheckButtonImage
+            $isSelected={imageRequired === false}
+          >
+            <svg
+              width="8"
+              height="8"
+              viewBox="0 0 8 8"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="4"
+                cy="4"
+                r="4"
+                fill={imageRequired === false ? "#49D8FF" : "#D9D9D9"}
+              />
+            </svg>
+          </CheckImageRequiredCheckButtonImage>
+          <CheckImageRequiredCheckButtonText>
+            아니오
+          </CheckImageRequiredCheckButtonText>
+        </CheckImageRequiredCheckButton>
+      </CheckImageRequiredSection>
+      <NextButton
+        onClick={onNext}
+        disabled={!content.trim() || imageRequired === null}
+      >
         <NextButtonText>다음</NextButtonText>
         <NextButtonIcon src={NextButtonIconImage} />
       </NextButton>
@@ -329,6 +252,12 @@ const NextButton = styled.button`
   border: none;
   align-self: flex-end;
   margin-top: 1rem;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const NextButtonText = styled.span`
@@ -386,7 +315,7 @@ const Explain = styled.span`
 const ContentInputWrapper = styled.div`
   position: relative;
   width: 100%;
-  margin-bottom: 5.06rem;
+  margin-bottom: 1.19rem;
 `;
 
 const ContentInput = styled.textarea`
@@ -405,15 +334,11 @@ const ContentInput = styled.textarea`
     border: 0.125rem solid var(--Light-blue, #49d8ff);
     outline: none;
   }
-`;
 
-const HighlightOverlay = styled.div`
-  position: fixed;
-  background-color: rgba(0, 174, 255, 0.2);
-  border: 0.125rem solid var(--B-Blue-line, #00aeff);
-  border-radius: 0.25rem;
-  pointer-events: none;
-  z-index: 999;
+  &::selection {
+    background-color: #b3d9ff;
+    color: inherit;
+  }
 `;
 
 const InputBlock = styled.div`
@@ -439,4 +364,56 @@ const InputField = styled.input`
   &:focus {
     border: 0.125rem solid var(--B-Blue-line, #00aeff);
   }
+`;
+
+const CheckImageRequiredSection = styled.div`
+  display: flex;
+  width: 100%;
+  height: fit-content;
+  margin-left: 1rem;
+  align-items: center;
+`;
+
+const CheckImageRequiredText = styled.span`
+  color: var(--B-T, #454545);
+  text-align: center;
+  font-family: "Pretendard Variable";
+  font-size: 1.3rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  margin-right: 1.75rem;
+  letter-spacing: -0.02rem;
+`;
+
+const CheckImageRequiredCheckButton = styled.div`
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  cursor: pointer;
+`;
+
+const CheckImageRequiredCheckButtonImage = styled.div`
+  width: 0.65rem;
+  height: 0.65rem;
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+`;
+
+const CheckImageRequiredCheckButtonText = styled.span`
+  color: #000;
+  text-align: center;
+  font-family: "Pretendard Variable";
+  font-size: 1.05625rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  letter-spacing: -0.01625rem;
 `;
