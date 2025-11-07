@@ -20,6 +20,7 @@ export default function UploadTemplatePage({
   });
   const textareaRef = useRef(null);
   const inputBlockRef = useRef(null);
+  const inputFieldRef = useRef(null);
 
   const handleImageRequiredChange = (value) => {
     setImageRequired(value);
@@ -39,9 +40,6 @@ export default function UploadTemplatePage({
         const selected = textarea.value.substring(start, end);
 
         if (selected.length > 0) {
-          // 선택 영역 유지 (파란색 하이라이트를 위해)
-          textarea.setSelectionRange(start, end);
-
           const top = e.clientY + 10;
           const left = e.clientX;
 
@@ -49,6 +47,14 @@ export default function UploadTemplatePage({
           setSelectedText({ start, end, text: selected });
           setInputValue("");
           setShowInputBlock(true);
+
+          // selection 유지 후 input에 포커스
+          setTimeout(() => {
+            // selection을 먼저 설정
+            textarea.setSelectionRange(start, end);
+            // 그 다음 input에 포커스
+            inputFieldRef.current?.focus();
+          }, 0);
         }
       }, 0);
       return;
@@ -59,9 +65,6 @@ export default function UploadTemplatePage({
     const selected = textarea.value.substring(start, end);
 
     if (selected.length > 0) {
-      // 선택 영역 유지 (파란색 하이라이트를 위해)
-      textarea.setSelectionRange(start, end);
-
       // 마우스 포인터 위치를 뷰포트 기준 좌표로 사용
       const top = e.clientY + 10; // 마우스 포인터 아래 10px
       const left = e.clientX; // 마우스 포인터 X 좌표
@@ -70,6 +73,11 @@ export default function UploadTemplatePage({
       setSelectedText({ start, end, text: selected });
       setInputValue("");
       setShowInputBlock(true);
+
+      // input에 자동 포커스
+      setTimeout(() => {
+        inputFieldRef.current?.focus();
+      }, 0);
     }
   };
 
@@ -148,6 +156,17 @@ export default function UploadTemplatePage({
         대괄호로 감싸주세요.
       </Explain>
       <ContentInputWrapper>
+        <TextOverlay>
+          {content.substring(0, selectedText.start)}
+          {showInputBlock && (
+            <HighlightedText>
+              {content.substring(selectedText.start, selectedText.end)}
+            </HighlightedText>
+          )}
+          {!showInputBlock &&
+            content.substring(selectedText.start, selectedText.end)}
+          {content.substring(selectedText.end)}
+        </TextOverlay>
         <ContentInput
           ref={textareaRef}
           value={content}
@@ -165,6 +184,7 @@ export default function UploadTemplatePage({
           }}
         >
           <InputField
+            ref={inputFieldRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleInputKeyDown}
@@ -316,6 +336,7 @@ const ContentInputWrapper = styled.div`
   position: relative;
   width: 100%;
   margin-bottom: 1.19rem;
+  min-height: 35vh;
 `;
 
 const ContentInput = styled.textarea`
@@ -329,6 +350,12 @@ const ContentInput = styled.textarea`
   outline: none;
   font-family: Pretendard;
   font-size: 1.4375rem;
+  line-height: 1.5;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  color: transparent;
+  caret-color: #454545;
 
   &:focus {
     border: 0.125rem solid var(--Light-blue, #49d8ff);
@@ -336,9 +363,37 @@ const ContentInput = styled.textarea`
   }
 
   &::selection {
-    background-color: #b3d9ff;
-    color: inherit;
+    background-color: rgba(179, 217, 255, 0.5);
   }
+
+  &::placeholder {
+    color: transparent;
+  }
+`;
+
+const TextOverlay = styled.div`
+  position: absolute;
+  top: 1.94rem;
+  left: 2.44rem;
+  width: calc(100% - 4.88rem);
+  height: calc(35vh - 3.88rem);
+  pointer-events: none;
+  z-index: 1;
+  font-family: Pretendard;
+  font-size: 1.4375rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: #454545;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+`;
+
+const HighlightedText = styled.span`
+  color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.1);
 `;
 
 const InputBlock = styled.div`
