@@ -34,7 +34,7 @@ const CardContentWrapper = styled.div`
   background-color: ${(props) => (props.$isApplied ? "#001e40" : "#e0f5ff")};
   border-radius: 0.83vw; /* 16px @ 1920px */
   padding: 2.41vh 1.09vw; /* 26px 21px @ 1920x1080 */
-  overflow: hidden;
+  overflow-y: auto;
   cursor: pointer;
   transition: opacity 0.2s;
 
@@ -44,16 +44,11 @@ const CardContentWrapper = styled.div`
 `;
 
 const CardContent = styled.div`
-  width: 16.72vw; /* 321px @ 1920px */
-  height: 10.65vh; /* 115px @ 1080px */
+  width: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.4375rem; /* 23px */
   font-weight: 400;
-  line-height: normal;
+  line-height: 1.4;
   color: ${(props) => (props.$isApplied ? "#ffffff" : "#000000")};
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
+  white-space: pre-wrap;
 `;
