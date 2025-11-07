@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import SearchIconImg from "./assets/searchIcon.svg";
 import HotIcon from "./assets/hotIcon.svg";
@@ -10,9 +10,121 @@ import normalIcon from "./assets/normalIcon.svg";
 import studyIcon from "./assets/studyIcon.svg";
 import PromptCard from "./PromptCard";
 import CategoryTag from "./CategoryTag";
+import apiClient from "../../api/client";
 
 export default function HubPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [hottestPrompts, setHottestPrompts] = useState([]);
+  const [isHotLoading, setIsHotLoading] = useState(false);
+  const [hotError, setHotError] = useState(null);
+  const [categoryPrompts, setCategoryPrompts] = useState([]);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  const [categoryError, setCategoryError] = useState(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchHottestPrompts = async () => {
+      setIsHotLoading(true);
+      setHotError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts/hot", {
+          params: {
+            memberId: 0,
+            category: "전체",
+          },
+          signal: controller.signal,
+        });
+
+        console.log("인기 프롬프트 응답 데이터:", data);
+
+        setHottestPrompts(Array.isArray(data) ? data : []);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("인기 프롬프트를 불러오지 못했습니다.", fetchError);
+
+        // 에러 타입에 따른 메시지 설정
+        let errorMessage = "인기 프롬프트를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setHotError(errorMessage);
+      } finally {
+        setIsHotLoading(false);
+      }
+    };
+
+    fetchHottestPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchCategoryPrompts = async () => {
+      setIsCategoryLoading(true);
+      setCategoryError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts", {
+          params: {
+            memberId: 0,
+            category: selectedCategory,
+          },
+          signal: controller.signal,
+        });
+
+        console.log("카테고리 프롬프트 응답 데이터:", data);
+
+        setCategoryPrompts(Array.isArray(data) ? data : []);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("프롬프트 목록을 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "프롬프트 목록을 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setCategoryError(errorMessage);
+      } finally {
+        setIsCategoryLoading(false);
+      }
+    };
+
+    fetchCategoryPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedCategory]);
 
   const categories = [
     { name: "전체", img: "" },
@@ -24,26 +136,7 @@ export default function HubPage() {
     { name: "학업", img: studyIcon },
   ];
 
-  const promptCards = [
-    {
-      category: "비즈니스",
-      aiName: "PromptAI",
-      title: "시장 분석 보고서",
-      subtitle: "신규 제품 런칭 준비를 위한 시장 규모와 경쟁사 분석 프롬프트",
-    },
-    {
-      category: "교육",
-      aiName: "TutorBot",
-      title: "개념 정리 프롬프트",
-      subtitle: "고등학생 미적분 핵심 개념을 이해하기 쉽게 정리하는 프롬프트",
-    },
-    {
-      category: "디자인",
-      aiName: "DesignGen",
-      title: "브랜드 무드보드",
-      subtitle: "톤앤매너가 통일된 무드보드를 빠르게 생성하는 프롬프트",
-    },
-  ];
+  const hottestPreview = hottestPrompts.slice(0, 3);
 
   return (
     <MainSection>
@@ -60,15 +153,23 @@ export default function HubPage() {
             <HotText>지금 인기 있는 프롬프트</HotText>
           </HottestPrompt>
           <PromptCards>
-            {promptCards.map((card) => (
-              <PromptCard
-                key={card.title}
-                category={card.category}
-                aiName={card.aiName}
-                title={card.title}
-                subtitle={card.subtitle}
-              />
-            ))}
+            {isHotLoading ? (
+              <StatusMessage>인기 프롬프트를 불러오는 중입니다.</StatusMessage>
+            ) : hotError ? (
+              <StatusMessage>{hotError}</StatusMessage>
+            ) : hottestPreview.length === 0 ? (
+              <StatusMessage>표시할 인기 프롬프트가 없습니다.</StatusMessage>
+            ) : (
+              hottestPreview.map((prompt) => (
+                <PromptCard
+                  key={prompt.promptId ?? `${prompt.title}-${prompt.memberId}`}
+                  category={prompt.category ?? "미분류"}
+                  aiName={prompt.aiEnvironment ?? "AI"}
+                  title={prompt.title ?? "제목 미상"}
+                  subtitle={prompt.introduction ?? ""}
+                />
+              ))
+            )}
           </PromptCards>
           <CategoryList>
             {categories.map((category) => (
@@ -82,15 +183,25 @@ export default function HubPage() {
             ))}
           </CategoryList>
           <PromptCards>
-            {promptCards.map((card) => (
-              <PromptCard
-                key={card.title}
-                category={card.category}
-                aiName={card.aiName}
-                title={card.title}
-                subtitle={card.subtitle}
-              />
-            ))}
+            {isCategoryLoading ? (
+              <StatusMessage>프롬프트를 불러오는 중입니다.</StatusMessage>
+            ) : categoryError ? (
+              <StatusMessage>{categoryError}</StatusMessage>
+            ) : categoryPrompts.length === 0 ? (
+              <StatusMessage>
+                선택한 카테고리의 프롬프트가 없습니다.
+              </StatusMessage>
+            ) : (
+              categoryPrompts.map((prompt) => (
+                <PromptCard
+                  key={prompt.promptId ?? `${prompt.title}-${prompt.memberId}`}
+                  category={prompt.category ?? "미분류"}
+                  aiName={prompt.aiEnvironment ?? "AI"}
+                  title={prompt.title ?? "제목 미상"}
+                  subtitle={prompt.introduction ?? ""}
+                />
+              ))
+            )}
           </PromptCards>
         </CardSection>
       </LeftSection>
@@ -153,6 +264,14 @@ const CategoryList = styled.div`
   gap: 0.75rem;
   margin-top: 2.8rem;
   margin-bottom: 1.69rem;
+`;
+
+const StatusMessage = styled.p`
+  width: 100%;
+  text-align: center;
+  padding: 1.5rem 0;
+  color: #7a7a7a;
+  font-size: 1rem;
 `;
 
 const PromptCards = styled.div`
