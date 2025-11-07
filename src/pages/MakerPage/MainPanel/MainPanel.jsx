@@ -11,10 +11,14 @@ export default function MainPanel({
   isResultPanelOpen,
   onToggleSidebar,
   onToggleResultPanel,
+  promptContent,
+  onPromptContentChange,
   onUpgradeRequest,
   onAcceptUpgrade,
   onCancelUpgrade,
   onEditUpgrade,
+  activeUpgradeId,
+  activeUpgrade,
 }) {
   return (
     <MakerPanelWrapper
@@ -33,10 +37,14 @@ export default function MainPanel({
         <PromptInputWrapper>
           <PromptTitleInput />
           <PromptEditor
+            content={promptContent}
+            onContentChange={onPromptContentChange}
             onUpgradeRequest={onUpgradeRequest}
             onAcceptUpgrade={onAcceptUpgrade}
             onCancelUpgrade={onCancelUpgrade}
             onEditUpgrade={onEditUpgrade}
+            activeUpgradeId={activeUpgradeId}
+            activeUpgrade={activeUpgrade}
           />
         </PromptInputWrapper>
         <ImageUploader />
