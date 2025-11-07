@@ -91,6 +91,7 @@ const CardList = styled.div`
   align-items: center;
   gap: 1.88rem;
   width: 100%;
+  overflow-y: auto;
 `;
 
 const EmptyMessage = styled.div`

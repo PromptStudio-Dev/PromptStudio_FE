@@ -11,15 +11,27 @@ export default function PromptCard({
   title = "default 제목",
   subtitle = "defaultsubtitlesdfsdfdsfdssdfdfsfdsjkfsjfsdsdfjlkdsfjklsdfjsflsjdkfljfsklfjdsflksjlfssfjslskf",
   backgroundImage = "",
+  onClick,
 }) {
   const [isHeartClicked, setIsHeartClicked] = useState(false);
 
-  const handleHeartClick = () => {
+  const handleHeartClick = (event) => {
+    event.stopPropagation();
     setIsHeartClicked((prev) => !prev);
   };
 
+  const handleCopyClick = (event) => {
+    event.stopPropagation();
+    console.log("복사 버튼 클릭");
+  };
+
   return (
-    <PromptCardContainer backgroundImage={backgroundImage}>
+    <PromptCardContainer
+      backgroundImage={backgroundImage}
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+    >
       <CardHeader>
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
@@ -31,7 +43,7 @@ export default function PromptCard({
           src={isHeartClicked ? colorHeartIcon : heartIcon}
           onClick={handleHeartClick}
         />
-        <CopyIcon src={copyIcon} />
+        <CopyIcon src={copyIcon} onClick={handleCopyClick} />
       </ButtonSection>
     </PromptCardContainer>
   );
@@ -52,6 +64,7 @@ const CopyIcon = styled.img`
   width: 1.75rem;
   height: 1.75rem;
   margin-left: 0.37rem;
+  cursor: pointer;
 `;
 
 const ButtonSection = styled.div`
@@ -87,12 +100,24 @@ const PromptCardContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   padding: 0.94rem 1.19rem;
-  width: 18rem;
+  width: 20rem;
   height: 10.375rem;
   aspect-ratio: 2 / 1;
   background-color: pink;
   border-radius: 1rem;
   background: #dbf5ff;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+
+  &:hover {
+    transform: translateY(4px);
+    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 174, 255, 0.4);
+  }
 `;
 
 const CategoryTag = styled.div`
