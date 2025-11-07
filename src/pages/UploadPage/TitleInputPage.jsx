@@ -1,23 +1,40 @@
 import styled from "styled-components";
 import NextButtonIconImage from "./assets/nextButtonIcon.svg";
 
-export default function TitleInputPage({ onNext, onPrev }) {
+export default function TitleInputPage({
+  onNext,
+  onPrev,
+  title,
+  setTitle,
+  introduction,
+  setIntroduction,
+}) {
+  const isNextDisabled = !title.trim() || !introduction.trim();
+
   return (
     <TitleInputPageWrapper>
       <TitleSection>
         <Title>프롬프트 제목</Title>
-        <TitleInput placeholder="프롬프트 제목을 입력해주세요." />
+        <TitleInput
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="프롬프트 제목을 입력해주세요."
+        />
       </TitleSection>
       <DescriptionSection>
         <Title>프롬프트 설명</Title>
-        <TitleInput placeholder="프롬프트의 설명을 입력해주세요." />
+        <TitleInput
+          value={introduction}
+          onChange={(e) => setIntroduction(e.target.value)}
+          placeholder="프롬프트의 설명을 입력해주세요."
+        />
       </DescriptionSection>
       <ButtonContainer>
         <PrevButton onClick={onPrev}>
           <PrevButtonIcon src={NextButtonIconImage} />
           <PrevButtonText>이전</PrevButtonText>
         </PrevButton>
-        <NextButton onClick={onNext}>
+        <NextButton onClick={onNext} disabled={isNextDisabled}>
           <NextButtonText>다음</NextButtonText>
           <NextButtonIcon src={NextButtonIconImage} />
         </NextButton>
@@ -65,7 +82,11 @@ const TitleInput = styled.input`
   font-style: normal;
   font-weight: 400;
   line-height: normal;
-  color: var(--B-A6, #a6a6a6);
+  color: #454545;
+
+  &::placeholder {
+    color: #fff;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -118,6 +139,12 @@ const NextButton = styled.button`
   background: #f3f3f3;
   padding: 0.72rem 1rem;
   border: none;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const NextButtonText = styled.span`

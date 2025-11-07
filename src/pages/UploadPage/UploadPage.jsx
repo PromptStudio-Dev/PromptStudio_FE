@@ -10,6 +10,20 @@ import OtherInputPage from "./OtherInputPage";
 export default function UploadPage() {
   const [currentPage, setCurrentPage] = useState(0);
 
+  // 모든 페이지의 데이터를 UploadPage에서 관리
+  const [formData, setFormData] = useState({
+    // UploadTemplatePage
+    content: "",
+    imageRequired: null, // 이미지 필수 여부 (null: 미선택, true: 예, false: 아니오)
+    // TitleInputPage
+    title: "",
+    introduction: "",
+    // OtherInputPage
+    aiEnvironment: "Chat GPT",
+    category: "",
+    visible: null, // 공개=true, 비공개=false, null=미선택
+  });
+
   const handleNext = () => {
     setCurrentPage((prev) => prev + 1);
   };
@@ -21,13 +35,54 @@ export default function UploadPage() {
   const renderCurrentPage = () => {
     switch (currentPage) {
       case 0:
-        return <UploadTemplate onNext={handleNext} />;
+        return (
+          <UploadTemplate
+            onNext={handleNext}
+            content={formData.content}
+            setContent={(content) =>
+              setFormData((prev) => ({ ...prev, content }))
+            }
+            imageRequired={formData.imageRequired}
+            setImageRequired={(imageRequired) =>
+              setFormData((prev) => ({ ...prev, imageRequired }))
+            }
+          />
+        );
       case 1:
-        return <TitleInputPage onNext={handleNext} onPrev={handlePrev} />;
+        return (
+          <TitleInputPage
+            onNext={handleNext}
+            onPrev={handlePrev}
+            title={formData.title}
+            setTitle={(title) => setFormData((prev) => ({ ...prev, title }))}
+            introduction={formData.introduction}
+            setIntroduction={(introduction) =>
+              setFormData((prev) => ({ ...prev, introduction }))
+            }
+          />
+        );
       case 2:
-        return <OtherInputPage onPrev={handlePrev} />;
+        return (
+          <OtherInputPage
+            onPrev={handlePrev}
+            formData={formData}
+            setFormData={setFormData}
+          />
+        );
       default:
-        return <UploadTemplate onNext={handleNext} />;
+        return (
+          <UploadTemplate
+            onNext={handleNext}
+            content={formData.content}
+            setContent={(content) =>
+              setFormData((prev) => ({ ...prev, content }))
+            }
+            imageRequired={formData.imageRequired}
+            setImageRequired={(imageRequired) =>
+              setFormData((prev) => ({ ...prev, imageRequired }))
+            }
+          />
+        );
     }
   };
 
