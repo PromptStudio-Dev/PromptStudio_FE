@@ -31,7 +31,7 @@ export default function HubPage() {
       try {
         const { data } = await apiClient.get("/api/prompts/hot", {
           params: {
-            memberId: 0,
+            memberId: 1,
             category: "전체",
           },
           signal: controller.signal,
@@ -84,7 +84,7 @@ export default function HubPage() {
       try {
         const { data } = await apiClient.get("/api/prompts", {
           params: {
-            memberId: 0,
+            memberId: 1,
             category: selectedCategory,
           },
           signal: controller.signal,
