@@ -3,9 +3,9 @@ import styled from "styled-components";
 import AIModalSelector from "./AIModalSelector";
 import ResultPanelCloseImg from "../assets/panel-close-open.svg";
 
-export default function ResultPanel({ onToggle }) {
+export default function ResultPanel({ isOpen = true, onToggle }) {
   return (
-    <ResultPanelWrapper>
+    <ResultPanelWrapper $isOpen={isOpen}>
       <ResultPanelHeader>
         <AIModalSelector />
         <RunButton>
@@ -29,7 +29,7 @@ const ResultPanelWrapper = styled.div`
   background-color: #f4fbfd;
   box-shadow: -5px 0px 26px 0px rgba(0, 0, 0, 0.06);
   position: relative;
-  display: flex;
+  display: ${(props) => (props.$isOpen ? "flex" : "none")};
   flex-direction: column;
 `;
 
