@@ -3,15 +3,19 @@ import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
 
 export default function PromptEditor({
+  content,
+  onContentChange,
   onUpgradeRequest,
   onAcceptUpgrade,
   onCancelUpgrade,
   onEditUpgrade,
+  activeUpgradeId,
+  activeUpgrade,
 }) {
-  const [content, setContent] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState("");
+  const [selectionRange, setSelectionRange] = useState(null);
   const textareaRef = useRef(null);
 
   const handleMouseUp = () => {
@@ -23,6 +27,7 @@ export default function PromptEditor({
     if (draggedText.trim().length > 0) {
       // 드래그한 텍스트 저장
       setSelectedText(draggedText);
+      setSelectionRange({ start, end });
       console.log("드래그된 텍스트:", draggedText);
 
       const style = getComputedStyle(textarea);
@@ -45,6 +50,7 @@ export default function PromptEditor({
       setShowModal(true);
     } else {
       setShowModal(false);
+      setSelectionRange(null);
     }
   };
 
@@ -56,9 +62,34 @@ export default function PromptEditor({
   const handleUpgradeSubmit = (upgradeRequest) => {
     // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
     console.log("업그레이드 전송:", { selectedText, upgradeRequest });
-    if (onUpgradeRequest) {
-      onUpgradeRequest({ selectedText, upgradeRequest });
+    if (onUpgradeRequest && selectionRange) {
+      onUpgradeRequest({
+        selectedText,
+        upgradeRequest,
+        selectionRange,
+        contentSnapshot: content,
+      });
     }
+  };
+
+  // 취소선 오버레이를 위한 텍스트 렌더링
+  const renderTextWithStrikethrough = () => {
+    if (!activeUpgradeId || !activeUpgrade || !selectionRange) return null;
+
+    const { start, end } = selectionRange;
+    const beforeText = content.substring(0, start);
+    const selectedTextPart = content.substring(start, end);
+    const afterText = content.substring(end);
+    const upgradedText = activeUpgrade.content;
+
+    return (
+      <>
+        {beforeText}
+        <StrikethroughText>{selectedTextPart}</StrikethroughText>
+        <UpgradedText>{upgradedText}</UpgradedText>
+        {afterText}
+      </>
+    );
   };
 
   return (
@@ -72,12 +103,19 @@ export default function PromptEditor({
           <p>Tip.문장을 만들고 드래그 해보세요! 놀라운 일이 펼쳐질 거에요!</p>
         </FakePlaceholder>
       )}
+
+      {/* 취소선 오버레이 */}
+      {activeUpgradeId && activeUpgrade && selectionRange && (
+        <TextOverlay>{renderTextWithStrikethrough()}</TextOverlay>
+      )}
+
       <EditorTextarea
         ref={textareaRef}
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => onContentChange?.(e.target.value)}
         onMouseUp={handleMouseUp}
         onMouseDown={handleMouseDown}
+        $hasStrikethrough={activeUpgradeId && activeUpgrade && selectionRange}
       />
 
       {showModal && (
@@ -87,6 +125,7 @@ export default function PromptEditor({
           onAcceptUpgrade={onAcceptUpgrade}
           onCancelUpgrade={onCancelUpgrade}
           onEditUpgrade={onEditUpgrade}
+          activeUpgradeId={activeUpgradeId}
         />
       )}
     </EditorWrapper>
@@ -129,7 +168,7 @@ const EditorTextarea = styled.textarea`
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.44rem;
   font-weight: 400;
-  color: #001e40;
+  color: ${(props) => (props.$hasStrikethrough ? "transparent" : "#001e40")};
   line-height: 1.5;
   background: transparent; /* 중요: FakePlaceholder가 비쳐 보이도록 배경을 투명하게 */
   border: none;
@@ -138,4 +177,38 @@ const EditorTextarea = styled.textarea`
   padding: 1rem 0;
   position: relative; /* z-index를 주기 위해 추가 */
   z-index: 1; /* FakePlaceholder보다 위에 있도록 설정 */
+  caret-color: ${(props) => (props.$hasStrikethrough ? "#001e40" : "auto")};
+`;
+
+const TextOverlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 40vh;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1.44rem;
+  font-weight: 400;
+  color: #001e40;
+  line-height: 1.5;
+  padding: 1rem 0;
+  pointer-events: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  z-index: 2;
+`;
+
+const StrikethroughText = styled.span`
+  text-decoration: line-through;
+  text-decoration-color: #a6a6a6;
+  text-decoration-thickness: 0.1rem;
+  color: #a6a6a6;
+`;
+
+const UpgradedText = styled.span`
+  color: #001e40;
+  background-color: rgba(170, 223, 247, 0.4);
+  font-weight: 600;
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.2rem;
 `;
