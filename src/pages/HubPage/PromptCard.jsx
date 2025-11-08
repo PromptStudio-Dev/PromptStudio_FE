@@ -56,7 +56,7 @@ const CopyIcon = styled.img`
 
 const ButtonSection = styled.div`
   display: flex;
-  margin-top: 0.3rem;
+  margin-top: auto;
   justify-content: flex-end;
 `;
 
@@ -85,10 +85,9 @@ const PromptAiName = styled.div`
 const PromptCardContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0.94rem 1.19rem;
-  width: 17.03125vw;
-  aspect-ratio: 2 / 1;
+  padding: 1rem 1.56rem;
+  width: calc((100% - 4rem) / 3);
+  aspect-ratio: 2/1;
   background-color: pink;
   border-radius: 1rem;
   background: ${({ backgroundImage }) =>
@@ -116,22 +115,29 @@ const CategoryTag = styled.div`
 
 const CardTitle = styled.p`
   width: 100%;
-  height: 1.1875rem;
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
-  margin-top: 0.5rem;
+  line-height: 1.4;
+  margin-top: 0.69rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const CardSubTitle = styled.p`
   width: 100%;
   font-size: 1rem;
   font-weight: 400;
-  margin-top: 0.5rem;
-  overflow-wrap: break-word;
+  margin-top: 0.1rem;
+  flex: 1;
+  min-height: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
+  max-height: calc(1rem * 1.4 * 2);
 `;
