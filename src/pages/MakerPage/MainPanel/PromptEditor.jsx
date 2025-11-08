@@ -16,7 +16,9 @@ export default function PromptEditor({
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState(null);
+  const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
+  const modalRef = useRef(null);
 
   const resetSelectionState = () => {
     setShowModal(false);
@@ -24,7 +26,7 @@ export default function PromptEditor({
     setSelectedText("");
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event) => {
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -37,23 +39,37 @@ export default function PromptEditor({
       setSelectionRange({ start, end });
       console.log("드래그된 텍스트:", draggedText);
 
-      const style = getComputedStyle(textarea);
-      const lineHeight =
-        parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
-      const paddingTop = parseFloat(style.paddingTop);
+      const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+      const textareaRect = textarea.getBoundingClientRect();
+      const cursorX = event.clientX;
+      const cursorY = event.clientY;
 
-      // end는 항상 커서가 끝나는 위치 (드래그 방향 무관)
-      // 선택 영역이 끝나는 줄 번호 계산 (0-based)
-      const textBeforeEnd = content.substring(0, end);
-      const endLineNumber = textBeforeEnd.split("\n").length - 1;
+      if (wrapperRect) {
+        const relativeTop = cursorY - wrapperRect.top + 12;
+        const estimatedModalWidth = Math.min(
+          wrapperRect.width,
+          window.innerWidth * 0.38
+        );
+        const maxLeft = Math.max(0, wrapperRect.width - estimatedModalWidth);
+        const relativeLeft =
+          cursorX - wrapperRect.left - estimatedModalWidth / 2;
+        const clampedLeft = Math.max(0, Math.min(relativeLeft, maxLeft));
 
-      // Y 위치: 선택된 줄의 다음 줄 위치 + 8px 간격
-      const topPosition = paddingTop + (endLineNumber + 1) * lineHeight + 8;
+        setModalPosition({
+          top: Math.max(0, relativeTop),
+          left: clampedLeft,
+        });
+      } else {
+        // fallback: 텍스트 영역 기준
+        const relativeTop = cursorY - textareaRect.top + 12;
+        const relativeLeft =
+          cursorX - textareaRect.left - textareaRect.width * 0.19;
 
-      setModalPosition({
-        top: topPosition,
-        left: 0, // 항상 왼쪽에 고정
-      });
+        setModalPosition({
+          top: Math.max(0, relativeTop),
+          left: Math.max(0, relativeLeft),
+        });
+      }
       setShowModal(true);
     } else {
       setShowModal(false);
@@ -76,6 +92,28 @@ export default function PromptEditor({
         upgradeRequest,
         selectionRange,
         contentSnapshot: content,
+      });
+
+      // 한 번 더 호출해 offset만큼 아래로 내려줌 (offset은 임의로 설정, 디자인과 논의 후 변경 예정)
+      setModalPosition((prev) => {
+        const offset = 16;
+        const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+        const modalRect = modalRef.current?.getBoundingClientRect();
+        const modalHeight = modalRect?.height ?? 0;
+
+        if (!wrapperRect) {
+          return {
+            top: Math.max(0, prev.top + offset),
+            left: prev.left,
+          };
+        }
+
+        const maxTop = Math.max(0, wrapperRect.height - modalHeight - offset);
+
+        return {
+          top: Math.min(prev.top + offset, maxTop),
+          left: prev.left,
+        };
       });
     }
   };
@@ -144,7 +182,7 @@ export default function PromptEditor({
     (activeUpgradeId && activeUpgrade && selectionRange);
 
   return (
-    <EditorWrapper>
+    <EditorWrapper ref={wrapperRef}>
       {/* {내용이 없을 때만 placeholder를 보여줌} */}
       {content === "" && (
         <FakePlaceholder>
@@ -182,6 +220,7 @@ export default function PromptEditor({
           onCancelUpgrade={handleCancelUpgrade}
           onEditUpgrade={handleEditUpgrade}
           activeUpgradeId={activeUpgradeId}
+          modalRef={modalRef}
         />
       )}
     </EditorWrapper>
