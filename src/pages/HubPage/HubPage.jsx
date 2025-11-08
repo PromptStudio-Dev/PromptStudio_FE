@@ -360,11 +360,12 @@ const SearchSection = styled.section`
   width: 100%;
   min-height: 16.6vh;
   flex-shrink: 0;
-  background-color: #f1f1f1;
+  background-color: #F5FCFF;
 `;
 
 const RightSection = styled.section`
   width: 33vw;
   height: 100vh;
+  border-left: 1px solid #AADFF7;
   background: #f1f1f1;
 `;
