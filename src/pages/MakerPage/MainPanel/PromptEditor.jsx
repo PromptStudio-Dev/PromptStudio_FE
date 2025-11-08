@@ -61,6 +61,7 @@ export default function PromptEditor({
         });
       } else {
         // fallback: 텍스트 영역 기준
+        // 예외처리: wrapperRef.current가 없을 때
         const relativeTop = cursorY - textareaRect.top + 12;
         const relativeLeft =
           cursorX - textareaRect.left - textareaRect.width * 0.19;
