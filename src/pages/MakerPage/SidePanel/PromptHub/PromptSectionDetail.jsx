@@ -3,6 +3,31 @@ import styled from "styled-components";
 import PromptCard from "./PromptCard";
 import backButtonIcon from "../../assets/side-panel-close.svg";
 
+const normalizePrompt = (prompt) => {
+  const id =
+    prompt?.id ??
+    prompt?.promptId ??
+    prompt?.promptID ??
+    prompt?.prompt_id ??
+    "";
+  const category = prompt?.category ?? "미분류";
+  const aiName = prompt?.aiName ?? prompt?.aiEnvironment ?? "AI";
+  const title = prompt?.title ?? "제목 미상";
+  const subtitle =
+    prompt?.subtitle ?? prompt?.introduction ?? prompt?.description ?? "";
+  const backgroundImage = prompt?.backgroundImage ?? prompt?.imageUrl ?? "";
+
+  return {
+    id,
+    category,
+    aiName,
+    title,
+    subtitle,
+    backgroundImage,
+    raw: prompt,
+  };
+};
+
 export default function PromptSectionDetail({
   sectionTitle,
   prompts = [],
@@ -20,17 +45,26 @@ export default function PromptSectionDetail({
       <ContentArea>
         <CardList>
           {prompts.length > 0 ? (
-            prompts.map((prompt) => (
-              <PromptCard
-                key={prompt.id}
-                category={prompt.category}
-                aiName={prompt.aiName}
-                title={prompt.title}
-                subtitle={prompt.subtitle}
-                backgroundImage={prompt.backgroundImage}
-                onClick={() => onCardClick?.(prompt.id)}
-              />
-            ))
+            prompts.map((prompt) => {
+              const normalized = normalizePrompt(prompt);
+              return (
+                <PromptCard
+                  key={normalized.id || Math.random().toString(36)}
+                  category={normalized.category}
+                  aiName={normalized.aiName}
+                  title={normalized.title}
+                  subtitle={normalized.subtitle}
+                  backgroundImage={normalized.backgroundImage}
+                  onClick={() =>
+                    onCardClick?.(
+                      normalized.id ||
+                        normalized.raw?.promptId ||
+                        normalized.raw?.id
+                    )
+                  }
+                />
+              );
+            })
           ) : (
             <EmptyMessage>프롬프트가 없습니다.</EmptyMessage>
           )}

@@ -14,7 +14,7 @@ export default function UpgradeSection({
 
   return (
     <SectionWrapper>
-      <SectionTitle>업그레이드</SectionTitle>
+      <SectionTitle>추천</SectionTitle>
       <CardsContainer>
         {upgrades.map((upgrade) => (
           <UpgradeCard
