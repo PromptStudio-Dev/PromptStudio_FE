@@ -11,6 +11,7 @@ export default function AIUpgradeModal({
   onCancelUpgrade,
   onEditUpgrade,
   activeUpgradeId,
+  modalRef,
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -64,6 +65,7 @@ export default function AIUpgradeModal({
 
   return (
     <SelectionModal
+      ref={modalRef}
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,
