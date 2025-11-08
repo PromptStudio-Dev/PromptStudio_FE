@@ -56,17 +56,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
 
         console.log("최근 조회한 프롬프트 응답 데이터:", data);
 
-        // API 응답을 컴포넌트에서 사용하는 형식으로 변환
-        const formattedPrompts = Array.isArray(data)
-          ? data.map((prompt) => ({
-              id: prompt.promptId,
-              category: prompt.category ?? "미분류",
-              aiName: prompt.aiEnvironment ?? "AI",
-              title: prompt.title ?? "제목 미상",
-              subtitle: prompt.introduction ?? "",
-              backgroundImage: prompt.imageUrl ?? "",
-            }))
-          : [];
+        const formattedPrompts = Array.isArray(data) ? data : [];
 
         setRecentPrompts(formattedPrompts);
       } catch (fetchError) {
@@ -125,16 +115,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
         console.log("인기 프롬프트 응답 데이터:", data);
 
         // API 응답을 컴포넌트에서 사용하는 형식으로 변환
-        const formattedPrompts = Array.isArray(data)
-          ? data.map((prompt) => ({
-              id: prompt.promptId,
-              category: prompt.category ?? "미분류",
-              aiName: prompt.aiEnvironment ?? "AI",
-              title: prompt.title ?? "제목 미상",
-              subtitle: prompt.introduction ?? "",
-              backgroundImage: "",
-            }))
-          : [];
+        const formattedPrompts = Array.isArray(data) ? data : [];
 
         setPopularPrompts(formattedPrompts);
       } catch (fetchError) {
@@ -190,16 +171,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
 
         console.log("전체 프롬프트 응답 데이터:", data);
 
-        const formattedPrompts = Array.isArray(data)
-          ? data.map((prompt) => ({
-              id: prompt.promptId,
-              category: prompt.category ?? "미분류",
-              aiName: prompt.aiEnvironment ?? "AI",
-              title: prompt.title ?? "제목 미상",
-              subtitle: prompt.introduction ?? "",
-              backgroundImage: prompt.imageUrl ?? "",
-            }))
-          : [];
+        const formattedPrompts = Array.isArray(data) ? data : [];
 
         setRecommendPrompts(formattedPrompts.slice(0, 6));
       } catch (fetchError) {
@@ -267,16 +239,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
 
         console.log("프롬프트 검색 결과:", data);
 
-        const formattedPrompts = Array.isArray(data)
-          ? data.map((prompt) => ({
-              id: prompt.promptId,
-              category: prompt.category ?? "미분류",
-              aiName: prompt.aiEnvironment ?? "AI",
-              title: prompt.title ?? "제목 미상",
-              subtitle: prompt.introduction ?? "",
-              backgroundImage: prompt.imageUrl ?? "",
-            }))
-          : [];
+        const formattedPrompts = Array.isArray(data) ? data : [];
 
         setSearchResults(formattedPrompts);
       } catch (fetchError) {
@@ -333,17 +296,19 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       console.log("프롬프트 상세 응답 데이터:", data);
 
       const formattedPrompt = {
-        id: data.promptId,
+        promptId: data.promptId,
         category: data.category ?? "미분류",
-        aiName: data.aiEnvironment ?? "AI",
+        aiEnvironment: data.aiEnvironment ?? "AI",
         title: data.title ?? "제목 미상",
-        subtitle: data.introduction ?? data.content ?? "",
-        backgroundImage: data.imageUrl ?? "",
+        introduction: data.introduction ?? data.content ?? "",
+        imageUrl: data.imageUrl ?? "",
       };
 
       setRecentPrompts((prev) => {
         const filtered = prev.filter(
-          (prompt) => prompt.id !== formattedPrompt.id
+          (prompt) =>
+            (prompt.id ?? prompt.promptId) !==
+            (formattedPrompt.id ?? formattedPrompt.promptId)
         );
         return [formattedPrompt, ...filtered];
       });

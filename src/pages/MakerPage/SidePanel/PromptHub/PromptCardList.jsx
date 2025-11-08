@@ -20,7 +20,7 @@ export default function PromptCardList({ prompts = [], onCardClick }) {
 
   const handleScrollRight = () => {
     if (listWrapperRef.current) {
-      const scrollAmount = 250;
+      const scrollAmount = 350;
 
       listWrapperRef.current.scrollBy({
         left: scrollAmount,
@@ -35,13 +35,15 @@ export default function PromptCardList({ prompts = [], onCardClick }) {
         {prompts.length > 0 ? (
           prompts.map((prompt) => (
             <PromptCard
-              key={prompt.id}
+              key={prompt.promptId ?? prompt.id}
               category={prompt.category}
-              aiName={prompt.aiName}
+              aiName={prompt.aiEnvironment}
               title={prompt.title}
-              subtitle={prompt.subtitle}
-              backgroundImage={prompt.backgroundImage}
-              onClick={() => onCardClick?.(prompt.id)}
+              subtitle={prompt.introduction}
+              backgroundImage={prompt.imageUrl}
+              onClick={() =>
+                onCardClick?.(prompt.promptId ?? prompt.id ?? prompt.ID)
+              }
             />
           ))
         ) : (

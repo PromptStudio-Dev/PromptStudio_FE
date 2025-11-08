@@ -25,6 +25,8 @@ export default function PromptCard({
     console.log("복사 버튼 클릭");
   };
 
+  const hasBackgroundImage = !!backgroundImage;
+
   return (
     <PromptCardContainer
       backgroundImage={backgroundImage}
@@ -36,8 +38,10 @@ export default function PromptCard({
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
       </CardHeader>
-      <CardTitle>{title}</CardTitle>
-      <CardSubTitle>{subtitle}</CardSubTitle>
+      <CardTitle $hasBackgroundImage={hasBackgroundImage}>{title}</CardTitle>
+      <CardSubTitle $hasBackgroundImage={hasBackgroundImage}>
+        {subtitle}
+      </CardSubTitle>
       <ButtonSection>
         <HeartIcon
           src={isHeartClicked ? colorHeartIcon : heartIcon}
@@ -103,9 +107,11 @@ const PromptCardContainer = styled.div`
   width: 18rem;
   height: 10rem;
   aspect-ratio: 2 / 1;
-  background-color: pink;
   border-radius: 1rem;
-  background: #dbf5ff;
+  background: ${({ backgroundImage }) =>
+    backgroundImage
+      ? `url(${backgroundImage}) center / cover no-repeat`
+      : `#dbf5ff;`};
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   outline: none;
@@ -143,14 +149,15 @@ const CardTitle = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: ${({ $hasBackgroundImage }) =>
+    $hasBackgroundImage ? "#fff" : "#000"};
 `;
 
 const CardSubTitle = styled.p`
   width: 100%;
-  font-size: 0.9375rem; /* 15px */
+  font-size: 0.9rem;
   font-weight: 400;
-  line-height: 1.5;
-  margin-top: 0;
+  margin-top: 0.1rem;
   flex: 1;
   min-height: 0;
   display: -webkit-box;
@@ -159,4 +166,8 @@ const CardSubTitle = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
+  line-height: 1.4;
+  max-height: calc(1rem * 1.4 * 2);
+  color: ${({ $hasBackgroundImage }) =>
+    $hasBackgroundImage ? "#fff" : "#000"};
 `;
