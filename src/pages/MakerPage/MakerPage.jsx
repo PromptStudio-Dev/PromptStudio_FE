@@ -93,7 +93,7 @@ export default function MakerPage() {
         setUpgrades((current) =>
           current.filter((upgrade) => upgrade.id !== upgradeId)
         );
-      }, 5000);
+      }, 3000);
 
       return prev.map((upgrade) =>
         // isApplied: true 로 변경하여 수락 상태 표시

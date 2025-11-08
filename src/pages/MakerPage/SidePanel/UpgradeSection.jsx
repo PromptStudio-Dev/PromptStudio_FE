@@ -19,7 +19,7 @@ export default function UpgradeSection({
         {upgrades.map((upgrade) => (
           <UpgradeCard
             key={upgrade.id}
-            title={upgrade.title}
+            // title={upgrade.title}
             content={upgrade.content}
             isApplied={upgrade.isApplied}
             onAccept={() => onAccept?.(upgrade.id)}
