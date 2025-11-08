@@ -523,8 +523,7 @@ const ContentArea = styled.div`
 `;
 
 const Section = styled.div`
-  margin-bottom: 2.5rem;
-
+  margin-bottom: 2rem;
   &:last-child {
     margin-bottom: 0;
   }
