@@ -77,7 +77,7 @@ const ListWrapper = styled.div`
   gap: 1rem;
   overflow-x: hidden;
   overflow-y: hidden;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.2rem;
   scroll-behavior: smooth;
 `;
 
