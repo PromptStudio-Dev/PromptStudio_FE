@@ -18,18 +18,14 @@ export default function PromptCard({
     setIsHeartClicked((prev) => !prev);
   };
 
-  const hasBackgroundImage = !!backgroundImage;
-
   return (
     <PromptCardContainer backgroundImage={backgroundImage}>
       <CardHeader>
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
       </CardHeader>
-      <CardTitle $hasBackgroundImage={hasBackgroundImage}>{title}</CardTitle>
-      <CardSubTitle $hasBackgroundImage={hasBackgroundImage}>
-        {subtitle}
-      </CardSubTitle>
+      <CardTitle>{title}</CardTitle>
+      <CardSubTitle>{subtitle}</CardSubTitle>
       <ButtonSection>
         <HeartIcon
           src={isHeartClicked ? colorHeartIcon : heartIcon}
@@ -60,7 +56,7 @@ const CopyIcon = styled.img`
 
 const ButtonSection = styled.div`
   display: flex;
-  margin-top: auto;
+  margin-top: 0.3rem;
   justify-content: flex-end;
 `;
 
@@ -119,31 +115,22 @@ const CategoryTag = styled.div`
 
 const CardTitle = styled.p`
   width: 100%;
+  height: 1.1875rem;
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
-  line-height: 1.4;
   margin-top: 0.69rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: ${({ $hasBackgroundImage }) => ($hasBackgroundImage ? "#fff" : "#000")};
 `;
 
 const CardSubTitle = styled.p`
   width: 100%;
   font-size: 1rem;
   font-weight: 400;
-  margin-top: 0.1rem;
-  flex: 1;
-  min-height: 0;
+  margin-top: 0.5rem;
+  overflow-wrap: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  word-break: break-word;
-  line-height: 1.4;
-  max-height: calc(1rem * 1.4 * 2);
-  color: ${({ $hasBackgroundImage }) => ($hasBackgroundImage ? "#fff" : "#000")};
 `;
