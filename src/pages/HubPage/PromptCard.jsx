@@ -18,14 +18,18 @@ export default function PromptCard({
     setIsHeartClicked((prev) => !prev);
   };
 
+  const hasBackgroundImage = !!backgroundImage;
+
   return (
     <PromptCardContainer backgroundImage={backgroundImage}>
       <CardHeader>
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
       </CardHeader>
-      <CardTitle>{title}</CardTitle>
-      <CardSubTitle>{subtitle}</CardSubTitle>
+      <CardTitle $hasBackgroundImage={hasBackgroundImage}>{title}</CardTitle>
+      <CardSubTitle $hasBackgroundImage={hasBackgroundImage}>
+        {subtitle}
+      </CardSubTitle>
       <ButtonSection>
         <HeartIcon
           src={isHeartClicked ? colorHeartIcon : heartIcon}
@@ -123,6 +127,7 @@ const CardTitle = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: ${({ $hasBackgroundImage }) => ($hasBackgroundImage ? "#fff" : "#000")};
 `;
 
 const CardSubTitle = styled.p`
@@ -140,4 +145,5 @@ const CardSubTitle = styled.p`
   word-break: break-word;
   line-height: 1.4;
   max-height: calc(1rem * 1.4 * 2);
+  color: ${({ $hasBackgroundImage }) => ($hasBackgroundImage ? "#fff" : "#000")};
 `;

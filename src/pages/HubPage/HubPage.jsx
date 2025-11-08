@@ -186,6 +186,7 @@ export default function HubPage() {
                       aiName={prompt.aiEnvironment ?? "AI"}
                       title={prompt.title ?? "제목 미상"}
                       subtitle={prompt.introduction ?? ""}
+                      backgroundImage={prompt.imageUrl || ""}
                     />
                   ))
                 )}
@@ -210,6 +211,7 @@ export default function HubPage() {
                   aiName={prompt.aiEnvironment ?? "AI"}
                   title={prompt.title ?? "제목 미상"}
                   subtitle={prompt.introduction ?? ""}
+                  backgroundImage={prompt.imageUrl || ""}
                 />
               ))
             )}
