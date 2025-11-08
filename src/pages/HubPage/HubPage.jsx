@@ -32,7 +32,7 @@ export default function HubPage() {
         const { data } = await apiClient.get("/api/prompts/hot", {
           params: {
             memberId: 1,
-            category: "전체",
+            category: selectedCategory,
           },
           signal: controller.signal,
         });
@@ -72,7 +72,7 @@ export default function HubPage() {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [selectedCategory]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -148,29 +148,6 @@ export default function HubPage() {
           </SearchBar>
         </SearchSection>
         <CardSection>
-          <HottestPrompt>
-            <HotImg src={HotIcon} alt="Hot prompt icon" />
-            <HotText>지금 인기 있는 프롬프트</HotText>
-          </HottestPrompt>
-          <PromptCards>
-            {isHotLoading ? (
-              <StatusMessage>인기 프롬프트를 불러오는 중입니다.</StatusMessage>
-            ) : hotError ? (
-              <StatusMessage>{hotError}</StatusMessage>
-            ) : hottestPreview.length === 0 ? (
-              <StatusMessage>표시할 인기 프롬프트가 없습니다.</StatusMessage>
-            ) : (
-              hottestPreview.map((prompt) => (
-                <PromptCard
-                  key={prompt.promptId ?? `${prompt.title}-${prompt.memberId}`}
-                  category={prompt.category ?? "미분류"}
-                  aiName={prompt.aiEnvironment ?? "AI"}
-                  title={prompt.title ?? "제목 미상"}
-                  subtitle={prompt.introduction ?? ""}
-                />
-              ))
-            )}
-          </PromptCards>
           <CategoryList>
             {categories.map((category) => (
               <CategoryTag
@@ -182,6 +159,40 @@ export default function HubPage() {
               />
             ))}
           </CategoryList>
+          <HotSectionWrapper>
+            <HottestPrompt>
+              <HotImg src={HotIcon} alt="Hot prompt icon" />
+              <HotText>지금 인기 있는 프롬프트</HotText>
+            </HottestPrompt>
+            <HotSection>
+              <PromptCards>
+                {isHotLoading ? (
+                  <StatusMessage>
+                    인기 프롬프트를 불러오는 중입니다.
+                  </StatusMessage>
+                ) : hotError ? (
+                  <StatusMessage>{hotError}</StatusMessage>
+                ) : hottestPreview.length === 0 ? (
+                  <StatusMessage>
+                    표시할 인기 프롬프트가 없습니다.
+                  </StatusMessage>
+                ) : (
+                  hottestPreview.map((prompt) => (
+                    <PromptCard
+                      key={
+                        prompt.promptId ?? `${prompt.title}-${prompt.memberId}`
+                      }
+                      category={prompt.category ?? "미분류"}
+                      aiName={prompt.aiEnvironment ?? "AI"}
+                      title={prompt.title ?? "제목 미상"}
+                      subtitle={prompt.introduction ?? ""}
+                    />
+                  ))
+                )}
+              </PromptCards>
+            </HotSection>
+          </HotSectionWrapper>
+
           <PromptCards>
             {isCategoryLoading ? (
               <StatusMessage>프롬프트를 불러오는 중입니다.</StatusMessage>
@@ -224,16 +235,38 @@ const HotText = styled.p`
   line-height: normal;
 `;
 
+const HotSectionWrapper = styled.div`
+  position: relative;
+  margin-bottom: 1.19rem;
+  margin-left: -1.44rem;
+  margin-right: -1.44rem;
+  margin-top: calc(15rem * 43 / 239 / 2);
+`;
+
+const HotSection = styled.div`
+  border-radius: 1.25rem;
+  border: 1px solid #9eeaff;
+  padding-top: 2rem;
+  padding-left: 1.44rem;
+  padding-right: 1.44rem;
+  padding-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+`;
+
 const HottestPrompt = styled.div`
   width: 15rem;
   aspect-ratio: 239 / 43;
-  margin-top: 2.38rem;
-  margin-bottom: 1rem;
+  position: absolute;
+  top: calc(-15rem * 43 / 239 / 2);
+  left: 1.44rem;
   background: #00c8ff;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 10rem;
+  z-index: 2;
 `;
 
 const SearchInput = styled.input`
@@ -251,11 +284,14 @@ const SearchInput = styled.input`
 const CardSection = styled.div`
   display: flex;
   flex-direction: column;
-  width: 80%;
-  height: 83.4%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
   background-color: #fff;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 0 10%;
+  padding-bottom: 6rem;
 `;
 
 const CategoryList = styled.div`
@@ -276,10 +312,11 @@ const StatusMessage = styled.p`
 
 const PromptCards = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  row-gap: 1.5rem;
+  gap: 1.5rem 2rem;
   width: 100%;
+  align-content: flex-start;
 `;
 
 const SearchIcon = styled.img`
@@ -309,7 +346,9 @@ const LeftSection = styled.section`
   align-items: center;
   width: 67vw;
   height: 100vh;
+  max-height: 100vh;
   background-color: #fff;
+  overflow: hidden;
 `;
 
 const SearchSection = styled.section`
@@ -317,7 +356,8 @@ const SearchSection = styled.section`
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 16.6%;
+  min-height: 16.6vh;
+  flex-shrink: 0;
   background-color: #f1f1f1;
 `;
 
