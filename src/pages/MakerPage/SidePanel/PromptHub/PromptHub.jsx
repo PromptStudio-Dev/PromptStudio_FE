@@ -369,8 +369,8 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
                   category={prompt.category}
                   aiName={prompt.aiName}
                   title={prompt.title}
-                  subtitle={prompt.subtitle}
-                  backgroundImage={prompt.backgroundImage}
+                  subtitle={prompt.introduction}
+                  backgroundImage={prompt.imageUrl}
                   onClick={() => handleCardClick(prompt.id)}
                 />
               ))}
