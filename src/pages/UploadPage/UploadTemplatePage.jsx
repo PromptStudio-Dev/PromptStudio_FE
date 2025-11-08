@@ -21,8 +21,6 @@ export default function UploadTemplatePage({
   const textareaRef = useRef(null);
   const inputBlockRef = useRef(null);
   const inputFieldRef = useRef(null);
-  const textOverlayRef = useRef(null);
-  const contentInputWrapperRef = useRef(null);
 
   const handleImageRequiredChange = (value) => {
     setImageRequired(value);
@@ -125,25 +123,6 @@ export default function UploadTemplatePage({
     }
   };
 
-  // ContentInput의 높이를 동적으로 조정하고 TextOverlay와 동기화
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    const textOverlay = textOverlayRef.current;
-    if (!textarea) return;
-
-    // 최소 높이 설정
-    const minHeight = window.innerHeight * 0.35;
-    textarea.style.height = "auto";
-    const scrollHeight = textarea.scrollHeight;
-    const newHeight = Math.max(scrollHeight, minHeight);
-    textarea.style.height = `${newHeight}px`;
-
-    // TextOverlay의 높이도 동일하게 설정
-    if (textOverlay) {
-      textOverlay.style.height = `${newHeight}px`;
-    }
-  }, [content]);
-
   // 외부 클릭 감지
   useEffect(() => {
     if (!showInputBlock) return;
@@ -176,15 +155,8 @@ export default function UploadTemplatePage({
         [주제], [자기소개서 초안] 처럼 다른 사용자들에게 입력 받고 싶은 항목을
         대괄호로 감싸주세요.
       </Explain>
-      <ContentInputWrapper
-        ref={contentInputWrapperRef}
-        onScroll={() => {
-          if (showInputBlock) {
-            handleCancel();
-          }
-        }}
-      >
-        <TextOverlay ref={textOverlayRef}>
+      <ContentInputWrapper>
+        <TextOverlay>
           {content.substring(0, selectedText.start)}
           {showInputBlock && (
             <HighlightedText>
@@ -365,18 +337,14 @@ const ContentInputWrapper = styled.div`
   width: 100%;
   margin-bottom: 1.19rem;
   min-height: 35vh;
-  max-height: 35vh;
-  overflow-y: auto;
-  border-radius: 1rem;
-  border: 0.125rem solid var(--Light-blue, #49d8ff);
 `;
 
 const ContentInput = styled.textarea`
   width: 100%;
-  min-height: 35vh;
+  height: 35vh;
   border-radius: 1rem;
   padding: 1.94rem 2.44rem;
-  border: none;
+  border: 0.125rem solid var(--Light-blue, #49d8ff);
   resize: none;
   vertical-align: top;
   outline: none;
@@ -388,9 +356,9 @@ const ContentInput = styled.textarea`
   background: transparent;
   color: transparent;
   caret-color: #454545;
-  overflow: hidden;
 
   &:focus {
+    border: 0.125rem solid var(--Light-blue, #49d8ff);
     outline: none;
   }
 
@@ -405,11 +373,10 @@ const ContentInput = styled.textarea`
 
 const TextOverlay = styled.div`
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 1.94rem;
+  left: 2.44rem;
   width: calc(100% - 4.88rem);
-  min-height: 35vh;
-  padding: 1.94rem 2.44rem;
+  height: calc(35vh - 3.88rem);
   pointer-events: none;
   z-index: 1;
   font-family: Pretendard;
@@ -419,7 +386,9 @@ const TextOverlay = styled.div`
   word-wrap: break-word;
   overflow-wrap: break-word;
   color: #454545;
-  box-sizing: border-box;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 `;
 
 const HighlightedText = styled.span`
