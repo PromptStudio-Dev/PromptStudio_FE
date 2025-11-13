@@ -8,6 +8,7 @@ export default function SearchInput({
   onChange,
   onSearch,
   placeholder = "검색어를 입력하세요",
+  width,
 }) {
   const handleInputChange = (event) => {
     onChange?.(event.target.value);
@@ -23,9 +24,8 @@ export default function SearchInput({
   const handleSearchClick = () => {
     onSearch?.();
   };
-
   return (
-    <SearchContainer>
+    <SearchContainer $width={width}>
       <SearchButton onClick={handleSearchClick}>
         <SearchButtonIcon src={SearchButtonImg} />
       </SearchButton>
@@ -41,7 +41,7 @@ export default function SearchInput({
 
 // 1. 전체를 감싸는 div (여기 에 모든 겉모양 스타일을 적용)
 const SearchContainer = styled.div`
-  width: 18.23vw; /* 350px @ 1920px */
+  width: ${(props) => props.$width ?? "18.23vw"}; /* 350px @ 1920px */
   height: 4.54vh; /* 49px @ 1080px */
   background-color: #ffffff;
   border: 0.0625rem solid #aadff7;
