@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
 import ResultPanel from "./ResultPanel/ResultPanel";
 import apiClient from "../../api/client";
 
-export default function MakerPage() {
+export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(true);
   const [upgrades, setUpgrades] = useState([]);
-  const [promptContent, setPromptContent] = useState("");
+  const [promptContent, setPromptContent] = useState(
+    selectedPrompt?.content ?? ""
+  );
   const [latestUpgradeId, setLatestUpgradeId] = useState(null);
+
+  useEffect(() => {
+    setPromptContent(selectedPrompt?.content ?? "");
+    setUpgrades([]);
+    setLatestUpgradeId(null);
+  }, [selectedPrompt]);
 
   // 프롬프트 업그레이드 API 연동
   const handleUpgradeRequest = async ({
@@ -22,7 +30,7 @@ export default function MakerPage() {
     console.log("업그레이드 요청:", { selectedText, upgradeRequest });
 
     try {
-      const makerId = 1; // TODO: 실제 로그인한 사용자의 makerId로 교체
+      const makerId = selectedPrompt?.makerId ?? 1; // TODO: 실제 로그인한 사용자의 makerId로 교체
 
       const { data } = await apiClient.post(
         `/api/makers/${makerId}/upgrade-text`,
