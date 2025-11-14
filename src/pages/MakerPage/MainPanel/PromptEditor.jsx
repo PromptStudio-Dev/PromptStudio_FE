@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
 
@@ -25,6 +25,13 @@ export default function PromptEditor({
     setSelectionRange(null);
     setSelectedText("");
   };
+
+  // activeUpgradeId가 null이 되면 (UpgradeCardDetail에서 처리 완료 시) 모달 닫기
+  useEffect(() => {
+    if (activeUpgradeId === null && showModal) {
+      resetSelectionState();
+    }
+  }, [activeUpgradeId]);
 
   const handleMouseUp = (event) => {
     const textarea = textareaRef.current;
