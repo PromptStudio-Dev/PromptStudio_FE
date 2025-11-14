@@ -11,6 +11,9 @@ export default function PromptCard({
   title = "default 제목",
   subtitle = "defaultsubtitlesdfsdfdsfdssdfdfsfdsjkfsjfsdsdfjlkdsfjklsdfjsflsjdkfljfsklfjdsflksjlfssfjslskf",
   backgroundImage = "",
+  draggable = false,
+  onDragStart,
+  onDragEnd,
 }) {
   const [isHeartClicked, setIsHeartClicked] = useState(false);
 
@@ -19,7 +22,13 @@ export default function PromptCard({
   };
 
   return (
-    <PromptCardContainer backgroundImage={backgroundImage}>
+    <PromptCardContainer
+      backgroundImage={backgroundImage}
+      draggable={draggable}
+      $isDraggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+    >
       <CardHeader>
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
@@ -99,6 +108,7 @@ const PromptCardContainer = styled.div`
           rgba(175, 225, 255, 0.8) 86.93%,
           rgba(115, 186, 236, 0.8) 109.05%
         )`};
+  cursor: ${({ $isDraggable }) => ($isDraggable ? "grab" : "default")};
 `;
 
 const CategoryTag = styled.div`
