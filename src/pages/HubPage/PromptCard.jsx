@@ -33,8 +33,10 @@ export default function PromptCard({
         <CategoryTag>{category}</CategoryTag>
         <PromptAiName>{aiName}</PromptAiName>
       </CardHeader>
-      <CardTitle>{title}</CardTitle>
-      <CardSubTitle>{subtitle}</CardSubTitle>
+      <CardTitle $hasBackgroundImage={!!backgroundImage}>{title}</CardTitle>
+      <CardSubTitle $hasBackgroundImage={!!backgroundImage}>
+        {subtitle}
+      </CardSubTitle>
       <ButtonSection>
         <HeartIcon
           src={isHeartClicked ? colorHeartIcon : heartIcon}
@@ -99,6 +101,7 @@ const PromptCardContainer = styled.div`
   aspect-ratio: 2/1;
   background-color: pink;
   border-radius: 1rem;
+  position: relative;
   background: ${({ backgroundImage }) =>
     backgroundImage
       ? `url(${backgroundImage}) center / cover no-repeat`
@@ -109,6 +112,25 @@ const PromptCardContainer = styled.div`
           rgba(115, 186, 236, 0.8) 109.05%
         )`};
   cursor: ${({ $isDraggable }) => ($isDraggable ? "grab" : "default")};
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: ${({ backgroundImage }) =>
+      backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
+    border-radius: 1rem;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 `;
 
 const CategoryTag = styled.div`
@@ -133,6 +155,8 @@ const CardTitle = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: ${({ $hasBackgroundImage }) =>
+    $hasBackgroundImage ? "#ffffff" : "#000000"};
 `;
 
 const CardSubTitle = styled.p`
@@ -151,4 +175,6 @@ const CardSubTitle = styled.p`
   word-break: break-word;
   line-height: 1.4;
   max-height: calc(1rem * 1.4 * 2);
+  color: ${({ $hasBackgroundImage }) =>
+    $hasBackgroundImage ? "#ffffff" : "#000000"};
 `;
