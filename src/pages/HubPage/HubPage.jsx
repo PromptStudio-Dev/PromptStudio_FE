@@ -11,6 +11,7 @@ import studyIcon from "./assets/studyIcon.svg";
 import PromptCard from "./PromptCard";
 import CategoryTag from "./CategoryTag";
 import apiClient from "../../api/client";
+import ChatBar from "../../components/ChatSection/ChatBar";
 
 export default function HubPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
@@ -20,6 +21,24 @@ export default function HubPage() {
   const [categoryPrompts, setCategoryPrompts] = useState([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [categoryError, setCategoryError] = useState(null);
+
+  const handlePromptDragStart = (event, promptData) => {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData("application/json", JSON.stringify(promptData));
+    window.dispatchEvent(new Event("prompt-card-dragstart"));
+  };
+
+  const handlePromptDragEnd = () => {
+    window.dispatchEvent(new Event("prompt-card-dragend"));
+  };
+
+  const buildPromptData = (prompt) => ({
+    category: prompt.category ?? "미분류",
+    aiName: prompt.aiEnvironment ?? "AI",
+    title: prompt.title ?? "제목 미상",
+    subtitle: prompt.introduction ?? "",
+    backgroundImage: prompt.imageUrl || "",
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -177,18 +196,23 @@ export default function HubPage() {
                     표시할 인기 프롬프트가 없습니다.
                   </StatusMessage>
                 ) : (
-                  hottestPreview.map((prompt) => (
-                    <PromptCard
-                      key={
-                        prompt.promptId ?? `${prompt.title}-${prompt.memberId}`
-                      }
-                      category={prompt.category ?? "미분류"}
-                      aiName={prompt.aiEnvironment ?? "AI"}
-                      title={prompt.title ?? "제목 미상"}
-                      subtitle={prompt.introduction ?? ""}
-                      backgroundImage={prompt.imageUrl || ""}
-                    />
-                  ))
+                  hottestPreview.map((prompt) => {
+                    const promptData = buildPromptData(prompt);
+                    return (
+                      <PromptCard
+                        key={
+                          prompt.promptId ??
+                          `${prompt.title}-${prompt.memberId}`
+                        }
+                        {...promptData}
+                        draggable
+                        onDragStart={(event) =>
+                          handlePromptDragStart(event, promptData)
+                        }
+                        onDragEnd={handlePromptDragEnd}
+                      />
+                    );
+                  })
                 )}
               </PromptCards>
             </HotSection>
@@ -204,21 +228,29 @@ export default function HubPage() {
                 선택한 카테고리의 프롬프트가 없습니다.
               </StatusMessage>
             ) : (
-              categoryPrompts.map((prompt) => (
-                <PromptCard
-                  key={prompt.promptId ?? `${prompt.title}-${prompt.memberId}`}
-                  category={prompt.category ?? "미분류"}
-                  aiName={prompt.aiEnvironment ?? "AI"}
-                  title={prompt.title ?? "제목 미상"}
-                  subtitle={prompt.introduction ?? ""}
-                  backgroundImage={prompt.imageUrl || ""}
-                />
-              ))
+              categoryPrompts.map((prompt) => {
+                const promptData = buildPromptData(prompt);
+                return (
+                  <PromptCard
+                    key={
+                      prompt.promptId ?? `${prompt.title}-${prompt.memberId}`
+                    }
+                    {...promptData}
+                    draggable
+                    onDragStart={(event) =>
+                      handlePromptDragStart(event, promptData)
+                    }
+                    onDragEnd={handlePromptDragEnd}
+                  />
+                );
+              })
             )}
           </PromptCards>
         </CardSection>
       </LeftSection>
-      <RightSection></RightSection>
+      <RightSection>
+        <ChatBar />
+      </RightSection>
     </MainSection>
   );
 }
@@ -329,7 +361,9 @@ const SearchIcon = styled.img`
 `;
 const MainSection = styled.div`
   display: flex;
+  height: 100%;
   font-family: "Pretendard Variable", sans-serif;
+  overflow: hidden;
 `;
 
 const SearchBar = styled.div`
@@ -347,8 +381,8 @@ const LeftSection = styled.section`
   flex-direction: column;
   align-items: center;
   width: 67vw;
-  height: 100vh;
-  max-height: 100vh;
+  height: 100%;
+  max-height: 100%;
   background-color: #fff;
   overflow: hidden;
 `;
@@ -360,12 +394,16 @@ const SearchSection = styled.section`
   width: 100%;
   min-height: 16.6vh;
   flex-shrink: 0;
-  background-color: #F5FCFF;
+  background-color: #f5fcff;
 `;
 
 const RightSection = styled.section`
   width: 33vw;
-  height: 100vh;
-  border-left: 1px solid #AADFF7;
+  height: 100%;
+  max-height: 100%;
+  border-left: 1px solid #aadff7;
   background: #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 `;
