@@ -15,6 +15,8 @@ import ChatBar from "../../components/ChatSection/ChatBar";
 
 export default function HubPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [hottestPrompts, setHottestPrompts] = useState([]);
   const [isHotLoading, setIsHotLoading] = useState(false);
   const [hotError, setHotError] = useState(null);
@@ -39,6 +41,18 @@ export default function HubPage() {
     subtitle: prompt.introduction ?? "",
     backgroundImage: prompt.imageUrl || "",
   });
+
+  const handleSearchInputChange = (e) => {
+    setSearchInputValue(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      // 엔터키 입력 시 검색 쿼리 업데이트 (검색 실행)
+      const trimmedValue = e.target.value.trim();
+      setSearchQuery(trimmedValue);
+    }
+  };
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,6 +110,49 @@ export default function HubPage() {
   useEffect(() => {
     const controller = new AbortController();
 
+    const fetchSearchPrompts = async () => {
+      setIsCategoryLoading(true);
+      setCategoryError(null);
+
+      try {
+        const { data } = await apiClient.get("/api/prompts/search", {
+          params: {
+            q: searchQuery.trim(),
+            category: selectedCategory,
+            memberId: 1,
+          },
+          signal: controller.signal,
+        });
+
+        console.log("검색 프롬프트 응답 데이터:", data);
+
+        setCategoryPrompts(Array.isArray(data) ? data : []);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("검색 결과를 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "검색 결과를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setCategoryError(errorMessage);
+      } finally {
+        setIsCategoryLoading(false);
+      }
+    };
+
     const fetchCategoryPrompts = async () => {
       setIsCategoryLoading(true);
       setCategoryError(null);
@@ -138,12 +195,17 @@ export default function HubPage() {
       }
     };
 
-    fetchCategoryPrompts();
+    // 검색어가 있으면 검색 API 호출, 없으면 카테고리 API 호출
+    if (searchQuery.trim()) {
+      fetchSearchPrompts();
+    } else {
+      fetchCategoryPrompts();
+    }
 
     return () => {
       controller.abort();
     };
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]);
 
   const categories = [
     { name: "전체", img: "" },
@@ -163,7 +225,12 @@ export default function HubPage() {
         <SearchSection>
           <SearchBar>
             <SearchIcon src={SearchIconImg} />
-            <SearchInput placeholder="프로의 프롬프트로 최고의 결과물을 사냥하세요" />
+            <SearchInput
+              placeholder="프로의 프롬프트로 최고의 결과물을 사냥하세요"
+              value={searchInputValue}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleSearchKeyDown}
+            />
           </SearchBar>
         </SearchSection>
         <CardSection>
