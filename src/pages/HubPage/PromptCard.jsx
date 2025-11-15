@@ -101,6 +101,7 @@ const PromptCardContainer = styled.div`
   aspect-ratio: 2/1;
   background-color: pink;
   border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
   background: ${({ backgroundImage }) =>
     backgroundImage
