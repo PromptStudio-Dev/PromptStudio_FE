@@ -27,10 +27,55 @@ export default function HubPage() {
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("application/json", JSON.stringify(promptData));
+
+    // 드래그 이미지에 border-radius가 포함되도록 요소를 복제하여 사용
+    const dragElement = event.currentTarget;
+    if (dragElement) {
+      const rect = dragElement.getBoundingClientRect();
+
+      // 요소를 복제하여 모든 스타일(border-radius 포함)을 유지
+      const dragImage = dragElement.cloneNode(true);
+
+      // 복제된 요소에 원본의 모든 computed style 적용
+      const computedStyle = window.getComputedStyle(dragElement);
+      dragImage.style.cssText = computedStyle.cssText;
+      dragImage.style.position = "absolute";
+      dragImage.style.top = "-9999px";
+      dragImage.style.left = "-9999px";
+      dragImage.style.width = `${rect.width}px`;
+      dragImage.style.height = `${rect.height}px`;
+      dragImage.style.margin = "0";
+      dragImage.style.transform = "none";
+      dragImage.style.opacity = "1";
+
+      // 드래그 중 원본 요소의 모서리가 보이지 않도록 임시로 숨김
+      dragElement.style.opacity = "0";
+
+      document.body.appendChild(dragImage);
+
+      // 복제된 요소를 드래그 이미지로 사용 (border-radius 포함)
+      event.dataTransfer.setDragImage(
+        dragImage,
+        rect.width / 2,
+        rect.height / 2
+      );
+
+      // 드래그 이미지 설정 후 복제된 요소 제거
+      setTimeout(() => {
+        if (document.body.contains(dragImage)) {
+          document.body.removeChild(dragImage);
+        }
+      }, 0);
+    }
+
     window.dispatchEvent(new Event("prompt-card-dragstart"));
   };
 
-  const handlePromptDragEnd = () => {
+  const handlePromptDragEnd = (event) => {
+    // 드래그 종료 시 원본 요소의 opacity 복원
+    if (event?.currentTarget) {
+      event.currentTarget.style.opacity = "1";
+    }
     window.dispatchEvent(new Event("prompt-card-dragend"));
   };
 
