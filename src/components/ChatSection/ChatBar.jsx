@@ -1,58 +1,61 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import AttachmentIcon from "./assets/imageAttachIcon.svg";
-import sendPossibleIcon from "./assets/sendPossibleIcon.svg";
-import DownIcon from "./assets/downIcon.svg";
+
+// 커스텀 훅들
+import { useDragDrop } from "./hooks/useDragDrop";
+import { useImageAttachment } from "./hooks/useImageAttachment";
+import { useTextareaAutoResize } from "./hooks/useTextareaAutoResize";
+import { useLayoutCalculation } from "./hooks/useLayoutCalculation";
+
+// 컴포넌트들
+import DroppedPromptPreview from "./components/DroppedPromptPreview";
+import AttachedImagesPreview from "./components/AttachedImagesPreview";
+import ChatSendBox from "./components/ChatSendBox";
+import ChatMessage from "./components/ChatMessage";
+import PromptDropModal from "./components/PromptDropModal";
 
 export default function ChatBar() {
   const [droppedPrompt, setDroppedPrompt] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [isPromptDragging, setIsPromptDragging] = useState(false);
-  const [attachedImages, setAttachedImages] = useState([]);
-  const textareaRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const promptPreviewRef = useRef(null);
-  const imagesPreviewRef = useRef(null);
-  const chatSendBoxRef = useRef(null);
-  const chatSendAreaRef = useRef(null);
-  const savedPromptHeightRef = useRef(null);
-  const [previewHeightPx, setPreviewHeightPx] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [textareaValue, setTextareaValue] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingPromptData, setPendingPromptData] = useState(null);
+  const chatViewSectionRef = useRef(null);
 
-  useEffect(() => {
-    const handlePromptDragStartEvent = () => setIsPromptDragging(true);
-    const handlePromptDragEndEvent = () => {
-      setIsPromptDragging(false);
-      setIsDragOver(false);
-    };
+  // 커스텀 훅들 사용
+  const { isHighlighted, handleDragOver } = useDragDrop();
+  const {
+    attachedImages,
+    fileInputRef,
+    handleImageAttachClick,
+    handleImageSelect,
+    handleImageRemove,
+    clearImages,
+  } = useImageAttachment();
+  const { textareaRef, handleTextareaChange: originalHandleTextareaChange } =
+    useTextareaAutoResize();
 
-    window.addEventListener(
-      "prompt-card-dragstart",
-      handlePromptDragStartEvent
-    );
-    window.addEventListener("prompt-card-dragend", handlePromptDragEndEvent);
-
-    return () => {
-      window.removeEventListener(
-        "prompt-card-dragstart",
-        handlePromptDragStartEvent
-      );
-      window.removeEventListener(
-        "prompt-card-dragend",
-        handlePromptDragEndEvent
-      );
-    };
-  }, []);
-
-  const handleDragOver = (event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = "copy";
-    setIsDragOver(true);
+  // textarea 변경 핸들러 래핑
+  const handleTextareaChange = (e) => {
+    originalHandleTextareaChange(e);
+    setTextareaValue(e.target.value);
   };
+  const {
+    previewHeightPx,
+    droppedPromptHeight,
+    droppedPromptWidth,
+    promptPreviewRef,
+    imagesPreviewRef,
+    chatSendBoxRef,
+    chatSendAreaRef,
+  } = useLayoutCalculation(droppedPrompt, attachedImages);
 
+  // 드래그 앤 드롭 핸들러
   const handleDrop = (event) => {
     event.preventDefault();
-    setIsDragOver(false);
-    setIsPromptDragging(false);
+
+    // 드래그 상태 초기화를 위한 이벤트 발생
+    window.dispatchEvent(new Event("prompt-card-dragend"));
 
     try {
       const rawData = event.dataTransfer.getData("application/json");
@@ -60,250 +63,152 @@ export default function ChatBar() {
 
       const parsed = JSON.parse(rawData);
       if (parsed && typeof parsed === "object") {
-        setDroppedPrompt(parsed);
+        // 모달을 띄우고 프롬프트 데이터를 임시 저장
+        setPendingPromptData(parsed);
+        setIsModalOpen(true);
       }
     } catch (error) {
       console.error("드래그 데이터 파싱에 실패했습니다.", error);
     }
   };
 
-  const isHighlighted = isPromptDragging || isDragOver;
-
-  const handleImageAttachClick = () => {
-    fileInputRef.current?.click();
+  // 모달 닫기 핸들러
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setPendingPromptData(null);
   };
 
-  const handleImageSelect = (event) => {
-    const files = Array.from(event.target.files || []);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+  const handleModalApply = ({
+    filledPromptText,
+    fieldValues,
+    originalPromptText,
+    fields,
+  }) => {
+    if (!pendingPromptData) return;
 
-    if (attachedImages.length + imageFiles.length > 6) {
-      alert("이미지는 최대 6장까지 첨부할 수 있습니다.");
-      const remainingSlots = 6 - attachedImages.length;
-      const filesToAdd = imageFiles.slice(0, remainingSlots);
-      addImages(filesToAdd);
-    } else {
-      addImages(imageFiles);
-    }
-
-    // input 초기화 (같은 파일 다시 선택 가능하도록)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const addImages = (files) => {
-    const newImages = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setAttachedImages((prev) => [...prev, ...newImages]);
-  };
-
-  const handleImageRemove = (imageId) => {
-    setAttachedImages((prev) => {
-      const imageToRemove = prev.find((img) => img.id === imageId);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.preview);
-      }
-      return prev.filter((img) => img.id !== imageId);
+    setDroppedPrompt({
+      ...pendingPromptData,
+      promptText: filledPromptText,
+      rawPromptText: originalPromptText,
+      fieldValues,
+      fields,
     });
+    setIsModalOpen(false);
+    setPendingPromptData(null);
   };
 
-  const handleTextareaChange = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  // 메시지 전송 핸들러
+  const handleSendMessage = () => {
+    const textContent = textareaValue.trim() || "";
+    const hasContent =
+      textContent || droppedPrompt || attachedImages.length > 0;
 
-    // 높이를 초기화하여 scrollHeight를 정확히 계산
-    textarea.style.height = "auto";
+    if (!hasContent) return; // 최소 1개 이상의 내용이 있어야 함
 
-    // scrollHeight를 가져와서 높이 설정 (최대 11rem)
-    const scrollHeight = textarea.scrollHeight;
-    const maxHeight = 11 * 16; // 11rem을 px로 변환 (1rem = 16px)
+    let imageLayout = null;
+    if (attachedImages.length > 0 && imagesPreviewRef.current) {
+      const inlineStyle = imagesPreviewRef.current.style;
+      const imagesRect = imagesPreviewRef.current.getBoundingClientRect();
+      imageLayout = {
+        gridTemplateColumns:
+          inlineStyle.getPropertyValue("--grid-template-columns") || "",
+        gridTemplateRows:
+          inlineStyle.getPropertyValue("--grid-template-rows") || "",
+        imageSize: inlineStyle.getPropertyValue("--image-size") || "",
+        hasPrompt: !!droppedPrompt,
+        fixedHeight: previewHeightPx,
+        width: imagesRect?.width || null,
+        height: imagesRect?.height || null,
+      };
+    }
 
-    if (scrollHeight <= maxHeight) {
-      textarea.style.height = `${scrollHeight}px`;
-    } else {
-      textarea.style.height = `${maxHeight}px`;
+    // 메시지 생성
+    const newMessage = {
+      id: Date.now(),
+      content: {
+        text: textContent,
+        promptCard: droppedPrompt,
+        images: attachedImages.map(({ id, preview }) => ({
+          id,
+          preview,
+        })), // 이미지 최소 정보 복사
+      },
+      promptCardHeight: droppedPromptHeight, // 프롬프트 카드의 실제 높이 저장
+      promptCardWidth: droppedPromptWidth,
+      imageLayout,
+      timestamp: new Date(),
+    };
+
+    // 메시지 추가
+    setMessages((prev) => [...prev, newMessage]);
+
+    // 로딩 메시지 추가
+    const loadingMessageId = Date.now() + 1;
+    const loadingMessage = {
+      id: loadingMessageId,
+      type: "loading",
+      content: {
+        text: "결과 사냥중...",
+      },
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, loadingMessage]);
+
+    // 응답 메시지 추가 (더미 데이터) - 3초 후
+    setTimeout(() => {
+      // 로딩 메시지 제거
+      setMessages((prev) => prev.filter((msg) => msg.id !== loadingMessageId));
+
+      const assistantMessage = {
+        id: Date.now() + 2,
+        type: "assistant",
+        content: {
+          text: "이것은 응답 메시지입니다. 실제 API 연동 시 여기에 서버로부터 받은 응답이 표시됩니다.",
+        },
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    }, 3000); // 3초 후 응답 메시지 추가
+
+    // 전송 후 상태 초기화
+    if (textareaRef.current) {
+      textareaRef.current.value = "";
+      // 높이를 초기값으로 복귀 (placeholder가 있을 때의 실제 높이 측정)
+      textareaRef.current.style.height = "auto";
+      const defaultHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${defaultHeight}px`;
+    }
+    setTextareaValue("");
+    setDroppedPrompt(null);
+    clearImages({ keepUrls: true }); // 첨부 이미지 초기화 (URL 유지)
+  };
+
+  // 엔터키 핸들러
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
   };
 
+  // 전송 가능 여부 확인
+  const hasContent =
+    textareaValue.trim() || droppedPrompt || attachedImages.length > 0;
+
+  // 메시지가 추가될 때마다 하단으로 스크롤
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      handleTextareaChange();
-    }
-  }, []);
-
-  useEffect(() => {
-    const measure = () => {
-      if (!chatSendBoxRef.current) return;
-      const rect = chatSendBoxRef.current.getBoundingClientRect();
-      if (!rect || !rect.height) return;
-      savedPromptHeightRef.current = rect.height;
-      setPreviewHeightPx((prev) =>
-        typeof prev === "number" && Math.abs(prev - rect.height) <= 0.5
-          ? prev
-          : rect.height
-      );
-    };
-
-    measure();
-    window.addEventListener("resize", measure);
-    return () => {
-      window.removeEventListener("resize", measure);
-    };
-  }, []);
-
-  // 컴포넌트 언마운트 시 이미지 URL 정리
-  useEffect(() => {
-    return () => {
-      attachedImages.forEach((image) => {
-        URL.revokeObjectURL(image.preview);
-      });
-    };
-  }, [attachedImages]);
-
-  // 이미지 미리보기 높이와 이미지 크기 설정
-  useEffect(() => {
-    if (!imagesPreviewRef.current) return;
-
-    const updateHeight = () => {
-      if (!imagesPreviewRef.current) return;
-
-      // ChatSendBox와 동일한 높이 사용 (없으면 fallback)
-      let heightToUsePx =
-        typeof previewHeightPx === "number" && previewHeightPx > 0
-          ? previewHeightPx
-          : savedPromptHeightRef.current || 0;
-
-      if ((!heightToUsePx || heightToUsePx <= 0) && chatSendBoxRef.current) {
-        const rect = chatSendBoxRef.current.getBoundingClientRect();
-        if (rect && rect.height) {
-          heightToUsePx = rect.height;
-        }
-      }
-
-      if (!heightToUsePx && attachedImages.length > 0) {
-        // 프롬프트 카드가 없고 아직 높이를 모르는 경우 이미지 개수로 계산
-        const gapPx = 8;
-        const imageCount = attachedImages.length;
-        let rows = imageCount <= 3 ? 1 : 2;
-        const minImageSizePx = 80;
-        heightToUsePx = minImageSizePx * rows + (rows - 1) * gapPx;
-      }
-
-      if (!heightToUsePx) {
-        heightToUsePx = 150;
-      }
-
-      savedPromptHeightRef.current = heightToUsePx;
-
-      // 이미지 영역 높이 고정
-      const heightValue = `${heightToUsePx}px`;
-      imagesPreviewRef.current.style.height = heightValue;
-      imagesPreviewRef.current.style.minHeight = heightValue;
-      imagesPreviewRef.current.style.maxHeight = heightValue;
-
-      // 이미지가 있을 때만 그리드 크기 계산
-      if (attachedImages.length > 0) {
-        const gapPx = 8; // 0.5rem = 8px (디자인 기준)
-        const gapBetweenPromptAndImages = 12; // 0.75rem = 12px
-        const imageCount = attachedImages.length;
-        const hasPrompt = !!promptPreviewRef.current;
-
-        // 사용 가능한 width 계산
-        let availableWidthPx = 0;
-        if (chatSendAreaRef.current) {
-          const sendAreaRect = chatSendAreaRef.current.getBoundingClientRect();
-          const totalWidth = sendAreaRect.width;
-
-          if (hasPrompt && promptPreviewRef.current) {
-            const promptRect = promptPreviewRef.current.getBoundingClientRect();
-            const promptWidth = promptRect.width;
-            availableWidthPx =
-              totalWidth - promptWidth - gapBetweenPromptAndImages;
-          } else {
-            availableWidthPx = totalWidth;
-          }
-        }
-
-        const computeLayout = (count) => {
-          if (hasPrompt) {
-            if (count <= 1) return { columns: 1, rows: 1 };
-            if (count === 2) return { columns: 2, rows: 1 };
-            const columns = 3;
-            const rows = Math.min(2, Math.max(1, Math.ceil(count / columns)));
-            return { columns, rows };
-          }
-          if (count <= 1) return { columns: 1, rows: 1 };
-          if (count === 2) return { columns: 2, rows: 1 };
-          const columns = 3;
-          const rows = Math.min(2, Math.max(1, Math.ceil(count / columns)));
-          return { columns, rows };
-        };
-
-        const { columns, rows } = computeLayout(imageCount);
-
-        // 높이 기반 이미지 크기 계산
-        const rowSizePx =
-          rows > 0
-            ? (heightToUsePx - (rows - 1) * gapPx) / rows
-            : heightToUsePx;
-
-        // width 기반 이미지 크기 계산
-        let widthBasedSizePx = 0;
-        if (availableWidthPx > 0 && columns > 0) {
-          widthBasedSizePx =
-            (availableWidthPx - (columns - 1) * gapPx) / columns;
-        }
-
-        // 높이와 width 중 작은 값을 사용하여 정사각형 유지
-        const imageSizePx = Math.max(
-          0,
-          Math.min(
-            rowSizePx,
-            widthBasedSizePx > 0 ? widthBasedSizePx : rowSizePx
-          )
-        );
-
-        imagesPreviewRef.current.style.setProperty(
-          "--grid-template-columns",
-          `repeat(${columns || 1}, ${imageSizePx}px)`
-        );
-        imagesPreviewRef.current.style.setProperty(
-          "--grid-template-rows",
-          `repeat(${rows || 1}, ${imageSizePx}px)`
-        );
-
-        imagesPreviewRef.current.style.setProperty(
-          "--image-size",
-          `${imageSizePx}px`
-        );
-
-        if (
-          typeof previewHeightPx !== "number" ||
-          Math.abs(previewHeightPx - heightToUsePx) > 0.5
-        ) {
-          setPreviewHeightPx(heightToUsePx);
-        }
-      } else {
-        imagesPreviewRef.current.style.removeProperty(
-          "--grid-template-columns"
-        );
-        imagesPreviewRef.current.style.removeProperty("--grid-template-rows");
-        imagesPreviewRef.current.style.removeProperty("--image-size");
-      }
-    };
-
-    // DOM 렌더링 완료 후 높이 측정
-    requestAnimationFrame(() => {
+    if (chatViewSectionRef.current && messages.length > 0) {
+      // DOM 업데이트 후 스크롤을 위해 이중 requestAnimationFrame 사용
       requestAnimationFrame(() => {
-        updateHeight();
+        requestAnimationFrame(() => {
+          if (chatViewSectionRef.current) {
+            chatViewSectionRef.current.scrollTop =
+              chatViewSectionRef.current.scrollHeight;
+          }
+        });
       });
-    });
-  }, [droppedPrompt, attachedImages, previewHeightPx]);
+    }
+  }, [messages.length]);
 
   return (
     <ChatBarContainer
@@ -311,281 +216,57 @@ export default function ChatBar() {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <ChatViewSection></ChatViewSection>
+      <ChatViewSection ref={chatViewSectionRef}>
+        {messages.map((message) => (
+          <ChatMessage key={message.id} message={message} />
+        ))}
+      </ChatViewSection>
       <ChatSendArea ref={chatSendAreaRef}>
-        <HiddenFileInput
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleImageSelect}
-        />
         {droppedPrompt && (
           <DroppedPromptPreview
             ref={promptPreviewRef}
-            $backgroundImage={droppedPrompt.backgroundImage}
-            $fixedHeight={previewHeightPx}
-          >
-            <PreviewRemoveButton
-              type="button"
-              aria-label="미리보기 제거"
-              onClick={() => setDroppedPrompt(null)}
-            >
-              ✕
-            </PreviewRemoveButton>
-            <DroppedPromptHeader>
-              <DroppedPromptCategory>
-                {droppedPrompt.category}
-              </DroppedPromptCategory>
-              <DroppedPromptAiName>{droppedPrompt.aiName}</DroppedPromptAiName>
-            </DroppedPromptHeader>
-            <DroppedPromptTitle>{droppedPrompt.title}</DroppedPromptTitle>
-            <DroppedPromptSubtitle>
-              {droppedPrompt.subtitle}
-            </DroppedPromptSubtitle>
-          </DroppedPromptPreview>
+            backgroundImage={droppedPrompt.backgroundImage}
+            fixedHeight={previewHeightPx}
+            onRemove={() => setDroppedPrompt(null)}
+            category={droppedPrompt.category}
+            aiName={droppedPrompt.aiName}
+            title={droppedPrompt.title}
+            subtitle={droppedPrompt.subtitle}
+          />
         )}
         <AttachedImagesPreview
           ref={imagesPreviewRef}
-          $hasDroppedPrompt={!!droppedPrompt}
-          $imageCount={attachedImages.length}
-          $isHidden={attachedImages.length === 0 && !droppedPrompt}
-        >
-          {attachedImages.map((image) => (
-            <ImagePreviewItem key={image.id}>
-              <ImagePreviewRemoveButton
-                type="button"
-                aria-label="이미지 제거"
-                onClick={() => handleImageRemove(image.id)}
-              >
-                ✕
-              </ImagePreviewRemoveButton>
-              <ImagePreview src={image.preview} alt="첨부된 이미지" />
-            </ImagePreviewItem>
-          ))}
-        </AttachedImagesPreview>
+          attachedImages={attachedImages}
+          hasDroppedPrompt={!!droppedPrompt}
+          imageCount={attachedImages.length}
+          isHidden={attachedImages.length === 0 && !droppedPrompt}
+          onImageRemove={handleImageRemove}
+        />
         <ChatSendBox
           ref={chatSendBoxRef}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          <ChatSendBoxInput
-            ref={textareaRef}
-            placeholder="오늘 어떤 도움을 드릴까요"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onChange={handleTextareaChange}
-            onInput={handleTextareaChange}
-          ></ChatSendBoxInput>
-          <ChatSendBoxBottomSection>
-            <ChatSendBoxImageAttachButton
-              src={AttachmentIcon}
-              alt="이미지 첨부"
-              onClick={handleImageAttachClick}
-              style={{ cursor: "pointer" }}
-            ></ChatSendBoxImageAttachButton>
-            <ChatSendBoxRightGroup>
-              <ChatSendOptionButton type="button">
-                <ChatSendOptionLabel>GPT 5 Plus</ChatSendOptionLabel>
-                <ChatSendOptionIcon src={DownIcon} alt="옵션 선택" />
-              </ChatSendOptionButton>
-              <ChatSendBoxSendMessageButton
-                src={sendPossibleIcon}
-                alt="메시지 전송"
-              ></ChatSendBoxSendMessageButton>
-            </ChatSendBoxRightGroup>
-          </ChatSendBoxBottomSection>
-        </ChatSendBox>
+          textareaRef={textareaRef}
+          handleTextareaChange={handleTextareaChange}
+          fileInputRef={fileInputRef}
+          handleImageAttachClick={handleImageAttachClick}
+          handleImageSelect={handleImageSelect}
+          handleDragOver={handleDragOver}
+          handleDrop={handleDrop}
+          onSendMessage={handleSendMessage}
+          onKeyDown={handleKeyDown}
+          hasContent={hasContent}
+        />
       </ChatSendArea>
+      <PromptDropModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        promptData={pendingPromptData}
+        onApply={handleModalApply}
+      />
     </ChatBarContainer>
   );
 }
 
-const ChatSendBoxInput = styled.textarea`
-  width: 100%;
-  min-height: 4rem;
-  max-height: 11rem;
-  height: 5.5rem;
-  // padding: 1rem 1.25rem;
-  border: none;
-  border-radius: 0.75rem;
-  background: transparent;
-  color: #001e40;
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1rem;
-  line-height: 1.5;
-  resize: none;
-  outline: none;
-  transition: height 0.2s ease;
-  overflow-y: auto;
-  box-sizing: border-box;
-
-  &::placeholder {
-    color: #9bb4c9;
-  }
-`;
-
-const ChatSendArea = styled.div`
-  position: relative;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-`;
-
-const DroppedPromptPreview = styled.div`
-  position: absolute;
-  bottom: calc(100% + 0.75rem);
-  left: 0;
-  width: min(50%, 26rem);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem 1.25rem;
-  border-radius: 0.9rem;
-  background: ${({ $backgroundImage }) =>
-    $backgroundImage
-      ? `url(${$backgroundImage}) center / cover no-repeat`
-      : `linear-gradient(
-          102deg,
-          #e4f7ff 32.44%,
-          rgba(175, 225, 255, 0.8) 86.93%,
-          rgba(115, 186, 236, 0.8) 109.05%
-        )`};
-  box-shadow: 0 0.5rem 1.2rem rgba(0, 30, 64, 0.08);
-  color: #001e40;
-  pointer-events: auto;
-  ${({ $fixedHeight }) =>
-    typeof $fixedHeight === "number" && $fixedHeight > 0
-      ? `
-    height: ${$fixedHeight}px;
-    min-height: ${$fixedHeight}px;
-    max-height: ${$fixedHeight}px;
-    overflow: hidden;
-  `
-      : ""}
-`;
-
-const PreviewRemoveButton = styled.button`
-  position: absolute;
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%);
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  color: #003355;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-
-  ${DroppedPromptPreview}:hover & {
-    opacity: 1;
-  }
-`;
-
-const DroppedPromptHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const DroppedPromptCategory = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 3.5rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.85);
-  font-family: "Pretendard";
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #0079c5;
-`;
-
-const DroppedPromptAiName = styled.span`
-  font-family: "Pretendard";
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #005b92;
-`;
-
-const DroppedPromptTitle = styled.h3`
-  margin: 0;
-  font-family: "Pretendard";
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #001e40;
-`;
-
-const DroppedPromptSubtitle = styled.p`
-  margin: 0;
-  font-family: "Pretendard";
-  font-size: 0.925rem;
-  line-height: 1.45;
-  color: #233243;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const ChatSendBoxBottomSection = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-`;
-
-const ChatSendBoxRightGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
-const ChatSendBoxImageAttachButton = styled.img`
-  width: 1.9375rem;
-  height: 1.9375rem;
-`;
-
-const ChatSendOptionButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-`;
-
-const ChatSendOptionLabel = styled.span`
-  font-family: "Pretendard";
-  font-size: 0.875rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: normal;
-  color: #000;
-`;
-
-const ChatSendOptionIcon = styled.img`
-  width: 1rem;
-  height: 1rem;
-`;
-
-const ChatSendBoxSendMessageButton = styled.img`
-  width: 2.25rem;
-  height: 2.25rem;
-`;
-
+// 스타일 컴포넌트들
 const ChatBarContainer = styled.div`
   width: 100%;
   height: 100%;
@@ -608,87 +289,11 @@ const ChatViewSection = styled.div`
   overflow-y: auto;
 `;
 
-const ChatSendBox = styled.div`
+const ChatSendArea = styled.div`
+  position: relative;
   width: 100%;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.3rem 1rem;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: -1px -1px 16px 0 #ddf4ff, 1px 1px 8px 0 rgba(0, 0, 0, 0.16);
-`;
-
-const HiddenFileInput = styled.input`
-  display: none;
-`;
-
-const AttachedImagesPreview = styled.div`
-  position: absolute;
-  bottom: calc(100% + 0.75rem);
-  left: ${({ $hasDroppedPrompt }) => {
-    if (!$hasDroppedPrompt) return "0";
-    return "calc(min(50%, 26rem) + 0.75rem)";
-  }};
-  width: ${({ $hasDroppedPrompt }) => {
-    // 프롬프트 카드가 있으면 줄임, 없으면 100%
-    if ($hasDroppedPrompt) return "min(50%, 26rem)";
-    return "100%";
-  }};
-  display: ${({ $isHidden }) => ($isHidden ? "none" : "grid")};
-  gap: 0.5rem;
-  padding: 0;
-  pointer-events: auto;
-  align-content: start;
-  overflow-y: auto;
-  box-sizing: border-box;
-  justify-content: start;
-  align-items: start;
-  grid-auto-flow: row;
-  grid-template-rows: var(--grid-template-rows, auto);
-  grid-auto-rows: 0;
-  grid-template-columns: var(--grid-template-columns, auto);
-`;
-
-const ImagePreviewItem = styled.div`
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 0.5rem;
-  overflow: hidden;
-  background: #f5f5f5;
-  width: var(--image-size, auto);
-  height: var(--image-size, auto);
-  max-height: var(--image-size, none);
-`;
-
-const ImagePreview = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const ImagePreviewRemoveButton = styled.button`
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
-
-  ${ImagePreviewItem}:hover & {
-    opacity: 1;
-  }
+  align-items: flex-start;
+  gap: 1rem;
 `;
