@@ -61,7 +61,7 @@ const UploadButton = styled.div`
   padding: 0.5rem 1.56rem;
   min-height: 26px;
   border-radius: 8px;
-  background: var(--Icon-, #001e40);
+  background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
   cursor: pointer;
 `;
 

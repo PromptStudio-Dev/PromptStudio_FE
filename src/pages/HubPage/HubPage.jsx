@@ -268,6 +268,7 @@ export default function HubPage() {
     <MainSection>
       <LeftSection>
         <SearchSection>
+          <SearchLabelLeft>PROMPT</SearchLabelLeft>
           <SearchBar>
             <SearchIcon src={SearchIconImg} />
             <SearchInput
@@ -277,6 +278,7 @@ export default function HubPage() {
               onKeyDown={handleSearchKeyDown}
             />
           </SearchBar>
+          <SearchLabelRight>STUDIO</SearchLabelRight>
         </SearchSection>
         <CardSection>
           <CategoryList>
@@ -443,8 +445,11 @@ const CardSection = styled.div`
 const CategoryList = styled.div`
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
   gap: 0.75rem;
-  margin-top: 2.8rem;
+  height: fit-content;
+  margin-top: 0;
   margin-bottom: 1.69rem;
 `;
 
@@ -481,11 +486,36 @@ const MainSection = styled.div`
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  width: 50%;
-  height: 40%;
+  width: 36%;
+  height: 3.3125rem;
   border-radius: 7.5rem;
   border: 0.0625rem solid var(--Light-blue, #49d8ff);
   background: #fff;
+  position: relative;
+  z-index: 2;
+`;
+
+const SearchLabel = styled.span`
+  display: flex;
+  align-items: center;
+  height: 3.3125rem;
+  padding-top: 0.4rem;
+  color: var(--Light-blue, #49d8ff);
+  font-family: "Instrument Sans", sans-serif;
+  font-size: 3.5rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0.07rem;
+  z-index: 1;
+`;
+
+const SearchLabelLeft = styled(SearchLabel)`
+  margin-right: -1rem;
+`;
+
+const SearchLabelRight = styled(SearchLabel)`
+  margin-left: -1rem;
 `;
 
 const LeftSection = styled.section`
@@ -504,9 +534,9 @@ const SearchSection = styled.section`
   justify-content: center;
   align-items: center;
   width: 100%;
-  min-height: 16.6vh;
+  min-height: 12vh;
   flex-shrink: 0;
-  background-color: #f5fcff;
+  background: none;
 `;
 
 const RightSection = styled.section`
