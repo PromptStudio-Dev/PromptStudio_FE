@@ -416,7 +416,7 @@ export default function MakerShellPage() {
             onClick={handleCreateMaker}
             disabled={isCreatingMaker}
           >
-            <img src={MakerPageIcon} />
+            <MakerPageIconImg src={MakerPageIcon} />
             {isCreatingMaker ? "생성 중..." : "프롬프트 메이커"}
           </PrimaryButton>
         </TopRow>
@@ -438,63 +438,65 @@ export default function MakerShellPage() {
           </ToggleButton>
         </ToggleRow>
 
-        {makerError && <InlineError>{makerError}</InlineError>}
-
-        <CardGrid>
-          {isLoadingMakers ? (
-            <InlineStatus>프롬프트를 불러오는 중...</InlineStatus>
-          ) : makerListError ? (
-            <InlineError>{makerListError}</InlineError>
-          ) : filteredMakers.length === 0 ? (
-            <InlineStatus>검색 결과가 없습니다.</InlineStatus>
-          ) : (
-            paginatedMakers.map((prompt, index) => (
-              <MakerPageCard
-                key={
-                  prompt?.makerId ??
-                  prompt?.promptId ??
-                  prompt?.id ??
-                  `prompt-${index}`
-                }
-                title={prompt.title}
-                description={prompt.introduction}
-                imageUrl={prompt.imageUrl}
-                onClick={() =>
-                  handleSelectMaker(
+        <CardGridContainer>
+          <CardGrid>
+            {isLoadingMakers ? (
+              <InlineStatus>프롬프트를 불러오는 중...</InlineStatus>
+            ) : makerListError ? (
+              <InlineError>{makerListError}</InlineError>
+            ) : filteredMakers.length === 0 ? (
+              <InlineStatus>검색 결과가 없습니다.</InlineStatus>
+            ) : (
+              paginatedMakers.map((prompt, index) => (
+                <MakerPageCard
+                  key={
                     prompt?.makerId ??
-                      prompt?.promptId ??
-                      prompt?.id ??
-                      prompt?.makerID
-                  )
-                }
-              />
-            ))
-          )}
-        </CardGrid>
+                    prompt?.promptId ??
+                    prompt?.id ??
+                    `prompt-${index}`
+                  }
+                  title={prompt.title}
+                  description={prompt.introduction}
+                  imageUrl={prompt.imageUrl}
+                  onClick={() =>
+                    handleSelectMaker(
+                      prompt?.makerId ??
+                        prompt?.promptId ??
+                        prompt?.id ??
+                        prompt?.makerID
+                    )
+                  }
+                />
+              ))
+            )}
+          </CardGrid>
+        </CardGridContainer>
 
         {filteredMakers.length > 0 && (
-          <PaginationRow>
-            <PaginationButton
-              type="button"
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-            >
-              <img src={MakerPrevButton} />
-            </PaginationButton>
-            <MoreButtonText>더보기</MoreButtonText>
-            <PageIndicator>
-              <CurrentPage>{currentPage}</CurrentPage>
-              <PageSeparator>/</PageSeparator>
-              <TotalPage>{totalPages}</TotalPage>
-            </PageIndicator>
-            <PaginationButton
-              type="button"
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-            >
-              <img src={MakerNextButton} />
-            </PaginationButton>
-          </PaginationRow>
+          <PaginationWrapper>
+            <PaginationRow>
+              <PaginationButton
+                type="button"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                <PageButtonImg src={MakerPrevButton} />
+              </PaginationButton>
+              <MoreButtonText>더보기</MoreButtonText>
+              <PageIndicator>
+                <CurrentPage>{currentPage}</CurrentPage>
+                <PageSeparator>/</PageSeparator>
+                <TotalPage>{totalPages}</TotalPage>
+              </PageIndicator>
+              <PaginationButton
+                type="button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                <PageButtonImg src={MakerNextButton} />
+              </PaginationButton>
+            </PaginationRow>
+          </PaginationWrapper>
         )}
       </Inner>
     </MakerShellWrapper>
@@ -522,6 +524,18 @@ const CenteredContainer = styled.div`
   width: 100%;
 `;
 
+const PaginationWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  margin-bottom: 3.5rem;
+`;
+
+const MakerPageIconImg = styled.img`
+  width: 1.4219rem;
+  height: auto;
+`;
 const MakerShellWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -537,9 +551,9 @@ const Inner = styled.div`
   align-items: center;
   width: 100%;
   max-width: 1920px;
-  padding: 2rem 3rem 3.5rem;
+  padding: 2rem 3rem 2.94rem;
   box-sizing: border-box;
-  gap: 2rem;
+  gap: 2.5rem;
 `;
 
 const TopRow = styled.div`
@@ -560,9 +574,9 @@ const PrimaryButton = styled.button`
   justify-content: center;
   gap: 0.37rem;
   border: none;
-  padding: 0.62rem 2.12rem 0.81rem 2rem;
+  padding: 0.58rem 2.12rem 0.7rem 2rem;
   border-radius: 0.5rem;
-  background-color: #001e40;
+  background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
   color: #ffffff;
   font-weight: 700;
   font-size: 1.3125rem;
@@ -575,11 +589,22 @@ const PrimaryButton = styled.button`
   }
 `;
 
+const PageButtonImg = styled.img`
+  width: 2.875rem;
+  height: auto;
+`;
+
 const ToggleRow = styled.div`
-  display: inline-flex;
-  align-self: start;
-  margin-left: 19%;
+  display: flex;
   gap: 0.75rem;
+
+  /* 아래 속성들을 추가/수정하여 그리드 너비와 맞추고 왼쪽 정렬합니다 */
+  width: 100%;
+  max-width: min(
+    calc(100% - 40rem),
+    calc(1920px - 67rem)
+  ); /* CardGridContainer와 동일한 너비 제한 */
+  justify-content: flex-start; /* 왼쪽 정렬 */
 `;
 
 const ToggleButton = styled.button`
@@ -610,6 +635,15 @@ const InlineStatus = styled.div`
   font-size: 0.95rem;
 `;
 
+const CardGridContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: min(calc(100% - 6rem), calc(1920px - 6rem));
+`;
+
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -622,7 +656,8 @@ const PaginationRow = styled.div`
   align-items: center;
   justify-content: center;
   gap: 2rem;
-  margin-bottom: 2.94rem;
+  margin-top: 7rem;
+  margin-bottom: 0;
 `;
 
 const PaginationButton = styled.button`
