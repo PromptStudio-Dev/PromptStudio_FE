@@ -42,7 +42,7 @@ const BaseCard = styled.button`
   height: 12.625rem;
   padding: 0;
   border-radius: 1.1rem;
-  border: 2px solid #5ac1ff;
+  border: 0.0625rem solid #49d8ff;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -85,7 +85,7 @@ const DescriptionAreaBase = styled.div`
   flex: 1;
   min-height: 0;
   align-items: center;
-  padding: 1.45rem 1.75rem;
+  padding: 1.45rem 1.12rem;
 `;
 
 const ImageDescriptionArea = styled(DescriptionAreaBase)`
@@ -98,7 +98,7 @@ const DefaultDescriptionArea = styled(DescriptionAreaBase)`
 
 const Description = styled.p`
   margin: 0;
-  font-size: 0.93rem;
+  font-size: 1.1875rem;
   line-height: 1.6;
   color: ${({ $variant }) => ($variant === "image" ? "#f4f8ff" : "#4c5a74")};
   text-shadow: ${({ $variant }) =>
@@ -125,7 +125,7 @@ const DefaultFooter = styled(FooterBase)`
 
 const Title = styled.p`
   margin: 0;
-  font-size: 1.03rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   color: ${({ $variant }) => ($variant === "image" ? "#112138" : "#172441")};
   overflow: hidden;
