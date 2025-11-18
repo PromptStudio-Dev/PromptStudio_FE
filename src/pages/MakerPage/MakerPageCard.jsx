@@ -1,36 +1,96 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
+import DeleteButtonIcon from "./assets/maker-delete-button.svg";
 
 export default function MakerPageCard({
   title,
   description,
   imageUrl,
   onClick,
+  hoverContent, // 호버 시 표시할 내용
+  onHover, // 호버 이벤트 핸들러
+  onDelete, // 삭제 버튼 클릭 핸들러
 }) {
+  const [isHovered, setIsHovered] = useState(false);
   const hasBackground = Boolean(imageUrl);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onHover?.(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onHover?.(false);
+  };
 
   if (hasBackground) {
     return (
-      <ImageCard type="button" onClick={onClick} $backgroundImage={imageUrl}>
+      <ImageCard
+        type="button"
+        onClick={onClick}
+        $backgroundImage={imageUrl}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        $isHovered={isHovered}
+      >
         <BackgroundOverlay />
+        {isHovered && <HoverBackgroundOverlay />}
         <ImageDescriptionArea>
           <Description $variant="image">{description}</Description>
         </ImageDescriptionArea>
         <ImageFooter>
           <Title $variant="image">{title}</Title>
         </ImageFooter>
+        {isHovered && onDelete && (
+          <DeleteButton
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            aria-label="삭제"
+          >
+            <DeleteButtonIconImg src={DeleteButtonIcon} />
+            <DeleteButtonText>삭제</DeleteButtonText>
+          </DeleteButton>
+        )}
+        {isHovered && hoverContent && (
+          <HoverOverlay>{hoverContent}</HoverOverlay>
+        )}
       </ImageCard>
     );
   }
 
   return (
-    <DefaultCard type="button" onClick={onClick}>
+    <DefaultCard
+      type="button"
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      $isHovered={isHovered}
+    >
+      {isHovered && <HoverBackgroundOverlay />}
       <DefaultDescriptionArea>
         <Description>{description}</Description>
       </DefaultDescriptionArea>
       <DefaultFooter>
         <Title>{title}</Title>
       </DefaultFooter>
+      {isHovered && onDelete && (
+        <DeleteButton
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          aria-label="삭제"
+        >
+          <DeleteButtonIconImg src={DeleteButtonIcon} />
+          <DeleteButtonText>삭제</DeleteButtonText>
+        </DeleteButton>
+      )}
+      {isHovered && hoverContent && <HoverOverlay>{hoverContent}</HoverOverlay>}
     </DefaultCard>
   );
 }
@@ -45,7 +105,8 @@ const BaseCard = styled.button`
   border: 0.0625rem solid #49d8ff;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  position: relative;
 
   &:hover {
     transform: translateY(-2px);
@@ -65,10 +126,20 @@ const BackgroundOverlay = styled.div`
   z-index: 0;
 `;
 
+const HoverBackgroundOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.16); /* #00000029 16% 투명도 */
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0.15s ease;
+`;
+
 const ImageCard = styled(BaseCard)`
   position: relative;
   background: ${({ $backgroundImage }) =>
     `url(${$backgroundImage}) center/cover no-repeat`};
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   & > *:not(${BackgroundOverlay}) {
     position: relative;
@@ -131,4 +202,53 @@ const Title = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+`;
+
+const DeleteButton = styled.button`
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 4.5rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 0.0625rem solid #454545;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+  line-height: 1;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+const DeleteButtonIconImg = styled.img`
+  width: 1rem;
+  height: auto;
+`;
+
+const DeleteButtonText = styled.span`
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #454545;
+`;
+
+const HoverOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  background-color: aquamarine;
+  pointer-events: none;
 `;
