@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 
+import apiClient from "../../api/client";
+
 // 커스텀 훅들
 import { useDragDrop } from "./hooks/useDragDrop";
 import { useImageAttachment } from "./hooks/useImageAttachment";
@@ -20,6 +22,7 @@ export default function ChatBar() {
   const [textareaValue, setTextareaValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingPromptData, setPendingPromptData] = useState(null);
+  const [modalPromptData, setModalPromptData] = useState(null);
   const chatViewSectionRef = useRef(null);
 
   // 커스텀 훅들 사용
@@ -31,6 +34,7 @@ export default function ChatBar() {
     handleImageSelect,
     handleImageRemove,
     clearImages,
+    replaceImagesWithFiles,
   } = useImageAttachment();
   const { textareaRef, handleTextareaChange: originalHandleTextareaChange } =
     useTextareaAutoResize();
@@ -50,25 +54,88 @@ export default function ChatBar() {
     chatSendAreaRef,
   } = useLayoutCalculation(droppedPrompt, attachedImages);
 
+  useEffect(() => {
+    const handleComposerReset = () => {
+      setDroppedPrompt(null);
+      setPendingPromptData(null);
+      setModalPromptData(null);
+      setTextareaValue("");
+      clearImages();
+
+      if (textareaRef.current) {
+        textareaRef.current.value = "";
+        textareaRef.current.style.height = "auto";
+        const defaultHeight = textareaRef.current.scrollHeight;
+        textareaRef.current.style.height = `${defaultHeight}px`;
+      }
+    };
+
+    window.addEventListener("chatbar-reset", handleComposerReset);
+    return () => {
+      window.removeEventListener("chatbar-reset", handleComposerReset);
+    };
+  }, [clearImages, textareaRef]);
+
   // 드래그 앤 드롭 핸들러
-  const handleDrop = (event) => {
+  const handleDrop = async (event) => {
     event.preventDefault();
+
+    const dataTransfer = event.dataTransfer;
 
     // 드래그 상태 초기화를 위한 이벤트 발생
     window.dispatchEvent(new Event("prompt-card-dragend"));
 
     try {
-      const rawData = event.dataTransfer.getData("application/json");
+      const rawData = dataTransfer?.getData("application/json");
       if (!rawData) return;
 
       const parsed = JSON.parse(rawData);
-      if (parsed && typeof parsed === "object") {
-        // 모달을 띄우고 프롬프트 데이터를 임시 저장
-        setPendingPromptData(parsed);
+      if (!parsed || typeof parsed !== "object") return;
+
+      if (!parsed.promptId) {
+        console.warn("드랍된 프롬프트에 promptId가 없습니다.", parsed);
+        return;
+      }
+
+      setPendingPromptData(parsed);
+      setModalPromptData(null);
+
+      const { data } = await apiClient.get(
+        `/api/prompts/${parsed.promptId}/placeholders`
+      );
+
+      const placeholders = Array.isArray(data?.placeholders)
+        ? data.placeholders.map((name) => ({ name }))
+        : [];
+
+      const templateData = {
+        text: data?.content ?? "",
+        fields: placeholders,
+        imageRequired: Boolean(data?.imageRequired),
+      };
+
+      const shouldOpenModal = Boolean(
+        data?.imageRequired || data?.placeholderRequired
+      );
+
+      if (shouldOpenModal) {
+        setModalPromptData(templateData);
         setIsModalOpen(true);
+      } else {
+        setDroppedPrompt({
+          ...parsed,
+          promptText: templateData.text,
+          rawPromptText: templateData.text,
+          fieldValues: {},
+          fields: placeholders,
+        });
+        setPendingPromptData(null);
       }
     } catch (error) {
-      console.error("드래그 데이터 파싱에 실패했습니다.", error);
+      console.error("프롬프트 상세 정보를 불러오지 못했습니다.", error);
+      setPendingPromptData(null);
+      setModalPromptData(null);
+      setIsModalOpen(false);
     }
   };
 
@@ -76,6 +143,7 @@ export default function ChatBar() {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setPendingPromptData(null);
+    setModalPromptData(null);
   };
 
   const handleModalApply = ({
@@ -83,6 +151,7 @@ export default function ChatBar() {
     fieldValues,
     originalPromptText,
     fields,
+    images,
   }) => {
     if (!pendingPromptData) return;
 
@@ -93,8 +162,14 @@ export default function ChatBar() {
       fieldValues,
       fields,
     });
+
+    if (Array.isArray(images) && images.length > 0) {
+      replaceImagesWithFiles(images);
+    }
+
     setIsModalOpen(false);
     setPendingPromptData(null);
+    setModalPromptData(null);
   };
 
   // 메시지 전송 핸들러
@@ -259,7 +334,7 @@ export default function ChatBar() {
       <PromptDropModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
-        promptData={pendingPromptData}
+        promptData={modalPromptData}
         onApply={handleModalApply}
       />
     </ChatBarContainer>
