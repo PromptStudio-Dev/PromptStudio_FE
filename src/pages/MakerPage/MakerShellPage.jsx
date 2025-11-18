@@ -282,6 +282,24 @@ export default function MakerShellPage() {
     [navigate]
   );
 
+  const handleDeleteMaker = useCallback((makerId) => {
+    if (!makerId) {
+      return;
+    }
+
+    // TODO: 실제 삭제 API 호출
+    console.log("삭제:", makerId);
+    setMakers((prev) =>
+      prev.filter(
+        (maker) =>
+          maker?.makerId !== makerId &&
+          maker?.promptId !== makerId &&
+          maker?.id !== makerId &&
+          maker?.makerID !== makerId
+      )
+    );
+  }, []);
+
   const makerKey = useMemo(() => {
     if (!selectedMaker) return "maker-empty";
     return (
@@ -460,6 +478,14 @@ export default function MakerShellPage() {
                   imageUrl={prompt.imageUrl}
                   onClick={() =>
                     handleSelectMaker(
+                      prompt?.makerId ??
+                        prompt?.promptId ??
+                        prompt?.id ??
+                        prompt?.makerID
+                    )
+                  }
+                  onDelete={() =>
+                    handleDeleteMaker(
                       prompt?.makerId ??
                         prompt?.promptId ??
                         prompt?.id ??
