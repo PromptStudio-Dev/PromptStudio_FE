@@ -1,16 +1,79 @@
 import { useState, useRef, useEffect } from "react";
 
+const MAX_IMAGES = 6;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
 export const useImageAttachment = () => {
   const [attachedImages, setAttachedImages] = useState([]);
   const fileInputRef = useRef(null);
 
+  const revokePreviewUrls = (images) => {
+    images.forEach((image) => {
+      if (image?.preview) {
+        URL.revokeObjectURL(image.preview);
+      }
+    });
+  };
+
+  const normalizeFiles = (files, currentCount) => {
+    if (!Array.isArray(files) || files.length === 0) return [];
+
+    const imageFiles = files.filter((file) => file.type?.startsWith("image/"));
+    const availableSlots = Math.max(0, MAX_IMAGES - currentCount);
+    if (availableSlots <= 0) {
+      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+      return [];
+    }
+
+    const validFiles = [];
+    const oversizedFiles = [];
+
+    imageFiles.forEach((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (oversizedFiles.length > 0) {
+      alert(
+        `각 이미지 파일은 50MB 이하여야 합니다. 제한 초과: ${oversizedFiles.join(
+          ", "
+        )}`
+      );
+    }
+
+    return validFiles.slice(0, availableSlots);
+  };
+
   const addImages = (files) => {
-    const newImages = files.map((file) => ({
+    if (!files?.length) return;
+    const currentCount = attachedImages.length;
+    const normalized = normalizeFiles(files, currentCount);
+    if (normalized.length === 0) return;
+
+    const newImages = normalized.map((file) => ({
       id: Date.now() + Math.random(),
       file,
       preview: URL.createObjectURL(file),
     }));
+
     setAttachedImages((prev) => [...prev, ...newImages]);
+  };
+
+  const replaceImagesWithFiles = (files) => {
+    revokePreviewUrls(attachedImages);
+    setAttachedImages([]);
+    if (!files?.length) return;
+    const normalized = normalizeFiles(files, 0);
+    if (normalized.length === 0) return;
+    const newImages = normalized.map((file) => ({
+      id: Date.now() + Math.random(),
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setAttachedImages(newImages);
   };
 
   const handleImageRemove = (imageId) => {
@@ -25,18 +88,8 @@ export const useImageAttachment = () => {
 
   const handleImageSelect = (event) => {
     const files = Array.from(event.target.files || []);
-    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
+    addImages(files);
 
-    if (attachedImages.length + imageFiles.length > 6) {
-      alert("이미지는 최대 6장까지 첨부할 수 있습니다.");
-      const remainingSlots = 6 - attachedImages.length;
-      const filesToAdd = imageFiles.slice(0, remainingSlots);
-      addImages(filesToAdd);
-    } else {
-      addImages(imageFiles);
-    }
-
-    // input 초기화 (같은 파일 다시 선택 가능하도록)
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -48,19 +101,14 @@ export const useImageAttachment = () => {
 
   const clearImages = ({ keepUrls = false } = {}) => {
     if (!keepUrls) {
-      attachedImages.forEach((image) => {
-        URL.revokeObjectURL(image.preview);
-      });
+      revokePreviewUrls(attachedImages);
     }
     setAttachedImages([]);
   };
 
-  // 컴포넌트 언마운트 시 이미지 URL 정리
   useEffect(() => {
     return () => {
-      attachedImages.forEach((image) => {
-        URL.revokeObjectURL(image.preview);
-      });
+      revokePreviewUrls(attachedImages);
     };
   }, [attachedImages]);
 
@@ -71,5 +119,7 @@ export const useImageAttachment = () => {
     handleImageSelect,
     handleImageRemove,
     clearImages,
+    replaceImagesWithFiles,
+    addImagesFromFiles: addImages,
   };
 };

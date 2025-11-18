@@ -28,6 +28,9 @@ export default function HubPage() {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("application/json", JSON.stringify(promptData));
 
+    // 새로운 프롬프트를 드래그하는 순간 ChatBar 입력 상태 초기화
+    window.dispatchEvent(new Event("chatbar-reset"));
+
     // 드래그 이미지에 border-radius가 포함되도록 요소를 복제하여 사용
     const dragElement = event.currentTarget;
     if (dragElement) {
@@ -80,6 +83,7 @@ export default function HubPage() {
   };
 
   const buildPromptData = (prompt) => ({
+    promptId: prompt.promptId,
     category: prompt.category ?? "미분류",
     aiName: prompt.aiEnvironment ?? "AI",
     title: prompt.title ?? "제목 미상",

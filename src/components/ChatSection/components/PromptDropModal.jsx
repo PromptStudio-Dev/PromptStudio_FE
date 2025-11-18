@@ -7,6 +7,8 @@ import React, {
 } from "react";
 import styled from "styled-components";
 
+import { useImageAttachment } from "../hooks/useImageAttachment";
+
 // 백엔드에서 fields 데이터를 제공하므로 간소화된 구조 사용
 const dummyPromptData = {
   text: `주인공 : [남주와 여주 스타일]
@@ -57,10 +59,21 @@ export default function PromptDropModal({
   const [focusedField, setFocusedField] = useState(null);
   const [invalidFieldName, setInvalidFieldName] = useState(null);
   const [fieldNameMaxWidth, setFieldNameMaxWidth] = useState(0);
+  const [isImageMissing, setIsImageMissing] = useState(false);
   const contentContainerRef = useRef(null);
   const segmentRefs = useRef({});
   const inputFieldRefs = useRef({});
   const fieldNameRefs = useRef({});
+  const imageFieldRef = useRef(null);
+
+  const {
+    attachedImages: modalImages,
+    fileInputRef: modalFileInputRef,
+    handleImageAttachClick: handleModalImageAttachClick,
+    handleImageSelect: handleModalImageSelect,
+    handleImageRemove: handleModalImageRemove,
+    clearImages: clearModalImages,
+  } = useImageAttachment();
 
   const fieldNamesKey = useMemo(() => {
     if (!promptData?.fields?.length && !dummyPromptData.fields?.length) {
@@ -75,6 +88,7 @@ export default function PromptDropModal({
   // promptData가 없거나 텍스트가 없으면 더미 데이터 사용
   const activePromptData =
     promptData && promptData.text ? promptData : dummyPromptData;
+  const isImageRequired = Boolean(promptData?.imageRequired);
 
   // 백엔드에서 제공한 필드 정보로 inputValues 초기화
   useEffect(() => {
@@ -87,6 +101,14 @@ export default function PromptDropModal({
       setCurrentPromptText(activePromptData.text);
     }
   }, [activePromptData]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      clearModalImages();
+      setIsImageMissing(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleInputChange = (fieldName, value) => {
     setInputValues((prev) => ({
@@ -127,12 +149,15 @@ export default function PromptDropModal({
         const el = fieldNameRefs.current[field.name];
         return el?.offsetWidth || 0;
       });
+      if (isImageRequired && imageFieldRef.current) {
+        widths.push(imageFieldRef.current.offsetWidth || 0);
+      }
       const maxWidth = widths.length ? Math.max(...widths) : 0;
       setFieldNameMaxWidth(maxWidth);
     });
 
     return () => cancelAnimationFrame(frameId);
-  }, [isOpen, fieldNamesKey, activePromptData?.fields]);
+  }, [isOpen, fieldNamesKey, activePromptData?.fields, isImageRequired]);
 
   const renderedPromptSegments = useMemo(() => {
     if (!activePromptData?.text || !activePromptData?.fields) {
@@ -232,43 +257,103 @@ export default function PromptDropModal({
               ))
             : currentPromptText}
         </ContentContainer>
-        <InputSection>
-          {activePromptData?.fields?.map((field) => {
-            const isEmpty =
-              !inputValues[field.name] || inputValues[field.name].trim() === "";
-            return (
-              <InputRow key={field.name}>
+        {(activePromptData?.fields?.length > 0 || isImageRequired) && (
+          <InputSection>
+            {activePromptData?.fields?.map((field) => {
+              const isEmpty =
+                !inputValues[field.name] ||
+                inputValues[field.name].trim() === "";
+              return (
+                <InputRow key={field.name}>
+                  <FieldName
+                    ref={(el) => {
+                      if (el) {
+                        fieldNameRefs.current[field.name] = el;
+                      }
+                    }}
+                    $fixedWidth={fieldNameMaxWidth}
+                  >
+                    <RequiredMark $isVisible={isEmpty}>*</RequiredMark>
+                    {`[${field.name}]`}
+                  </FieldName>
+                  <FieldInput
+                    type="text"
+                    value={inputValues[field.name] || ""}
+                    onChange={(e) =>
+                      handleInputChange(field.name, e.target.value)
+                    }
+                    onFocus={() => setFocusedField(field.name)}
+                    onBlur={() => setFocusedField(null)}
+                    ref={(el) => {
+                      if (el) {
+                        inputFieldRefs.current[field.name] = el;
+                      }
+                    }}
+                    $isInvalid={invalidFieldName === field.name}
+                    placeholder={`${field.name}을(를) 입력하세요`}
+                  />
+                </InputRow>
+              );
+            })}
+
+            {isImageRequired && (
+              <InputRow>
                 <FieldName
                   ref={(el) => {
-                    if (el) {
-                      fieldNameRefs.current[field.name] = el;
-                    }
+                    imageFieldRef.current = el;
                   }}
                   $fixedWidth={fieldNameMaxWidth}
                 >
-                  <RequiredMark $isVisible={isEmpty}>*</RequiredMark>
-                  {`[${field.name}]`}
+                  <RequiredMark $isVisible={isImageMissing}>*</RequiredMark>
+                  [이미지 첨부]
                 </FieldName>
-                <FieldInput
-                  type="text"
-                  value={inputValues[field.name] || ""}
-                  onChange={(e) =>
-                    handleInputChange(field.name, e.target.value)
-                  }
-                  onFocus={() => setFocusedField(field.name)}
-                  onBlur={() => setFocusedField(null)}
-                  ref={(el) => {
-                    if (el) {
-                      inputFieldRefs.current[field.name] = el;
-                    }
-                  }}
-                  $isInvalid={invalidFieldName === field.name}
-                  placeholder={`${field.name}을(를) 입력하세요`}
-                />
+                <ImageInputColumn>
+                  <HiddenImageInput
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    ref={modalFileInputRef}
+                    onChange={(event) => {
+                      handleModalImageSelect(event);
+                      setIsImageMissing(false);
+                    }}
+                  />
+                  <ImageUploadControls>
+                    <ImageUploadButton
+                      type="button"
+                      onClick={handleModalImageAttachClick}
+                    >
+                      이미지 선택
+                    </ImageUploadButton>
+                    <ImageGuideText>최대 6장, 파일당 50MB 이하</ImageGuideText>
+                  </ImageUploadControls>
+                  {modalImages.length > 0 ? (
+                    <ImagePreviewGrid>
+                      {modalImages.map((image) => (
+                        <ImagePreviewItem key={image.id}>
+                          <ImageThumbnail
+                            src={image.preview}
+                            alt="첨부 이미지 미리보기"
+                          />
+                          <ImageRemoveButton
+                            type="button"
+                            onClick={() => handleModalImageRemove(image.id)}
+                          >
+                            ×
+                          </ImageRemoveButton>
+                        </ImagePreviewItem>
+                      ))}
+                    </ImagePreviewGrid>
+                  ) : (
+                    <ImagePlaceholder $isInvalid={isImageMissing}>
+                      이미지를 첨부해주세요.
+                    </ImagePlaceholder>
+                  )}
+                </ImageInputColumn>
               </InputRow>
-            );
-          })}
-        </InputSection>
+            )}
+          </InputSection>
+        )}
         <ButtonSection>
           <ActionButton
             type="button"
@@ -294,12 +379,21 @@ export default function PromptDropModal({
                 }
               }
 
-              onApply?.({
+              if (isImageRequired && modalImages.length === 0) {
+                setIsImageMissing(true);
+                return;
+              }
+
+              const payload = {
                 filledPromptText: currentPromptText,
                 fieldValues: inputValues,
                 originalPromptText: activePromptData.text,
                 fields: activePromptData.fields,
-              });
+                images: modalImages.map(({ file }) => file),
+              };
+
+              console.log("[PromptDropModal] 적용 데이터:", payload);
+              onApply?.(payload);
             }}
           >
             프롬프트 적용
@@ -478,6 +572,100 @@ const FieldInput = styled.input`
         ? "0 0 0 2px rgba(255, 107, 107, 0.2)"
         : "0 0 0 2px rgba(73, 216, 255, 0.1)"};
   }
+`;
+
+const ImageInputColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+`;
+
+const HiddenImageInput = styled.input`
+  display: none;
+`;
+
+const ImageUploadControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const ImageUploadButton = styled.button`
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid #49d8ff;
+  background: #f5fcff;
+  color: #00aeff;
+  font-family: Pretendard;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background: #00aeff;
+    color: #fff;
+  }
+`;
+
+const ImageGuideText = styled.span`
+  font-size: 0.875rem;
+  color: #7a7a7a;
+`;
+
+const ImagePreviewGrid = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const ImagePreviewItem = styled.div`
+  position: relative;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #d9ecff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+`;
+
+const ImageThumbnail = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const ImageRemoveButton = styled.button`
+  position: absolute;
+  top: 0.2rem;
+  right: 0.2rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+`;
+
+const ImagePlaceholder = styled.div`
+  padding: 1.25rem;
+  border: 1px dashed ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#c4eaf8")};
+  border-radius: 0.5rem;
+  color: ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#7a7a7a")};
+  font-size: 0.95rem;
+  text-align: center;
 `;
 
 const ButtonSection = styled.div`
