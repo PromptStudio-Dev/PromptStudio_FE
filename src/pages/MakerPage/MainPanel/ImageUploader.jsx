@@ -1,34 +1,128 @@
-import React, { useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import ImgUploadButtonImg from "../assets/image-upload-button.svg";
 
+const MAX_IMAGES = 6;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
 export default function ImageUploader() {
+  const [attachedImages, setAttachedImages] = useState([]);
   const fileInputRef = useRef(null);
 
-  const handleClick = () => {
+  const revokePreviewUrls = (images) => {
+    images.forEach((image) => {
+      if (image?.preview) {
+        URL.revokeObjectURL(image.preview);
+      }
+    });
+  };
+
+  const normalizeFiles = (files, currentCount) => {
+    if (!Array.isArray(files) || files.length === 0) return [];
+
+    const imageFiles = files.filter((file) => file.type?.startsWith("image/"));
+    const availableSlots = Math.max(0, MAX_IMAGES - currentCount);
+    if (availableSlots <= 0) {
+      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+      return [];
+    }
+
+    const validFiles = [];
+    const oversizedFiles = [];
+
+    imageFiles.forEach((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        oversizedFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (oversizedFiles.length > 0) {
+      alert(
+        `각 이미지 파일은 50MB 이하여야 합니다. 제한 초과: ${oversizedFiles.join(
+          ", "
+        )}`
+      );
+    }
+
+    return validFiles.slice(0, availableSlots);
+  };
+
+  const addImages = (files) => {
+    if (!files?.length) return;
+    const currentCount = attachedImages.length;
+    const normalized = normalizeFiles(files, currentCount);
+    if (normalized.length === 0) return;
+
+    const newImages = normalized.map((file) => ({
+      id: Date.now() + Math.random(),
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+
+    setAttachedImages((prev) => [...prev, ...newImages]);
+  };
+
+  const handleImageRemove = (imageId) => {
+    setAttachedImages((prev) => {
+      const imageToRemove = prev.find((img) => img.id === imageId);
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.preview);
+      }
+      return prev.filter((img) => img.id !== imageId);
+    });
+  };
+
+  const handleImageSelect = (event) => {
+    const files = Array.from(event.target.files || []);
+    addImages(files);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleImageAttachClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      // 이미지 처리 로직
-      console.log("Selected files:", files);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      revokePreviewUrls(attachedImages);
+    };
+  }, [attachedImages]);
 
   return (
     <UploaderWrapper>
       <Divider />
-      <UploadButton onClick={handleClick}>
-        <UploadButtonImg src={ImgUploadButtonImg} />
-      </UploadButton>
+      <BottomSection>
+        <UploadButton onClick={handleImageAttachClick}>
+          <UploadButtonImg src={ImgUploadButtonImg} />
+        </UploadButton>
+        {attachedImages.length > 0 && (
+          <ImagesPreviewContainer>
+            {attachedImages.map((image) => (
+              <ImagePreviewItem key={image.id}>
+                <ImagePreviewRemoveButton
+                  type="button"
+                  aria-label="이미지 제거"
+                  onClick={() => handleImageRemove(image.id)}
+                >
+                  ✕
+                </ImagePreviewRemoveButton>
+                <ImagePreview src={image.preview} alt="첨부된 이미지" />
+              </ImagePreviewItem>
+            ))}
+          </ImagesPreviewContainer>
+        )}
+      </BottomSection>
       <HiddenInput
         ref={fileInputRef}
         type="file"
         accept="image/*"
         multiple
-        onChange={handleFileChange}
+        onChange={handleImageSelect}
       />
     </UploaderWrapper>
   );
@@ -48,6 +142,14 @@ const Divider = styled.div`
   margin-bottom: 1.5vh;
 `;
 
+const BottomSection = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+  max-width: 80vh;
+`;
+
 const UploadButton = styled.button`
   display: flex;
   align-items: center;
@@ -56,14 +158,66 @@ const UploadButton = styled.button`
   border: none;
   cursor: pointer;
   padding: 0;
+  flex-shrink: 0;
 
   &:hover {
     opacity: 0.8;
   }
 `;
 
-const UploadButtonImg = styled.img`
+const ImagesPreviewContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+`;
+
+const ImagePreviewItem = styled.div`
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #f5f5f5;
+  width: 6rem;
+  height: 6rem;
+  flex-shrink: 0;
+`;
+
+const ImagePreview = styled.img`
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const ImagePreviewRemoveButton = styled.button`
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+
+  ${ImagePreviewItem}:hover & {
+    opacity: 1;
+  }
+`;
+
+const UploadButtonImg = styled.img`
+  width: 2.875rem;
+  height: auto;
 `;
 
 const HiddenInput = styled.input`
