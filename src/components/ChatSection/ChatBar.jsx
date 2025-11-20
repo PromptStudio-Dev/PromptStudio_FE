@@ -15,6 +15,7 @@ import AttachedImagesPreview from "./components/AttachedImagesPreview";
 import ChatSendBox from "./components/ChatSendBox";
 import ChatMessage from "./components/ChatMessage";
 import PromptDropModal from "./components/PromptDropModal";
+import promptDragIcon from "./assets/promptDragIcon.svg";
 
 export default function ChatBar() {
   const [droppedPrompt, setDroppedPrompt] = useState(null);
@@ -292,9 +293,19 @@ export default function ChatBar() {
       onDrop={handleDrop}
     >
       <ChatViewSection ref={chatViewSectionRef}>
-        {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+        {messages.length === 0 ? (
+          <EmptyMessageWrapper>
+            <EmptyMessageIcon src={promptDragIcon} alt="프롬프트 드래그 안내" />
+            <EmptyMessageText>
+              프로의 프롬프트를{"\n"}여기로 끌어당겨서{"\n"}지금 바로
+              사용해보세요.
+            </EmptyMessageText>
+          </EmptyMessageWrapper>
+        ) : (
+          messages.map((message) => (
+            <ChatMessage key={message.id} message={message} />
+          ))
+        )}
       </ChatViewSection>
       <ChatSendArea ref={chatSendAreaRef}>
         {droppedPrompt && (
@@ -371,4 +382,31 @@ const ChatSendArea = styled.div`
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
+`;
+
+const EmptyMessageWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+`;
+
+const EmptyMessageIcon = styled.img`
+  width: 2.25rem;
+  height: 2.25rem;
+`;
+
+const EmptyMessageText = styled.p`
+  margin: 0;
+  white-space: pre-line;
+  color: var(--B-A6, #a6a6a6);
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1.3125rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.625rem;
 `;

@@ -422,11 +422,9 @@ const HottestPrompt = styled.div`
 `;
 
 const SearchInput = styled.input`
-  width: 25rem;
-  margin-left: 1.5rem;
+  width: 80%;
+  margin-left: 1.69rem;
   border: none;
-  font-weight: 400;
-  line-height: normal;
   font-size: 1.25rem;
   outline: none;
 
@@ -456,7 +454,7 @@ const CategoryList = styled.div`
   gap: 0.75rem;
   height: fit-content;
   margin-top: 0;
-  margin-bottom: 3.31rem;
+  margin-bottom: 1.69rem;
 `;
 
 const StatusMessage = styled.p`
@@ -477,8 +475,10 @@ const PromptCards = styled.div`
 `;
 
 const SearchIcon = styled.img`
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.1875rem;
+  height: 1.1875rem;
+  margin-left: 2.37rem;
+  margin-bottom: 0.2rem;
 `;
 const MainSection = styled.div`
   display: flex;
@@ -493,16 +493,10 @@ const SearchBar = styled.div`
   width: 36%;
   height: 3.3125rem;
   border-radius: 7.5rem;
-  padding-left: 2.37rem;
-  padding-right: 2.19rem;
   border: 2px solid var(--Light-blue, #49d8ff);
   background: #fff;
   position: relative;
   z-index: 2;
-
-  @media (max-width: 1600px) {
-    width: 37%;
-  }
 `;
 
 const SearchLabel = styled.span`
