@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
+import ResultPanel from "./ResultPanel/ResultPanel";
 // import apiClient from "../../api/client"; // API 호출 주석처리로 인해 임시 주석처리
 
 export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isResultPanelOpen, setIsResultPanelOpen] = useState(false);
   const [upgrades, setUpgrades] = useState([]);
   const [promptContent, setPromptContent] = useState(
     selectedPrompt?.content ?? ""
@@ -169,6 +171,16 @@ export default function MakerPage({ selectedPrompt = null }) {
         activeUpgradeId={latestUpgradeId}
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
         onRunPrompt={() => {
+          // TODO: 프롬프트 실행 로직
+        }}
+        onOpenResultPanel={() => setIsResultPanelOpen(true)}
+        isResultPanelOpen={isResultPanelOpen}
+      />
+
+      <ResultPanel
+        isOpen={isResultPanelOpen}
+        onToggle={() => setIsResultPanelOpen(false)}
+        onRun={() => {
           // TODO: 프롬프트 실행 로직
           console.log("프롬프트 실행:", promptContent);
         }}
