@@ -3,7 +3,7 @@ import styled from "styled-components";
 import AIModalSelector from "../AIModalSelector";
 import ResultPanelOpenImg from "../../assets/prompt-run-open-disabled.svg";
 
-export default function ControlBar({ onRun }) {
+export default function ControlBar({ onRun, onOpenResultPanel }) {
   return (
     <ControlBarWrapper>
       <AIModalSelector />
@@ -12,7 +12,11 @@ export default function ControlBar({ onRun }) {
           <ButtonText>PROMPT</ButtonText>
           <ButtonText>RUN</ButtonText>
         </RunButton>
-        <OpenResultPanelButton src={ResultPanelOpenImg} />
+        <OpenResultPanelButton
+          src={ResultPanelOpenImg}
+          onClick={onOpenResultPanel}
+          alt="결과 패널 열기"
+        />
       </SecondWrapper>
     </ControlBarWrapper>
   );
@@ -27,6 +31,15 @@ const SecondWrapper = styled.div`
 const OpenResultPanelButton = styled.img`
   width: 2.25rem;
   height: auto;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const ControlBarWrapper = styled.div`
