@@ -2,12 +2,10 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
-import ResultPanel from "./ResultPanel/ResultPanel";
-import apiClient from "../../api/client";
+// import apiClient from "../../api/client"; // API 호출 주석처리로 인해 임시 주석처리
 
 export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isResultPanelOpen, setIsResultPanelOpen] = useState(true);
   const [upgrades, setUpgrades] = useState([]);
   const [promptContent, setPromptContent] = useState(
     selectedPrompt?.content ?? ""
@@ -30,25 +28,32 @@ export default function MakerPage({ selectedPrompt = null }) {
     console.log("업그레이드 요청:", { selectedText, upgradeRequest });
 
     try {
-      const makerId = selectedPrompt?.makerId ?? 1; // TODO: 실제 로그인한 사용자의 makerId로 교체
+      // const makerId = selectedPrompt?.makerId ?? 1; // TODO: 실제 로그인한 사용자의 makerId로 교체
 
-      const { data } = await apiClient.post(
-        `/api/makers/${makerId}/upgrade-text`,
-        {
-          selectedText: selectedText,
-          direction: upgradeRequest,
-        }
-      );
+      // API 호출 주석처리
+      // const { data } = await apiClient.post(
+      //   `/api/makers/${makerId}/upgrade-text`,
+      //   {
+      //     selectedText: selectedText,
+      //     direction: upgradeRequest,
+      //   }
+      // );
 
-      console.log("업그레이드 응답 데이터:", data);
+      // MOCK 데이터 사용
+      const mockData = {
+        direction: upgradeRequest,
+        upgradedText: `평범한 인물들의 일상적인 사건 속에서 작은 친절이나 선택이 감정을 변화시키는 순간을 중심으로 써줘. 문체는 짧고 자연스럽게 이어지면서, 인물의 감정이 직접 묘사되지 않아도 독자가 느낄 수 있도록 표현해줘.`,
+        originalText: selectedText,
+      };
+
+      console.log("업그레이드 응답 데이터 (MOCK):", mockData);
 
       // API 응답을 업그레이드 카드 형식으로 변환
       const newUpgrade = {
         id: Date.now(), // 임시 ID (실제로는 서버에서 받아야 함)
-        title: `${data.direction} 업그레이드`,
-        content: data.upgradedText,
-        originalText: data.originalText,
-        direction: data.direction,
+        content: mockData.upgradedText,
+        originalText: mockData.originalText,
+        direction: mockData.direction,
         isApplied: false,
         selectionRange,
         contentSnapshot,
@@ -97,16 +102,8 @@ export default function MakerPage({ selectedPrompt = null }) {
         }
       }
 
-      setTimeout(() => {
-        setUpgrades((current) =>
-          current.filter((upgrade) => upgrade.id !== upgradeId)
-        );
-      }, 3000);
-
-      return prev.map((upgrade) =>
-        // isApplied: true 로 변경하여 수락 상태 표시
-        upgrade.id === upgradeId ? { ...upgrade, isApplied: true } : upgrade
-      );
+      // 즉시 제거
+      return prev.filter((upgrade) => upgrade.id !== upgradeId);
     });
 
     // 완료되어 오버레이 효과 제거
@@ -162,9 +159,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
       <MainPanel
         isSidebarOpen={isSidebarOpen}
-        isResultPanelOpen={isResultPanelOpen}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        onToggleResultPanel={() => setIsResultPanelOpen(!isResultPanelOpen)}
         promptContent={promptContent}
         onPromptContentChange={setPromptContent}
         onUpgradeRequest={handleUpgradeRequest}
@@ -173,11 +168,10 @@ export default function MakerPage({ selectedPrompt = null }) {
         onEditUpgrade={handleEditUpgrade}
         activeUpgradeId={latestUpgradeId}
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
-      />
-
-      <ResultPanel
-        isOpen={isResultPanelOpen}
-        onToggle={() => setIsResultPanelOpen(false)}
+        onRunPrompt={() => {
+          // TODO: 프롬프트 실행 로직
+          console.log("프롬프트 실행:", promptContent);
+        }}
       />
     </MakerPageWrapper>
   );
