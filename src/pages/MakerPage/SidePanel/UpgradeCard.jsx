@@ -1,75 +1,45 @@
 import React from "react";
 import styled, { css } from "styled-components";
 
-export default function UpgradeCard({ title, content, isApplied, onClick }) {
+export default function UpgradeCard({ content, isApplied, onClick }) {
   return (
     <CardWrapper $isApplied={isApplied}>
-      {title && <CardTitle $isApplied={isApplied}>{title}</CardTitle>}
-      <CardContentWrapper
-        $isApplied={isApplied}
-        role="button"
-        tabIndex={0}
-        onClick={onClick}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            onClick?.();
-          }
-        }}
-      >
+      <CardContentWrapper $isApplied={isApplied}>
         <UpgradedText $isApplied={isApplied}>{content}</UpgradedText>
+        <MoreButton
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
+          더보기
+        </MoreButton>
       </CardContentWrapper>
     </CardWrapper>
   );
 }
 
 const CardWrapper = styled.div`
-  width: 18.91vw; /* 363px @ 1920px */
   margin-bottom: 1rem; /* 16px */
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-`;
-
-const CardTitle = styled.p`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: ${(props) => (props.$isApplied ? "#00aeff" : "#001e40")};
-  margin: 0;
 `;
 
 const CardContentWrapper = styled.div`
-  width: 100%;
-  min-height: 15.46vh;
-  background-color: ${(props) => (props.$isApplied ? "#001e40" : "#e0f5ff")};
-  border-radius: 0.83vw;
-  padding: 2.41vh 1.09vw;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.2s;
+  width: 22.6875rem;
+  max-height: 11.8125rem;
+  background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
+  border-radius: 1rem;
+  padding: 1rem 1.31rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  justify-content: space-between;
   position: relative;
   box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-  outline: none;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 174, 255, 0.45);
-  }
 `;
 
 const baseTextStyles = css`
   width: 100%;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.125rem; /* 18px */
   font-weight: 400;
   line-height: 1.6;
   white-space: pre-line;
@@ -77,9 +47,12 @@ const baseTextStyles = css`
 
 const UpgradedText = styled.div`
   ${baseTextStyles}
-  color: ${(props) => (props.$isApplied ? "#ffffff" : "#001e40")};
+  color: #ffffff;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  line-height: 1.625rem;
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,9 +60,22 @@ const UpgradedText = styled.div`
   z-index: 1;
 `;
 
-const CardFooter = styled.div`
-  ${baseTextStyles}
-  font-size: 0.95rem;
-  color: ${(props) => (props.$isApplied ? "#bde8ff" : "#2b4a5e")};
-  z-index: 1;
+const MoreButton = styled.button`
+  align-self: flex-end;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f0f9ff;
+    transform: translateY(-1px);
+  }
 `;
