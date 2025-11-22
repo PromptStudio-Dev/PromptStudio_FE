@@ -18,9 +18,14 @@ export default function MainPanel({
   activeUpgradeId,
   activeUpgrade,
   onRunPrompt,
+  onOpenResultPanel,
+  isResultPanelOpen = false,
 }) {
   return (
-    <MakerPanelWrapper $isSidebarOpen={isSidebarOpen}>
+    <MakerPanelWrapper
+      $isSidebarOpen={isSidebarOpen}
+      $isResultPanelOpen={isResultPanelOpen}
+    >
       {/* 사이드바 토글 버튼 */}
       {!isSidebarOpen && (
         <SidebarOpenButton onClick={onToggleSidebar} aria-label="사이드바 열기">
@@ -33,7 +38,13 @@ export default function MainPanel({
         <TopSection>
           <TitleAndControlRow>
             <PromptTitleInput />
-            <ControlBar onRun={onRunPrompt} />
+            {/* ResultPanel이 열려있을 때 ControlBar 숨기기 */}
+            {!isResultPanelOpen && (
+              <ControlBar
+                onRun={onRunPrompt}
+                onOpenResultPanel={onOpenResultPanel}
+              />
+            )}
           </TitleAndControlRow>
           <PromptInputWrapper>
             <MakerTipButton>
@@ -86,6 +97,10 @@ const MakerPanelWrapper = styled.div`
 
   /* 사이드바 상태에 따른 왼쪽 여백 */
   padding-left: ${(props) => (props.$isSidebarOpen ? "0" : "3vw")};
+
+  /* ResultPanel이 열려있을 때 오른쪽 여백 추가 (ResultPanel 너비만큼) */
+  margin-right: ${(props) => (props.$isResultPanelOpen ? "36.0625rem" : "0")};
+  transition: margin-right 0.3s ease;
 `;
 
 const SidebarOpenButton = styled.button`
