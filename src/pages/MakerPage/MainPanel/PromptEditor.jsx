@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
 
@@ -25,13 +25,6 @@ export default function PromptEditor({
     setSelectionRange(null);
     setSelectedText("");
   };
-
-  // activeUpgradeId가 null이 되면 (UpgradeCardDetail에서 처리 완료 시) 모달 닫기
-  useEffect(() => {
-    if (activeUpgradeId === null && showModal) {
-      resetSelectionState();
-    }
-  }, [activeUpgradeId]);
 
   const handleMouseUp = (event) => {
     const textarea = textareaRef.current;
@@ -155,6 +148,7 @@ export default function PromptEditor({
       <>
         {beforeText}
         <StrikethroughText>{selectedTextPart}</StrikethroughText>
+        {"\n"}
         <UpgradedText>{upgradedText}</UpgradedText>
         {afterText}
       </>
@@ -328,13 +322,11 @@ const StrikethroughText = styled.span`
   text-decoration-color: #a6a6a6;
   text-decoration-thickness: 0.1rem;
   color: #a6a6a6;
-  background-color: rgba(120, 172, 255, 0.35);
 `;
 
 const UpgradedText = styled.span`
   color: #001e40;
-  background-color: rgba(170, 223, 247, 0.4);
-  font-weight: 600;
+  background-color: rgba(182, 220, 253, 0.7);
   padding: 0.1rem 0.2rem;
   border-radius: 0.2rem;
 `;
