@@ -17,8 +17,8 @@ export default function App() {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
