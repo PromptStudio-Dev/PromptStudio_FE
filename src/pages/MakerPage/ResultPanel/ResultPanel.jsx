@@ -1,54 +1,85 @@
 import React from "react";
 import styled from "styled-components";
 import AIModalSelector from "../MainPanel/AIModalSelector";
-import ResultPanelCloseImg from "../assets/panel-close-open.svg";
+import ResultPanelCloseImg from "../assets/prompt-run-close.svg";
 
-export default function ResultPanel({ isOpen = true, onToggle }) {
+export default function ResultPanel({ isOpen = true, onToggle, onRun }) {
   return (
     <ResultPanelWrapper $isOpen={isOpen}>
       <ResultPanelHeader>
         <AIModalSelector />
-        <RunButton>
-          <ButtonText>PROMPT</ButtonText>
-          <ButtonText>RUN</ButtonText>
-        </RunButton>
+        <SecondWrapper>
+          <RunButton onClick={onRun}>
+            <ButtonText>PROMPT</ButtonText>
+            <ButtonText>RUN</ButtonText>
+          </RunButton>
+          <OpenResultPanelButton
+            src={ResultPanelCloseImg}
+            onClick={onToggle}
+            alt="결과 패널 닫기"
+          />
+        </SecondWrapper>
       </ResultPanelHeader>
-
       <ResultContent>{/* 결과 표시 영역 */}</ResultContent>
-
-      <CloseButton onClick={onToggle} aria-label="결과 패널 닫기">
-        <CloseIcon src={ResultPanelCloseImg} />
-      </CloseButton>
     </ResultPanelWrapper>
   );
 }
 
 const ResultPanelWrapper = styled.div`
-  width: 31.77vw;
+  width: 36.0625rem; /* 기본 너비 (rem 기준) */
   height: 100%;
-  background-color: #f4fbfd;
-  box-shadow: -5px 0px 26px 0px rgba(0, 0, 0, 0.06);
-  position: relative;
+  background-color: #ffffff;
+  position: absolute;
+  right: 0;
+  top: 0;
   display: ${(props) => (props.$isOpen ? "flex" : "none")};
   flex-direction: column;
+  z-index: 10;
+  border-left: 0.0625rem solid #49d8ff;
 `;
 
 const ResultPanelHeader = styled.div`
-  padding: 2rem 1rem;
+  padding: 1.25rem 0;
   display: flex;
   align-items: center;
-  gap: 1vw;
+  gap: 0;
+`;
+
+const ResultContent = styled.div`
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+`;
+
+const SecondWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const OpenResultPanelButton = styled.img`
+  width: 2.25rem;
+  height: auto;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const RunButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 15.9375rem;
   gap: 0.625rem;
-  padding: 0.625rem 1.5rem;
-  background: #001e40;
+  padding: 0.5rem 2.72rem;
+  background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
   border: none;
+  font-family: "Pretendard Variable", sans-serif;
   border-radius: 0.5rem;
   cursor: pointer;
 
@@ -66,40 +97,5 @@ const ButtonText = styled.span`
   font-weight: 800;
   font-size: 1.5625rem;
   color: white;
-  letter-spacing: 1.38px;
-`;
-
-const ResultContent = styled.div`
-  flex: 1;
-  overflow-y: auto;
-  padding: 2vh 1.6vw;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2.19vw;
-  height: 14.91vh;
-  background-color: #aadff7;
-  border: none;
-  border-radius: 2.25rem 0 0 2.25rem;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 0.5rem;
-  gap: 0.5rem;
-  z-index: 100;
-
-  &:hover {
-    background-color: #c0c0c0;
-  }
-`;
-
-const CloseIcon = styled.img`
-  width: auto;
-  height: 2.5vh;
+  letter-spacing: 3%;
 `;

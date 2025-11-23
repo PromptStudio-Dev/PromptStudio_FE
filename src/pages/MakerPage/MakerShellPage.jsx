@@ -143,19 +143,25 @@ export default function MakerShellPage() {
     (id) => {
       if (!id) return null;
 
-      const fromState = makers.find((item) => item?.makerId === id);
+      // URL 파라미터는 문자열일 수 있으므로 숫자로 변환하여 비교
+      const numericId = typeof id === "string" ? Number(id) : id;
+      if (Number.isNaN(numericId)) return null;
+
+      const fromState = makers.find((item) => item?.makerId === numericId);
 
       if (fromState) {
         return fromState;
       }
 
-      const fromRun = RUN_PROMPTS.find((item) => item?.makerId === id);
+      const fromRun = RUN_PROMPTS.find((item) => item?.makerId === numericId);
 
       if (fromRun) {
         return fromRun;
       }
 
-      const fromNoRun = NO_RUN_PROMPTS.find((item) => item?.makerId === id);
+      const fromNoRun = NO_RUN_PROMPTS.find(
+        (item) => item?.makerId === numericId
+      );
 
       return fromNoRun ?? null;
     },
