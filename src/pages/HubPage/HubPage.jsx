@@ -14,6 +14,112 @@ import apiClient from "../../api/client";
 import ChatBar from "../../components/ChatSection/ChatBar";
 import { useNavigate } from "react-router-dom";
 
+// TODO: 서버 설정 완료 후 이 플래그를 false로 변경하거나 삭제하세요
+const USE_DUMMY_DATA = true;
+
+// 더미 데이터
+const DUMMY_HOTTEST_PROMPTS = [
+  {
+    promptId: 1,
+    title: "비즈니스 이메일 작성 가이드",
+    introduction:
+      "전문적이고 효과적인 비즈니스 이메일을 작성하는 방법을 알려드립니다.",
+    category: "비즈니스",
+    aiEnvironment: "ChatGPT",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+  {
+    promptId: 2,
+    title: "면접 준비 완벽 가이드",
+    introduction:
+      "취업 면접에서 자주 나오는 질문과 모범 답변을 준비할 수 있습니다.",
+    category: "취업",
+    aiEnvironment: "Claude",
+    imageUrl: "",
+    liked: true,
+    memberId: 1,
+  },
+  {
+    promptId: 3,
+    title: "React 컴포넌트 최적화",
+    introduction:
+      "React 애플리케이션의 성능을 향상시키는 컴포넌트 최적화 기법을 학습합니다.",
+    category: "개발",
+    aiEnvironment: "GPT-4",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+];
+
+const DUMMY_CATEGORY_PROMPTS = [
+  {
+    promptId: 4,
+    title: "프로젝트 관리 마스터",
+    introduction:
+      "효과적인 프로젝트 관리를 위한 체계적인 접근 방법을 제시합니다.",
+    category: "비즈니스",
+    aiEnvironment: "ChatGPT",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+  {
+    promptId: 5,
+    title: "포트폴리오 제작 가이드",
+    introduction: "디자이너를 위한 포트폴리오 제작의 모든 것을 담았습니다.",
+    category: "디자인",
+    aiEnvironment: "Midjourney",
+    imageUrl: "",
+    liked: true,
+    memberId: 1,
+  },
+  {
+    promptId: 6,
+    title: "제목도 길게제목도 길게제목도 길게제목도 길게제목도 길게제목도 길게",
+    introduction: "실생활에서 바로 쓸 수 있는 영어 회화 표현을 배워봅시다.길게길게길게길게길게길게길게길게",
+    category: "일상",
+    aiEnvironment: "ChatGPT",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+  {
+    promptId: 7,
+    title: "논문 작성 도우미",
+    introduction: "학술 논문 작성에 필요한 구조와 작성 방법을 안내합니다.",
+    category: "학업",
+    aiEnvironment: "Claude",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+  {
+    promptId: 8,
+    title: "스타트업 아이디어 검증",
+    introduction:
+      "비즈니스 아이디어의 타당성을 검증하고 개선하는 방법을 알아봅니다.",
+    category: "비즈니스",
+    aiEnvironment: "GPT-4",
+    imageUrl: "",
+    liked: true,
+    memberId: 1,
+  },
+  {
+    promptId: 9,
+    title: "UI/UX 디자인 원칙",
+    introduction:
+      "사용자 경험을 향상시키는 디자인 원칙과 실전 팁을 제공합니다.",
+    category: "디자인",
+    aiEnvironment: "Figma",
+    imageUrl: "",
+    liked: false,
+    memberId: 1,
+  },
+];
+
 export default function HubPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [searchInputValue, setSearchInputValue] = useState("");
@@ -123,6 +229,15 @@ export default function HubPage() {
       setIsHotLoading(true);
       setHotError(null);
 
+      // 더미 데이터 사용 모드
+      if (USE_DUMMY_DATA) {
+        setTimeout(() => {
+          setHottestPrompts(DUMMY_HOTTEST_PROMPTS);
+          setIsHotLoading(false);
+        }, 500); // 로딩 효과를 위한 지연
+        return;
+      }
+
       try {
         const { data } = await apiClient.get("/api/prompts/hot", {
           params: {
@@ -141,6 +256,13 @@ export default function HubPage() {
         }
 
         console.error("인기 프롬프트를 불러오지 못했습니다.", fetchError);
+
+        // 에러 발생 시 더미 데이터 사용
+        if (USE_DUMMY_DATA) {
+          setHottestPrompts(DUMMY_HOTTEST_PROMPTS);
+          setIsHotLoading(false);
+          return;
+        }
 
         // 에러 타입에 따른 메시지 설정
         let errorMessage = "인기 프롬프트를 불러오지 못했습니다.";
@@ -176,6 +298,25 @@ export default function HubPage() {
       setIsCategoryLoading(true);
       setCategoryError(null);
 
+      // 더미 데이터 사용 모드
+      if (USE_DUMMY_DATA) {
+        setTimeout(() => {
+          // 검색어에 따라 필터링된 더미 데이터 반환
+          const filtered = DUMMY_CATEGORY_PROMPTS.filter(
+            (prompt) =>
+              prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              prompt.introduction
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+          );
+          setCategoryPrompts(
+            filtered.length > 0 ? filtered : DUMMY_CATEGORY_PROMPTS
+          );
+          setIsCategoryLoading(false);
+        }, 500);
+        return;
+      }
+
       try {
         const { data } = await apiClient.get("/api/prompts/search", {
           params: {
@@ -195,6 +336,22 @@ export default function HubPage() {
         }
 
         console.error("검색 결과를 불러오지 못했습니다.", fetchError);
+
+        // 에러 발생 시 더미 데이터 사용
+        if (USE_DUMMY_DATA) {
+          const filtered = DUMMY_CATEGORY_PROMPTS.filter(
+            (prompt) =>
+              prompt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              prompt.introduction
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+          );
+          setCategoryPrompts(
+            filtered.length > 0 ? filtered : DUMMY_CATEGORY_PROMPTS
+          );
+          setIsCategoryLoading(false);
+          return;
+        }
 
         let errorMessage = "검색 결과를 불러오지 못했습니다.";
         if (
@@ -219,6 +376,22 @@ export default function HubPage() {
       setIsCategoryLoading(true);
       setCategoryError(null);
 
+      // 더미 데이터 사용 모드
+      if (USE_DUMMY_DATA) {
+        setTimeout(() => {
+          // 선택된 카테고리에 따라 필터링된 더미 데이터 반환
+          const filtered =
+            selectedCategory === "전체"
+              ? DUMMY_CATEGORY_PROMPTS
+              : DUMMY_CATEGORY_PROMPTS.filter(
+                  (prompt) => prompt.category === selectedCategory
+                );
+          setCategoryPrompts(filtered);
+          setIsCategoryLoading(false);
+        }, 500);
+        return;
+      }
+
       try {
         const { data } = await apiClient.get("/api/prompts", {
           params: {
@@ -237,6 +410,19 @@ export default function HubPage() {
         }
 
         console.error("프롬프트 목록을 불러오지 못했습니다.", fetchError);
+
+        // 에러 발생 시 더미 데이터 사용
+        if (USE_DUMMY_DATA) {
+          const filtered =
+            selectedCategory === "전체"
+              ? DUMMY_CATEGORY_PROMPTS
+              : DUMMY_CATEGORY_PROMPTS.filter(
+                  (prompt) => prompt.category === selectedCategory
+                );
+          setCategoryPrompts(filtered);
+          setIsCategoryLoading(false);
+          return;
+        }
 
         let errorMessage = "프롬프트 목록을 불러오지 못했습니다.";
         if (
