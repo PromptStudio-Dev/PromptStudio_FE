@@ -98,8 +98,11 @@ export default function MakerPageCard({
 const BaseCard = styled.button`
   display: flex;
   flex-direction: column;
-  width: 22.375rem;
-  height: 12.625rem;
+  /* width 고정 X, 반응형 가능 구조 */
+  width: 100%;
+  min-width: 12.25rem;
+  max-width: 22.375rem;
+  aspect-ratio: 358 / 202; /* Figma 디자인 비율 유지 */
   padding: 0;
   border-radius: 1.1rem;
   border: 0.0625rem solid #49d8ff;
@@ -107,6 +110,7 @@ const BaseCard = styled.button`
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   position: relative;
+  box-sizing: border-box;
 
   &:hover {
     transform: translateY(-2px);
@@ -155,7 +159,8 @@ const DescriptionAreaBase = styled.div`
   display: flex;
   flex: 1;
   min-height: 0;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   padding: 1.45rem 1.12rem;
 `;
 
@@ -170,15 +175,18 @@ const DefaultDescriptionArea = styled(DescriptionAreaBase)`
 const Description = styled.p`
   margin: 0;
   font-size: 1.1875rem;
-  line-height: 1.6;
+  line-height: 1.3125rem;
   color: ${({ $variant }) => ($variant === "image" ? "#f4f8ff" : "#4c5a74")};
   text-shadow: ${({ $variant }) =>
     $variant === "image" ? "0 1px 4px rgba(5, 16, 32, 0.45)" : "none"};
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
+  -webkit-box-pack: start;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
+  text-align: left;
 `;
 
 const FooterBase = styled.div`
@@ -202,6 +210,8 @@ const Title = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  width: 100%;
+  text-align: left;
 `;
 
 const DeleteButton = styled.button`
