@@ -23,7 +23,7 @@ html {
 }
 
 /* 1600px ~ 1919px: 대형 모니터/일반 데스크탑 */
-@media (max-width: 1600px) {
+@media (max-width: 1800px) {
   html {
     font-size: 15px; /* 약 93.75% 스케일 */
   }
