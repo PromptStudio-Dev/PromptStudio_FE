@@ -59,6 +59,7 @@ export default function MainPanel({
               onEditUpgrade={onEditUpgrade}
               activeUpgradeId={activeUpgradeId}
               activeUpgrade={activeUpgrade}
+              isResultPanelOpen={isResultPanelOpen}
             />
           </PromptInputWrapper>
         </TopSection>
@@ -100,7 +101,6 @@ const MakerPanelWrapper = styled.div`
 
   /* ResultPanel이 열려있을 때 오른쪽 여백 추가 (ResultPanel 너비만큼) */
   margin-right: ${(props) => (props.$isResultPanelOpen ? "36.0625rem" : "0")};
-  transition: margin-right 0.3s ease;
 `;
 
 const SidebarOpenButton = styled.button`
