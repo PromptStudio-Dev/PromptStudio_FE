@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import NextButtonIconImage from "./assets/nextButtonIcon.svg";
-import CheckImageRequiredCheckButtonImg from "./assets/imageContainButton.svg";
 
 export default function UploadTemplatePage({
-  onNext,
   content,
   setContent,
   imageRequired,
@@ -294,57 +291,9 @@ export default function UploadTemplatePage({
           </CheckImageRequiredCheckButtonText>
         </CheckImageRequiredCheckButton>
       </CheckImageRequiredSection>
-      <NextButton
-        onClick={onNext}
-        disabled={!content.trim() || imageRequired === null}
-      >
-        <NextButtonText>다음</NextButtonText>
-        <NextButtonIcon src={NextButtonIconImage} />
-      </NextButton>
     </UploadTemplateWrapper>
   );
 }
-
-const NextButton = styled.button`
-  width: 7.5rem;
-  height: 3.125rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7.5rem;
-  background: #f3f3f3;
-  padding: 0.72rem 1rem;
-  border: none;
-  align-self: flex-end;
-  margin-top: 1rem;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
-
-const NextButtonText = styled.span`
-  color: var(--B-T, #454545);
-  text-align: center;
-  font-family: "Pretendard Variable";
-  font-size: 1.4375rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 1.875rem;
-  letter-spacing: 0.01438rem;
-  display: flex;
-  align-items: center;
-  margin-right: 0.2rem;
-`;
-
-const NextButtonIcon = styled.img`
-  width: 1.875rem;
-  height: 1.875rem;
-  display: block;
-  flex-shrink: 0;
-`;
 
 const UploadTemplateWrapper = styled.div`
   width: 100%;

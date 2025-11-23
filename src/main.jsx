@@ -5,6 +5,7 @@ import HubPage from "./pages/HubPage/HubPage.jsx";
 import ArchivePage from "./pages/ArchivePage/ArchivePage.jsx";
 import MakerShellPage from "./pages/MakerPage/MakerShellPage.jsx";
 import UploadPage from "./pages/UploadPage/UploadPage.jsx";
+import PromptDetailPage from "./pages/PromptDetailPage/PromptDetailPage.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "upload",
         element: <UploadPage />,
+      },
+      {
+        path: "prompt/:promptId",
+        element: <PromptDetailPage />,
       },
     ],
   },

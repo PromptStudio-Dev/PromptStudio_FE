@@ -9,6 +9,7 @@ const ChatSendBox = forwardRef(
   (
     {
       textareaRef,
+      value,
       handleTextareaChange,
       fileInputRef,
       handleImageAttachClick,
@@ -17,6 +18,7 @@ const ChatSendBox = forwardRef(
       onSendMessage,
       onKeyDown,
       hasContent = false,
+      isLoading = false,
       ...props
     },
     ref
@@ -29,12 +31,14 @@ const ChatSendBox = forwardRef(
       >
         <ChatSendBoxInput
           ref={textareaRef}
+          value={value}
           placeholder="오늘 어떤 도움을 드릴까요"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onChange={handleTextareaChange}
           onInput={handleTextareaChange}
           onKeyDown={onKeyDown}
+          disabled={isLoading}
         />
         <ChatSendBoxBottomSection>
           <HiddenFileInput
@@ -56,10 +60,14 @@ const ChatSendBox = forwardRef(
               <ChatSendOptionIcon src={DownIcon} alt="옵션 선택" />
             </ChatSendOptionButton>
             <ChatSendBoxSendMessageButton
-              src={hasContent ? sendPossibleIcon : sendImpossibleIcon}
+              src={
+                hasContent && !isLoading ? sendPossibleIcon : sendImpossibleIcon
+              }
               alt="메시지 전송"
               onClick={onSendMessage}
-              style={{ cursor: hasContent ? "pointer" : "not-allowed" }}
+              style={{
+                cursor: hasContent && !isLoading ? "pointer" : "not-allowed",
+              }}
             />
           </ChatSendBoxRightGroup>
         </ChatSendBoxBottomSection>
@@ -104,6 +112,15 @@ const ChatSendBoxInput = styled.textarea`
 
   &::placeholder {
     color: #9bb4c9;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1600px) {
+    min-height: 3rem;
   }
 `;
 
