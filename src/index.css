@@ -19,41 +19,41 @@ body {
 }
 
 html {
-  font-size: 16px; /* 1920px 이상 (디자인 원본) */
+  font-size: 16px !important; /* 1920px 이상 (디자인 원본) */
 }
 
 /* 1600px ~ 1919px: 대형 모니터/일반 데스크탑 */
 @media (max-width: 1600px) {
   html {
-    font-size: 15px; /* 약 93.75% 스케일 */
+    font-size: 15px !important; /* 약 93.75% 스케일 */
   }
 }
 
 /* 1440px ~ 1599px: 일반적인 13~14인치 노트북 */
 @media (max-width: 1440px) {
   html {
-    font-size: 14px; /* 87.5% 스케일 (가독성 마지노선 유지) */
+    font-size: 14px !important; /* 87.5% 스케일 (가독성 마지노선 유지) */
   }
 }
 
 /* 1280px ~ 1439px: 작은 노트북/구형 모니터 */
 @media (max-width: 1280px) {
   html {
-    font-size: 13px; /* 약 81.25% 스케일 */
+    font-size: 13px !important; /* 약 81.25% 스케일 */
   }
 }
 
 /* 1024px ~ 1279px: 태블릿 가로/넷북 */
 @media (max-width: 1024px) {
   html {
-    font-size: 12px; /* 75% 스케일 */
+    font-size: 12px !important; /* 75% 스케일 */
   }
 }
 
 /* 768px ~ 1023px: 태블릿 세로 (여기서부터는 보통 모바일 레이아웃 전환 고려) */
 @media (max-width: 768px) {
   html {
-    font-size: 11px;
+    font-size: 11px !important;
   }
 }
 
