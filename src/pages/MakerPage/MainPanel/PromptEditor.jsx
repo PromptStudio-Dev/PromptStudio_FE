@@ -11,6 +11,7 @@ export default function PromptEditor({
   onEditUpgrade,
   activeUpgradeId,
   activeUpgrade,
+  isResultPanelOpen = false,
 }) {
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
@@ -95,9 +96,10 @@ export default function PromptEditor({
         contentSnapshot: content,
       });
 
-      // 한 번 더 호출해 offset만큼 아래로 내려줌 (offset은 임의로 설정, 디자인과 논의 후 변경 예정)
+      // 한 번 더 호출해 offset만큼 아래로 내려줌
+      // ResultPanel이 열려있을 때는 offset을 더 크게 설정
       setModalPosition((prev) => {
-        const offset = 16;
+        const offset = isResultPanelOpen ? 80 : 64;
         const wrapperRect = wrapperRef.current?.getBoundingClientRect();
         const modalRect = modalRef.current?.getBoundingClientRect();
         const modalHeight = modalRect?.height ?? 0;
@@ -109,10 +111,12 @@ export default function PromptEditor({
           };
         }
 
-        const maxTop = Math.max(0, wrapperRect.height - modalHeight - offset);
+        // maxTop 계산 시 offset을 빼지 않고, 모달이 wrapper 밖으로 나가지 않도록만 체크
+        const maxTop = Math.max(0, wrapperRect.height - modalHeight);
+        const newTop = prev.top + offset;
 
         return {
-          top: Math.min(prev.top + offset, maxTop),
+          top: Math.min(newTop, maxTop),
           left: prev.left,
         };
       });
