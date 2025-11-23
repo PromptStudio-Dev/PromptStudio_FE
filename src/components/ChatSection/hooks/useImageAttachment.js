@@ -7,6 +7,13 @@ export const useImageAttachment = () => {
   const [attachedImages, setAttachedImages] = useState([]);
   const fileInputRef = useRef(null);
 
+  // 언마운트 시 정리를 위해 현재 이미지 리스트를 ref로 추적
+  const imagesRef = useRef(attachedImages);
+
+  useEffect(() => {
+    imagesRef.current = attachedImages;
+  }, [attachedImages]);
+
   const revokePreviewUrls = (images) => {
     images.forEach((image) => {
       if (image?.preview) {
@@ -108,9 +115,9 @@ export const useImageAttachment = () => {
 
   useEffect(() => {
     return () => {
-      revokePreviewUrls(attachedImages);
+      revokePreviewUrls(imagesRef.current);
     };
-  }, [attachedImages]);
+  }, []);
 
   return {
     attachedImages,

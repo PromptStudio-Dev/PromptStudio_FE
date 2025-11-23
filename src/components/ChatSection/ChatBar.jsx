@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import styled from "styled-components";
 
 import apiClient from "../../api/client";
@@ -24,6 +24,8 @@ export default function ChatBar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingPromptData, setPendingPromptData] = useState(null);
   const [modalPromptData, setModalPromptData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const isAutoScrollEnabledRef = useRef(true);
   const chatViewSectionRef = useRef(null);
 
   // 커스텀 훅들 사용
@@ -175,11 +177,18 @@ export default function ChatBar() {
 
   // 메시지 전송 핸들러
   const handleSendMessage = () => {
+    // 응답 대기 중이면 전송 차단
+    if (isLoading) return;
+
     const textContent = textareaValue.trim() || "";
     const hasContent =
       textContent || droppedPrompt || attachedImages.length > 0;
 
     if (!hasContent) return; // 최소 1개 이상의 내용이 있어야 함
+
+    // 로딩 상태 시작
+    setIsLoading(true);
+    isAutoScrollEnabledRef.current = true; // 전송 시 자동 스크롤 활성화
 
     let imageLayout = null;
     if (attachedImages.length > 0 && imagesPreviewRef.current) {
@@ -224,7 +233,7 @@ export default function ChatBar() {
       id: loadingMessageId,
       type: "loading",
       content: {
-        text: "결과 사냥중...",
+        text: "결과를 향해 헤엄치는 중",
       },
       timestamp: new Date(),
     };
@@ -239,12 +248,15 @@ export default function ChatBar() {
         id: Date.now() + 2,
         type: "assistant",
         content: {
-          text: "이것은 응답 메시지입니다. 실제 API 연동 시 여기에 서버로부터 받은 응답이 표시됩니다.",
+          text: "2월 22일 서비스 개선 회의 요약\n 1.	로그인 버튼 미반응 이슈는 2880×1800 200% 환경에서 레이어 겹침 발생 → rem 기반 수정 진행\n2.	온보딩 테스트 결과 정보 과다 및 애니메이션 버벅임 발견 → 화면 분리 및 성능 최적화 예정\n3.	최근 CS 문의 27%가 브라우저 확대 시 UI 깨짐 → px 기반 마진 구조 개선 필요\n4.	LCP 평균 3.8초 → hero 이미지 webp 전환으로 개선 진행\n5.	각 담당자는 작업 현황을 슬랙으로 공유, 다음 회의는 추후 공지",
         },
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    }, 3000); // 3초 후 응답 메시지 추가
+
+      // 응답 완료 후 로딩 상태 해제
+      setIsLoading(false);
+    }, 2000); // 3초 후 응답 메시지 추가
 
     // 전송 후 상태 초기화
     if (textareaRef.current) {
@@ -261,30 +273,85 @@ export default function ChatBar() {
 
   // 엔터키 핸들러
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
+  const scrollToBottom = useCallback(() => {
+    if (chatViewSectionRef.current && isAutoScrollEnabledRef.current) {
+      chatViewSectionRef.current.scrollTop =
+        chatViewSectionRef.current.scrollHeight;
+    }
+  }, []);
+
+  // 사용자의 스크롤 조작 감지
+  const handleScroll = () => {
+    if (chatViewSectionRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        chatViewSectionRef.current;
+      // 스크롤이 하단에 있는지 확인 (오차 범위 20px)
+      const isAtBottom = scrollHeight - (scrollTop + clientHeight) <= 20;
+      isAutoScrollEnabledRef.current = isAtBottom;
+    }
+  };
+
+  // 사용자 인터랙션 발생 시 즉시 자동 스크롤 중지 (저항 제거용)
+  const handleUserInteraction = () => {
+    isAutoScrollEnabledRef.current = false;
+  };
+
   // 전송 가능 여부 확인
   const hasContent =
-    textareaValue.trim() || droppedPrompt || attachedImages.length > 0;
+    (textareaValue.trim() || droppedPrompt || attachedImages.length > 0) &&
+    !isLoading;
 
   // 메시지가 추가될 때마다 하단으로 스크롤
   useEffect(() => {
-    if (chatViewSectionRef.current && messages.length > 0) {
-      // DOM 업데이트 후 스크롤을 위해 이중 requestAnimationFrame 사용
+    if (!chatViewSectionRef.current) return;
+
+    requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (chatViewSectionRef.current) {
-            chatViewSectionRef.current.scrollTop =
-              chatViewSectionRef.current.scrollHeight;
-          }
-        });
+        scrollToBottom();
       });
+    });
+  }, [messages.length, scrollToBottom]);
+
+  // 메시지 영역 DOM 변경(타이핑, 애니메이션 등) 시 하단으로 스크롤
+  useEffect(() => {
+    if (
+      !chatViewSectionRef.current ||
+      typeof MutationObserver === "undefined"
+    ) {
+      return undefined;
     }
-  }, [messages.length]);
+
+    let rafId = null;
+    const target = chatViewSectionRef.current;
+
+    const observer = new MutationObserver(() => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        scrollToBottom();
+      });
+    });
+
+    observer.observe(target, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      observer.disconnect();
+    };
+  }, [scrollToBottom]);
 
   return (
     <ChatBarContainer
@@ -292,7 +359,12 @@ export default function ChatBar() {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <ChatViewSection ref={chatViewSectionRef}>
+      <ChatViewSection
+        ref={chatViewSectionRef}
+        onScroll={handleScroll}
+        onWheel={handleUserInteraction}
+        onTouchStart={handleUserInteraction}
+      >
         {messages.length === 0 ? (
           <EmptyMessageWrapper>
             <EmptyMessageIcon src={promptDragIcon} alt="프롬프트 드래그 안내" />
@@ -331,6 +403,7 @@ export default function ChatBar() {
         <ChatSendBox
           ref={chatSendBoxRef}
           textareaRef={textareaRef}
+          value={textareaValue}
           handleTextareaChange={handleTextareaChange}
           fileInputRef={fileInputRef}
           handleImageAttachClick={handleImageAttachClick}
@@ -340,6 +413,7 @@ export default function ChatBar() {
           onSendMessage={handleSendMessage}
           onKeyDown={handleKeyDown}
           hasContent={hasContent}
+          isLoading={isLoading}
         />
       </ChatSendArea>
       <PromptDropModal

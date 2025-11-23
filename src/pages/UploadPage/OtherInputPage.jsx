@@ -1,28 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
-import CategoryTag from "../HubPage/CategoryTag";
-import businessIcon from "../HubPage/assets/businessIcon.svg";
-import employeeIcon from "../HubPage/assets/employeeIcon.svg";
-import investIcon from "../HubPage/assets/investIcon.svg";
-import designIcon from "../HubPage/assets/designIcon.svg";
-import normalIcon from "../HubPage/assets/normalIcon.svg";
-import studyIcon from "../HubPage/assets/studyIcon.svg";
-import lockIcon from "./assets/lockIcon.svg";
-import unlockIcon from "./assets/unlockIcon.svg";
-import NextButtonIconImage from "./assets/nextButtonIcon.svg";
-import apiClient from "../../api/client";
 
-export default function OtherInputPage({ onPrev, formData, setFormData }) {
+export default function OtherInputPage({
+  formData,
+  setFormData,
+  setImageFile,
+}) {
   const [selectedAi, setSelectedAi] = useState(
     formData.aiEnvironment || "Chat GPT"
   );
-  const [selectedCategory, setSelectedCategory] = useState(
-    formData.category || ""
-  );
-  const [selectedScope, setSelectedScope] = useState("");
-  const [isRegistering, setIsRegistering] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedResultType, setSelectedResultType] = useState(
+    formData.resultType || "image"
+  );
   const fileInputRef = useRef(null);
 
   const aiOptions = [
@@ -35,38 +25,16 @@ export default function OtherInputPage({ onPrev, formData, setFormData }) {
     "기타",
   ];
 
-  const categories = [
-    { name: "비즈니스", img: businessIcon },
-    { name: "취업", img: employeeIcon },
-    { name: "개발", img: investIcon },
-    { name: "디자인", img: designIcon },
-    { name: "일상", img: normalIcon },
-    { name: "학업", img: studyIcon },
-  ];
-
   const handleAiChange = (e) => {
     const ai = e.target.value;
     setSelectedAi(ai);
     setFormData((prev) => ({ ...prev, aiEnvironment: ai }));
   };
 
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
-    setFormData((prev) => ({ ...prev, category }));
+  const handleResultTypeChange = (type) => {
+    setSelectedResultType(type);
+    setFormData((prev) => ({ ...prev, resultType: type }));
   };
-
-  const handleScopeChange = (scope) => {
-    setSelectedScope(scope);
-    setFormData((prev) => ({ ...prev, visible: scope === "공개" }));
-  };
-
-  // 초기 마운트 시 formData에서 visible 값이 있으면 selectedScope 설정
-  useEffect(() => {
-    if (formData.visible !== undefined && formData.visible !== null) {
-      setSelectedScope(formData.visible ? "공개" : "비공개");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -108,74 +76,27 @@ export default function OtherInputPage({ onPrev, formData, setFormData }) {
     }
   };
 
-  const handleRegister = async () => {
-    // 필수 필드 검증
-    if (!formData.content.trim()) {
-      alert("프롬프트 템플릿을 입력해주세요.");
-      return;
-    }
-    if (!formData.title.trim()) {
-      alert("프롬프트 제목을 입력해주세요.");
-      return;
-    }
-    if (!formData.introduction.trim()) {
-      alert("프롬프트 설명을 입력해주세요.");
-      return;
-    }
-    if (!selectedCategory) {
-      alert("카테고리를 선택해주세요.");
-      return;
-    }
-    if (!selectedScope) {
-      alert("공개 범위를 선택해주세요.");
-      return;
-    }
-
-    setIsRegistering(true);
-
-    try {
-      // FormData 생성 (multipart/form-data)
-      const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("introduction", formData.introduction);
-      formDataToSend.append("content", formData.content);
-      formDataToSend.append("category", selectedCategory);
-      formDataToSend.append(
-        "visible",
-        formData.visible !== null ? formData.visible.toString() : "false"
-      );
-      formDataToSend.append("result", ""); // 빈 문자열
-      formDataToSend.append(
-        "imageRequired",
-        formData.imageRequired !== null
-          ? formData.imageRequired.toString()
-          : "false"
-      );
-      formDataToSend.append("aiEnvironment", selectedAi);
-
-      // 이미지 파일 추가
-      if (imageFile) {
-        formDataToSend.append("file", imageFile);
-      }
-
-      const memberId = 1; // 로그인 기능이 없으므로 1로 고정
-      const response = await apiClient.post(
-        `/api/prompts/members/${memberId}`,
-        formDataToSend
-      );
-
-      console.log("프롬프트 등록 성공:", response.data);
-      alert("프롬프트가 성공적으로 등록되었습니다.");
-
-      // 등록 성공 후 초기화 또는 리다이렉트
-      // 예: window.location.href = "/hub";
-    } catch (error) {
-      console.error("프롬프트 등록 실패:", error);
-      alert("프롬프트 등록에 실패했습니다. 다시 시도해주세요.");
-    } finally {
-      setIsRegistering(false);
-    }
+  const handleResultTextChange = (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, result: value }));
   };
+
+  useEffect(() => {
+    setSelectedResultType(formData.resultType || "image");
+  }, [formData.resultType]);
+
+  useEffect(() => {
+    if (formData.file && !imagePreview) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(formData.file);
+    }
+    if (!formData.file && imagePreview) {
+      setImagePreview(null);
+    }
+  }, [formData.file, imagePreview]);
 
   return (
     <OtherInputPageWrapper>
@@ -198,134 +119,65 @@ export default function OtherInputPage({ onPrev, formData, setFormData }) {
           ))}
         </AiSelectSection>
       </AiNameSection>
-      <CategoryInputSection>
-        <TitleText>카테고리{!selectedCategory && "*"}</TitleText>
-        <CategoryList>
-          {categories.map((category) => (
-            <CategoryTag
-              key={category.name}
-              name={category.name}
-              img={category.img}
-              isSelected={selectedCategory === category.name}
-              onClick={() => handleCategoryChange(category.name)}
-            />
-          ))}
-        </CategoryList>
-      </CategoryInputSection>
       <BottomSection>
-        <ScopeInputSection>
-          <TitleText>공개 범위{!selectedScope && "*"}</TitleText>
-          <ScopeList>
-            <ScopeItem
-              $isSelected={selectedScope === "공개"}
-              onClick={() => handleScopeChange("공개")}
+        <ResultInputSection>
+          <ResultHeader>
+            <TitleText>결과 등록</TitleText>
+            <ResultToggleButton
+              type="button"
+              $isTextSelected={selectedResultType === "text"}
+              onClick={() =>
+                handleResultTypeChange(
+                  selectedResultType === "image" ? "text" : "image"
+                )
+              }
             >
-              <ScopeIcon
-                src={unlockIcon}
-                alt="공개"
-                $isSelected={selectedScope === "공개"}
+              <ResultToggleLabel $isActive={selectedResultType === "image"}>
+                이미지
+              </ResultToggleLabel>
+              <ResultToggleLabel $isActive={selectedResultType === "text"}>
+                텍스트
+              </ResultToggleLabel>
+            </ResultToggleButton>
+          </ResultHeader>
+          <ResultGuideText>
+            {selectedResultType === "image"
+              ? "결과 이미지를 올리면 프롬프트의 매력이 더 잘 전달돼요. 특히 이미지 프롬프트의 경우 사용자들의 관심을 끌 수 있어요."
+              : "프롬프트 실행 결과를 텍스트로 소개하면 사용자들이 더욱 쉽게 이해할 수 있어요."}
+          </ResultGuideText>
+          {selectedResultType === "image" ? (
+            <ImageUploadBox onClick={handleImageClick}>
+              <HiddenFileInput
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
               />
-              <ScopeItemText $isSelected={selectedScope === "공개"}>
-                공개
-              </ScopeItemText>
-            </ScopeItem>
-            <ScopeItem
-              $isSelected={selectedScope === "비공개"}
-              onClick={() => handleScopeChange("비공개")}
-            >
-              <ScopeIcon
-                src={lockIcon}
-                alt="비공개"
-                $isSelected={selectedScope === "비공개"}
+              {imagePreview ? (
+                <ImagePreviewContainer>
+                  <ImagePreview src={imagePreview} alt="미리보기" />
+                  <RemoveImageButton onClick={handleImageRemove}>
+                    ×
+                  </RemoveImageButton>
+                </ImagePreviewContainer>
+              ) : (
+                <PlusIcon>+</PlusIcon>
+              )}
+            </ImageUploadBox>
+          ) : (
+            <ResultTextAreaWrapper>
+              <ResultTextArea
+                value={formData.result || ""}
+                onChange={handleResultTextChange}
+                placeholder="결과 텍스트를 입력해주세요."
               />
-              <ScopeItemText $isSelected={selectedScope === "비공개"}>
-                비공개
-              </ScopeItemText>
-            </ScopeItem>
-          </ScopeList>
-        </ScopeInputSection>
-        <ImageInputSection>
-          <TitleText>결과 이미지 등록</TitleText>
-          <ImageSubTitleText>
-            결과 이미지를 올리면 프롬프트의 매력이 더 잘 전달돼요.
-            <br />
-            특히 이미지 프롬프트의 경우 사용자들의 관심을 끌 수 있어요
-          </ImageSubTitleText>
-          <ImageUploadBox onClick={handleImageClick}>
-            <HiddenFileInput
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-            {imagePreview ? (
-              <ImagePreviewContainer>
-                <ImagePreview src={imagePreview} alt="미리보기" />
-                <RemoveImageButton onClick={handleImageRemove}>
-                  ×
-                </RemoveImageButton>
-              </ImagePreviewContainer>
-            ) : (
-              <PlusIcon>+</PlusIcon>
-            )}
-          </ImageUploadBox>
-        </ImageInputSection>
+            </ResultTextAreaWrapper>
+          )}
+        </ResultInputSection>
       </BottomSection>
-      <ButtonContainer>
-        <PrevButton onClick={onPrev}>
-          <PrevButtonIcon src={NextButtonIconImage} />
-          <PrevButtonText>이전</PrevButtonText>
-        </PrevButton>
-        <RegisterButton onClick={handleRegister} disabled={isRegistering}>
-          <RegisterButtonText>
-            {isRegistering ? "등록 중..." : "등록"}
-          </RegisterButtonText>
-        </RegisterButton>
-      </ButtonContainer>
     </OtherInputPageWrapper>
   );
 }
-
-const ScopeList = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  height: fit-content;
-  margin-top: 1.5rem;
-`;
-
-const ScopeItem = styled.div`
-  display: flex;
-  padding: 0.38rem 1.25rem;
-  border-radius: 7.5rem;
-  border: 0.0625rem solid var(--Light-blue, #49d8ff);
-  background: ${({ $isSelected }) => ($isSelected ? "#00C8FF" : "#fff")};
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-`;
-
-const ScopeIcon = styled.img`
-  width: 1.25rem;
-  height: 1.25rem;
-  display: block;
-  flex-shrink: 0;
-  filter: ${({ $isSelected }) =>
-    $isSelected ? "brightness(0) invert(1)" : "none"};
-  transition: filter 0.2s ease;
-`;
-
-const ScopeItemText = styled.span`
-  color: ${({ $isSelected }) => ($isSelected ? "#fff" : "#6ed1ff")};
-  text-align: center;
-  font-family: Pretendard;
-  font-size: 1.4375rem;
-  font-style: normal;
-  font-weight: 500;
-  transition: color 0.2s ease;
-`;
 
 const BottomSection = styled.div`
   display: flex;
@@ -334,37 +186,61 @@ const BottomSection = styled.div`
   margin-top: 3.13rem;
 `;
 
-const ScopeInputSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 50%;
-  height: fit-content;
-`;
-
-const ImageInputSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 50%;
-  height: fit-content;
-`;
-
-const CategoryInputSection = styled.div`
+const ResultInputSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  height: fit-content;
-  margin-top: 3.13rem;
+  gap: 1rem;
 `;
 
-const CategoryList = styled.div`
+const ResultHeader = styled.div`
+  width: 100%;
   display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
-  width: 100%;
+`;
+
+const ResultToggleButton = styled.button`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 12rem;
+  height: 2.5rem;
+  border-radius: 7.5rem;
+  border: 0.0625rem solid var(--Light-blue, #49d8ff);
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 1rem;
+  overflow: hidden;
+  margin-top: 0.2rem;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: ${({ $isTextSelected }) => ($isTextSelected ? "50%" : "0")};
+    width: 50%;
+    height: 100%;
+    background: #00c8ff;
+    border-radius: inherit;
+    transition: left 0.2s ease;
+  }
+`;
+
+const ResultToggleLabel = styled.span`
+  flex: 1;
+  text-align: center;
+  font-family: Pretendard;
+  font-size: 1rem;
+  font-weight: 600;
+  color: ${({ $isActive }) => ($isActive ? "#fff" : "#6ed1ff")};
+  z-index: 1;
+  transition: color 0.2s ease;
 `;
 
 const AiSelectSection = styled.div`
@@ -460,7 +336,7 @@ const TitleText = styled.span`
   letter-spacing: 0.01625rem;
 `;
 
-const ImageSubTitleText = styled.span`
+const ResultGuideText = styled.span`
   color: var(--B-T, #454545);
   font-family: "Pretendard Variable";
   font-size: 1rem;
@@ -469,6 +345,31 @@ const ImageSubTitleText = styled.span`
   margin-top: 0.5rem;
   line-height: 120%;
   letter-spacing: -0.02rem;
+`;
+
+const ResultTextAreaWrapper = styled.div`
+  width: 100%;
+  min-height: 12rem;
+  border-radius: 1rem;
+  border: 0.125rem solid var(--Light-blue, #49d8ff);
+  padding: 1.5rem 2rem;
+  background: #fff;
+`;
+
+const ResultTextArea = styled.textarea`
+  width: 100%;
+  min-height: 9rem;
+  border: none;
+  resize: none;
+  outline: none;
+  font-family: Pretendard;
+  font-size: 1.25rem;
+  color: #454545;
+  line-height: 1.5;
+
+  &::placeholder {
+    color: #d9d9d9;
+  }
 `;
 
 const ImageUploadBox = styled.div`
@@ -541,86 +442,4 @@ const PlusIcon = styled.span`
   font-weight: 300;
   line-height: 1;
   user-select: none;
-`;
-
-const Content = styled.div`
-  color: var(--B-T, #454545);
-  font-family: Pretendard;
-  font-size: 1.4375rem;
-  font-style: normal;
-  font-weight: 500;
-  line-height: normal;
-  letter-spacing: 0.014375rem;
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 5.37rem;
-`;
-
-const PrevButton = styled.button`
-  width: 7.5rem;
-  height: 3.125rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7.5rem;
-  background: #f3f3f3;
-  padding: 0.72rem 1rem;
-  border: none;
-`;
-
-const PrevButtonIcon = styled.img`
-  width: 1.875rem;
-  height: 1.875rem;
-  display: block;
-  flex-shrink: 0;
-  transform: rotate(180deg);
-  margin-right: 0.2rem;
-`;
-
-const PrevButtonText = styled.span`
-  color: var(--B-T, #454545);
-  text-align: center;
-  font-family: "Pretendard Variable";
-  font-size: 1.4375rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 1.875rem;
-  letter-spacing: 0.01438rem;
-  display: flex;
-  align-items: center;
-`;
-
-const RegisterButton = styled.button`
-  width: 7.5rem;
-  height: 3.125rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 7.5rem;
-  background: var(--Icon-, #001e40);
-  padding: 0.72rem 1rem;
-  border: none;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-`;
-
-const RegisterButtonText = styled.span`
-  color: #fff;
-  text-align: center;
-  font-family: "Pretendard Variable";
-  font-size: 1.4375rem;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 1.875rem;
-  letter-spacing: 0.01438rem;
-  display: flex;
-  align-items: center;
 `;

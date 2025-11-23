@@ -12,6 +12,7 @@ import PromptCard from "./PromptCard";
 import CategoryTag from "./CategoryTag";
 import apiClient from "../../api/client";
 import ChatBar from "../../components/ChatSection/ChatBar";
+import { useNavigate } from "react-router-dom";
 
 export default function HubPage() {
   const [selectedCategory, setSelectedCategory] = useState("전체");
@@ -23,6 +24,7 @@ export default function HubPage() {
   const [categoryPrompts, setCategoryPrompts] = useState([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [categoryError, setCategoryError] = useState(null);
+  const navigate = useNavigate();
 
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
@@ -45,8 +47,18 @@ export default function HubPage() {
       dragImage.style.position = "absolute";
       dragImage.style.top = "-9999px";
       dragImage.style.left = "-9999px";
+      // 너비와 높이를 고정 픽셀값으로 설정하여 반응형 스타일의 영향을 받지 않게 함
       dragImage.style.width = `${rect.width}px`;
       dragImage.style.height = `${rect.height}px`;
+      // box-sizing 명시 및 !important 적용하여 크기 강제
+      dragImage.style.boxSizing = "border-box";
+      dragImage.style.setProperty("width", `${rect.width}px`, "important");
+      dragImage.style.setProperty("height", `${rect.height}px`, "important");
+      // max-width, max-height 등 크기 제한 속성 초기화
+      dragImage.style.maxWidth = "none";
+      dragImage.style.maxHeight = "none";
+      dragImage.style.minWidth = "0";
+      dragImage.style.minHeight = "0";
       dragImage.style.margin = "0";
       dragImage.style.transform = "none";
       dragImage.style.opacity = "1";
@@ -89,6 +101,7 @@ export default function HubPage() {
     title: prompt.title ?? "제목 미상",
     subtitle: prompt.introduction ?? "",
     backgroundImage: prompt.imageUrl || "",
+    initialLiked: prompt.liked || false,
   });
 
   const handleSearchInputChange = (e) => {
@@ -268,6 +281,10 @@ export default function HubPage() {
 
   const hottestPreview = hottestPrompts.slice(0, 3);
 
+  const handlePromptCardClick = (promptId) => {
+    navigate(`/prompt/${promptId}`);
+  };
+
   return (
     <MainSection>
       <LeftSection>
@@ -328,6 +345,7 @@ export default function HubPage() {
                           handlePromptDragStart(event, promptData)
                         }
                         onDragEnd={handlePromptDragEnd}
+                        onClick={() => handlePromptCardClick(prompt.promptId)}
                       />
                     );
                   })
@@ -359,6 +377,7 @@ export default function HubPage() {
                       handlePromptDragStart(event, promptData)
                     }
                     onDragEnd={handlePromptDragEnd}
+                    onClick={() => handlePromptCardClick(prompt.promptId)}
                   />
                 );
               })
@@ -423,7 +442,7 @@ const HottestPrompt = styled.div`
 
 const SearchInput = styled.input`
   width: 80%;
-  margin-left: 1.69rem;
+  margin-left: 0.63rem;
   border: none;
   font-size: 1.25rem;
   outline: none;
@@ -444,6 +463,18 @@ const CardSection = styled.div`
   overflow-x: hidden;
   padding: 0 10%;
   padding-bottom: 6rem;
+
+  @media (max-width: 1600px) {
+    padding: 0 10%;
+  }
+
+  @media (max-width: 1440px) {
+    padding: 0 10%;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 0 3%;
+  }
 `;
 
 const CategoryList = styled.div`
@@ -472,12 +503,16 @@ const PromptCards = styled.div`
   gap: 1.5rem 2rem;
   width: 100%;
   align-content: flex-start;
+
+  @media (max-width: 1600px) {
+    gap: 0.75rem 1rem;
+  }
 `;
 
 const SearchIcon = styled.img`
   width: 1.1875rem;
   height: 1.1875rem;
-  margin-left: 2.37rem;
+  margin-left: 1.37rem;
   margin-bottom: 0.2rem;
 `;
 const MainSection = styled.div`
@@ -490,7 +525,7 @@ const MainSection = styled.div`
 const SearchBar = styled.div`
   display: flex;
   align-items: center;
-  width: 36%;
+  width: 30.4375rem;
   height: 3.3125rem;
   border-radius: 7.5rem;
   border: 2px solid var(--Light-blue, #49d8ff);

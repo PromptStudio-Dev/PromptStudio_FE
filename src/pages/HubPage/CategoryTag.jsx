@@ -44,17 +44,26 @@ const ImageContainer = styled.div`
 const Tag = styled.div`
   display: flex;
   align-items: center;
-  padding: 0.62rem 1.2rem;
+  justify-content: center;
+  padding: 0.34rem 0.62rem;
+  min-width: 4rem;
+  min-height: 2.4925rem;
   border-radius: 7.5rem;
   background: ${({ isSelected }) => (isSelected ? "#00C8FF" : "#EBFAFF")};
   color: ${({ isSelected }) => (isSelected ? "#fff" : "#6ED1FF")};
-  font-size: 1.1875rem;
+  font-size: 1rem;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
   box-sizing: border-box;
+
+  @media (max-width: 1600px) {
+    font-size: 1rem;
+    padding: 0.34rem 0.62rem;
+    min-height: 2.4925rem;
+  }
 `;
 
 const TagLabel = styled.span`
