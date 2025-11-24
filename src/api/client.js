@@ -10,6 +10,18 @@ const apiClient = axios.create({
   },
 });
 
+let isRefreshing = false;
+let refreshPromise = null;
+const refreshQueue = [];
+
+const enqueueRequest = (callback) => {
+  refreshQueue.push(callback);
+};
+
+const resolveQueue = (token) => {
+  refreshQueue.splice(0, refreshQueue.length).forEach((cb) => cb(token));
+};
+
 // 요청 인터셉터 (요청 전 처리)
 apiClient.interceptors.request.use(
   (config) => {
@@ -49,35 +61,101 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // 에러 처리
-    if (error.response) {
-      // 서버가 응답했지만 에러 상태 코드
-      switch (error.response.status) {
-        case 401:
-          // 인증 오류 - 로그인 페이지로 리다이렉트
+    const originalRequest = error.config;
+
+    // 401 처리 및 토큰 재발급
+    if (
+      error.response?.status === 401 &&
+      !originalRequest?._retry &&
+      !originalRequest?.url?.includes("/api/auth/reissue")
+    ) {
+      originalRequest._retry = true;
+      const refreshToken = localStorage.getItem("refreshToken");
+
+      if (!refreshToken) {
+        localStorage.removeItem("token");
+        window.dispatchEvent(new Event("auth-changed"));
+        return Promise.reject(error);
+      }
+
+      // 이미 갱신 중이면 큐에 등록해서 완료 후 재시도
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          enqueueRequest((newToken) => {
+            if (!newToken) {
+              reject(error);
+              return;
+            }
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
+      refreshPromise = axios
+        .post(
+          `${API_CONFIG.BASE_URL}/api/auth/reissue`,
+          { refreshToken },
+          { headers: { "Content-Type": "application/json" } }
+        )
+        .then((res) => {
+          const { accessToken, refreshToken: newRefreshToken, memberId } =
+            res.data || {};
+          if (accessToken) {
+            localStorage.setItem("token", accessToken);
+          }
+          if (newRefreshToken) {
+            localStorage.setItem("refreshToken", newRefreshToken);
+          }
+          if (memberId) {
+            localStorage.setItem("memberId", memberId);
+          }
+          window.dispatchEvent(new Event("auth-changed"));
+          resolveQueue(accessToken);
+          return accessToken;
+        })
+        .catch((refreshError) => {
+          console.error("토큰 재발급 실패:", refreshError);
           localStorage.removeItem("token");
-          window.location.href = "/login";
-          break;
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("memberId");
+          window.dispatchEvent(new Event("auth-changed"));
+          resolveQueue(null);
+          return Promise.reject(refreshError);
+        })
+        .finally(() => {
+          isRefreshing = false;
+          refreshPromise = null;
+        });
+
+      return refreshPromise.then((newToken) => {
+        if (!newToken) {
+          return Promise.reject(error);
+        }
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return apiClient(originalRequest);
+      });
+    }
+
+    // 기타 에러 처리
+    if (error.response) {
+      switch (error.response.status) {
         case 403:
-          // 권한 오류
           console.error("권한이 없습니다.");
           break;
         case 404:
-          // 리소스를 찾을 수 없음
           console.error("요청한 리소스를 찾을 수 없습니다.");
           break;
         case 500:
-          // 서버 오류
           console.error("서버 오류가 발생했습니다.");
           break;
         default:
           console.error("에러가 발생했습니다:", error.response.data);
       }
     } else if (error.request) {
-      // 요청은 보냈지만 응답을 받지 못함
       console.error("서버로부터 응답을 받지 못했습니다.");
     } else {
-      // 요청 설정 중 오류 발생
       console.error("요청 설정 중 오류가 발생했습니다:", error.message);
     }
     return Promise.reject(error);

@@ -15,7 +15,7 @@ import ChatBar from "../../components/ChatSection/ChatBar";
 import { useNavigate } from "react-router-dom";
 
 // TODO: 서버 설정 완료 후 이 플래그를 false로 변경하거나 삭제하세요
-const USE_DUMMY_DATA = true;
+const USE_DUMMY_DATA = false;
 
 // 더미 데이터
 const DUMMY_HOTTEST_PROMPTS = [
@@ -242,7 +242,6 @@ export default function HubPage() {
       try {
         const { data } = await apiClient.get("/api/prompts/hot", {
           params: {
-            memberId: 1,
             category: selectedCategory,
           },
           signal: controller.signal,
@@ -323,7 +322,6 @@ export default function HubPage() {
           params: {
             q: searchQuery.trim(),
             category: selectedCategory,
-            memberId: 1,
           },
           signal: controller.signal,
         });
@@ -396,7 +394,6 @@ export default function HubPage() {
       try {
         const { data } = await apiClient.get("/api/prompts", {
           params: {
-            memberId: 1,
             category: selectedCategory,
           },
           signal: controller.signal,
