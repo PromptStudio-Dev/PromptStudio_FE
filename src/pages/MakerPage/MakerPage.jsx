@@ -3,11 +3,13 @@ import styled from "styled-components";
 import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
 import ResultPanel from "./ResultPanel/ResultPanel";
+import ResultModal from "./shared/ResultModal";
 // import apiClient from "../../api/client"; // API 호출 주석처리로 인해 임시 주석처리
 
 export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(false);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [upgrades, setUpgrades] = useState([]);
   const [promptContent, setPromptContent] = useState(
     selectedPrompt?.content ?? ""
@@ -172,6 +174,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
         onRunPrompt={() => {
           // TODO: 프롬프트 실행 로직
+          setIsResultModalOpen(true);
         }}
         onOpenResultPanel={() => setIsResultPanelOpen(true)}
         isResultPanelOpen={isResultPanelOpen}
@@ -183,6 +186,15 @@ export default function MakerPage({ selectedPrompt = null }) {
         onRun={() => {
           // TODO: 프롬프트 실행 로직
           console.log("프롬프트 실행:", promptContent);
+        }}
+      />
+
+      <ResultModal
+        isOpen={isResultModalOpen}
+        onClose={() => setIsResultModalOpen(false)}
+        onExpand={() => {
+          setIsResultModalOpen(false);
+          setIsResultPanelOpen(true);
         }}
       />
     </MakerPageWrapper>
