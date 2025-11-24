@@ -16,22 +16,32 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
     return { width: 535, height: 665 };
   }, []);
 
-  const [position, setPosition] = useState(() => {
-    // 초기 위치를 바로 계산
-    if (typeof window !== "undefined") {
-      const size = getModalSize();
-      // 오른쪽 여백 (2rem = 32px @ 16px)
-      const rightMargin = 32;
-      return {
-        x: window.innerWidth - size.width - rightMargin,
-        y: window.innerHeight - size.height - 27,
-      };
-    }
-    return { x: 0, y: 0 };
-  });
+  const [position, setPosition] = useState(null);
+  const [isPositionCalculated, setIsPositionCalculated] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      // 위치 계산 상태 초기화
+      setIsPositionCalculated(false);
+      // 초기 위치를 설정하여 즉시 렌더링할 수 있도록 함
+      const initialSize = getModalSize();
+      const rightMarginPx = 32;
+      const initialX = window.innerWidth - initialSize.width - rightMarginPx;
+      const initialY = window.innerHeight - initialSize.height - 27;
+      setPosition({
+        x: Math.max(
+          0,
+          Math.min(
+            initialX,
+            window.innerWidth - initialSize.width - rightMarginPx
+          )
+        ),
+        y: Math.max(
+          0,
+          Math.min(initialY, window.innerHeight - initialSize.height)
+        ),
+      });
+
       // 모달이 열릴 때 위치를 확실하게 설정
       const updateSizeAndPosition = () => {
         // 실제 렌더링된 크기 가져오기
@@ -54,25 +64,28 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
         y = Math.max(0, Math.min(y, window.innerHeight - currentHeight));
 
         setPosition({ x, y });
+        setIsPositionCalculated(true);
       };
 
-      // 즉시 실행
-      updateSizeAndPosition();
-
-      // 약간의 지연 후 다시 실행 (DOM이 완전히 렌더링된 후)
-      const timeoutId = setTimeout(updateSizeAndPosition, 100);
+      // DOM이 완전히 렌더링된 후 한 번만 실행
+      requestAnimationFrame(() => {
+        requestAnimationFrame(updateSizeAndPosition);
+      });
 
       // 화면 크기 변경 시에도 위치 재계산
       window.addEventListener("resize", updateSizeAndPosition);
 
       return () => {
-        clearTimeout(timeoutId);
         window.removeEventListener("resize", updateSizeAndPosition);
       };
+    } else {
+      // 모달이 닫힐 때 상태 초기화
+      setPosition(null);
+      setIsPositionCalculated(false);
     }
   }, [isOpen, getModalSize]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !position) return null;
 
   return (
     <ModalOverlay>
@@ -83,6 +96,8 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
           left: `${position.x}px`,
           top: `${position.y}px`,
           cursor: "default",
+          opacity: isPositionCalculated ? 1 : 0,
+          transition: isPositionCalculated ? "opacity 0.1s ease-in" : "none",
         }}
       >
         <ModalHeader>
