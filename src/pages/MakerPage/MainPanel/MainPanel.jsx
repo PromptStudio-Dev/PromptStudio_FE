@@ -25,6 +25,7 @@ export default function MainPanel({
     <MakerPanelWrapper
       $isSidebarOpen={isSidebarOpen}
       $isResultPanelOpen={isResultPanelOpen}
+      data-main-panel
     >
       {/* 사이드바 토글 버튼 */}
       {!isSidebarOpen && (
