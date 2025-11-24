@@ -6,6 +6,7 @@ import ArchivePage from "./pages/ArchivePage/ArchivePage.jsx";
 import MakerShellPage from "./pages/MakerPage/MakerShellPage.jsx";
 import UploadPage from "./pages/UploadPage/UploadPage.jsx";
 import PromptDetailPage from "./pages/PromptDetailPage/PromptDetailPage.jsx";
+import AuthCallback from "./pages/AuthCallback/AuthCallback.jsx";
 import "./index.css";
 
 const router = createBrowserRouter([
@@ -36,6 +37,14 @@ const router = createBrowserRouter([
       {
         path: "prompt/:promptId",
         element: <PromptDetailPage />,
+      },
+      {
+        path: "auth/callback",
+        element: <AuthCallback />,
+      },
+      {
+        path: "auth/google/callback",
+        element: <AuthCallback />,
       },
     ],
   },
