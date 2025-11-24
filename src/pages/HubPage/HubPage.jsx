@@ -79,7 +79,8 @@ const DUMMY_CATEGORY_PROMPTS = [
   {
     promptId: 6,
     title: "제목도 길게제목도 길게제목도 길게제목도 길게제목도 길게제목도 길게",
-    introduction: "실생활에서 바로 쓸 수 있는 영어 회화 표현을 배워봅시다.길게길게길게길게길게길게길게길게",
+    introduction:
+      "실생활에서 바로 쓸 수 있는 영어 회화 표현을 배워봅시다.길게길게길게길게길게길게길게길게",
     category: "일상",
     aiEnvironment: "ChatGPT",
     imageUrl: "",
@@ -479,7 +480,7 @@ export default function HubPage() {
           <SearchBar>
             <SearchIcon src={SearchIconImg} />
             <SearchInput
-              placeholder="프로의 프롬프트로 최고의 결과물을 사냥하세요"
+              placeholder="고퀄리티 프롬프트로 바로 뛰어 들어보세요!"
               value={searchInputValue}
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchKeyDown}
@@ -578,20 +579,6 @@ export default function HubPage() {
   );
 }
 
-const HotImg = styled.img`
-  width: 1.4375rem;
-  height: 1.4375rem;
-  margin-right: 0.62rem;
-`;
-
-const HotText = styled.p`
-  color: #fff;
-  font-size: 1.1875rem;
-  font-style: normal;
-  font-weight: 700;
-  line-height: normal;
-`;
-
 const HotSectionWrapper = styled.div`
   position: relative;
   margin-bottom: 1.19rem;
@@ -613,10 +600,10 @@ const HotSection = styled.div`
 `;
 
 const HottestPrompt = styled.div`
-  width: 15rem;
-  aspect-ratio: 239 / 43;
+  padding: 0.4375rem 0.8125rem;
+  width: fit-content;
   position: absolute;
-  top: calc(-15rem * 43 / 239 / 2);
+  top: 0;
   left: 1.44rem;
   background: #00c8ff;
   display: flex;
@@ -624,11 +611,28 @@ const HottestPrompt = styled.div`
   align-items: center;
   border-radius: 10rem;
   z-index: 2;
+  transform: translateY(-50%);
+`;
+
+const HotImg = styled.img`
+  width: 1.1875rem;
+  height: 1.1875rem;
+  margin-right: 0.62rem;
+`;
+
+const HotText = styled.p`
+  color: #fff;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
 `;
 
 const SearchInput = styled.input`
-  width: 80%;
-  margin-left: 0.63rem;
+  width: 75%;
+  margin-left: 1.5rem;
+  margin-right: 2.38rem;
   border: none;
   font-size: 1.25rem;
   outline: none;
@@ -696,10 +700,9 @@ const PromptCards = styled.div`
 `;
 
 const SearchIcon = styled.img`
-  width: 1.1875rem;
-  height: 1.1875rem;
-  margin-left: 1.37rem;
-  margin-bottom: 0.2rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 2.38rem;
 `;
 const MainSection = styled.div`
   display: flex;
@@ -714,7 +717,7 @@ const SearchBar = styled.div`
   width: 30.4375rem;
   height: 3.3125rem;
   border-radius: 7.5rem;
-  border: 2px solid var(--Light-blue, #49d8ff);
+  border: 3px solid var(--Light-blue, #49D8FF);
   background: #fff;
   position: relative;
   z-index: 2;
@@ -725,7 +728,7 @@ const SearchLabel = styled.span`
   align-items: center;
   height: 3.3125rem;
   // padding-top: 0.4rem;
-  color: var(--Light-blue, #49d8ff);
+  color: #E0F5FF;
   font-family: "Instrument Sans", sans-serif;
   font-size: 3.5rem;
   font-style: normal;
