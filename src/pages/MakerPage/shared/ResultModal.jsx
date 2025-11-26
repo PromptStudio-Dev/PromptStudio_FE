@@ -1,20 +1,22 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import ExpandIconImg from "../assets/result-modal-expansion-button.svg";
 import CloseIconImg from "../assets/result-modal-close-button.svg";
+import ResultDisplay from "./ResultDisplay";
+import HistoryBar from "./HistoryBar";
 
-export default function ResultModal({ isOpen, onClose, onExpand }) {
+export default function ResultModal({
+  isOpen,
+  onClose,
+  onExpand,
+  currentHistoryIndex = 3,
+  historyItems = [],
+  onHistoryItemClick,
+  resultImageUrl = null,
+  isResultLoading = false,
+}) {
   // 모달 크기는 CSS에서 관리하고, JavaScript에서는 실제 렌더링된 크기를 사용
   const modalRef = useRef(null);
-
-  const getModalSize = useCallback(() => {
-    if (modalRef.current) {
-      const rect = modalRef.current.getBoundingClientRect();
-      return { width: rect.width, height: rect.height };
-    }
-    // 초기값 (1920px 기준)
-    return { width: 535, height: 665 };
-  }, []);
 
   const [position, setPosition] = useState(null);
   const [isPositionCalculated, setIsPositionCalculated] = useState(false);
@@ -23,33 +25,20 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
     if (isOpen) {
       // 위치 계산 상태 초기화
       setIsPositionCalculated(false);
-      // 초기 위치를 설정하여 즉시 렌더링할 수 있도록 함
-      const initialSize = getModalSize();
-      const rightMarginPx = 32;
-      const initialX = window.innerWidth - initialSize.width - rightMarginPx;
-      const initialY = window.innerHeight - initialSize.height - 27;
-      setPosition({
-        x: Math.max(
-          0,
-          Math.min(
-            initialX,
-            window.innerWidth - initialSize.width - rightMarginPx
-          )
-        ),
-        y: Math.max(
-          0,
-          Math.min(initialY, window.innerHeight - initialSize.height)
-        ),
-      });
+      // 초기 위치를 임시로 설정 (모달이 렌더링되도록 하기 위해)
+      // 실제 위치는 DOM이 마운트된 후 계산됨
+      setPosition({ x: 0, y: 0 });
 
       // 모달이 열릴 때 위치를 확실하게 설정
       const updateSizeAndPosition = () => {
-        // 실제 렌더링된 크기 가져오기
-        const currentSize = getModalSize();
-        const currentWidth = currentSize.width;
-        const currentHeight = currentSize.height;
+        if (!modalRef.current) return;
 
-        // 오른쪽 여백 (2rem = 32px @ 16px 기준, 반응형은 CSS에서 처리)
+        // 실제 렌더링된 크기 가져오기
+        const rect = modalRef.current.getBoundingClientRect();
+        const currentWidth = rect.width;
+        const currentHeight = rect.height;
+
+        // 오른쪽 여백
         const rightMarginPx = 32;
 
         // 우하단 위치 계산
@@ -67,7 +56,8 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
         setIsPositionCalculated(true);
       };
 
-      // DOM이 완전히 렌더링된 후 한 번만 실행
+      // DOM이 완전히 렌더링된 후 실제 크기로 위치 계산
+      // requestAnimationFrame을 두 번 사용하여 브라우저가 레이아웃을 완료한 후 실행
       requestAnimationFrame(() => {
         requestAnimationFrame(updateSizeAndPosition);
       });
@@ -83,9 +73,9 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
       setPosition(null);
       setIsPositionCalculated(false);
     }
-  }, [isOpen, getModalSize]);
+  }, [isOpen]);
 
-  if (!isOpen || !position) return null;
+  if (!isOpen) return null;
 
   return (
     <ModalOverlay>
@@ -93,9 +83,10 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
         ref={modalRef}
         style={{
           position: "absolute",
-          left: `${position.x}px`,
-          top: `${position.y}px`,
+          left: `${position?.x ?? 0}px`,
+          top: `${position?.y ?? 0}px`,
           cursor: "default",
+          visibility: isPositionCalculated ? "visible" : "hidden",
           opacity: isPositionCalculated ? 1 : 0,
           transition: isPositionCalculated ? "opacity 0.1s ease-in" : "none",
         }}
@@ -112,20 +103,16 @@ export default function ResultModal({ isOpen, onClose, onExpand }) {
           </HeaderButtons>
         </ModalHeader>
         <ModalBody>
-          {/* 이미지 영역 */}
-          <ImageContainer>
-            <PlaceholderImage />
-            <LoadingText>이미지 생성중...</LoadingText>
-          </ImageContainer>
-
-          {/* History 섹션 */}
-          <HistorySection>
-            <HistoryTitle>History</HistoryTitle>
-            <HistoryCount>(1/10)</HistoryCount>
-          </HistorySection>
-
-          {/* History 항목 */}
-          <HistoryItem></HistoryItem>
+          <ResultDisplay
+            isLoading={isResultLoading}
+            imageUrl={resultImageUrl}
+          />
+          <HistoryBar
+            currentIndex={currentHistoryIndex}
+            totalCount={historyItems.length || 10}
+            historyItems={historyItems}
+            onItemClick={onHistoryItemClick}
+          />
         </ModalBody>
       </ModalContent>
     </ModalOverlay>
@@ -212,66 +199,4 @@ const ModalBody = styled.div`
   flex-direction: column;
   gap: 2rem;
   overflow-y: auto;
-`;
-
-const ImageContainer = styled.div`
-  position: relative;
-  width: 100%;
-  height: 24.8125rem;
-  border-radius: 0.925rem;
-  background-color: #f2f2f2;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PlaceholderImage = styled.div`
-  width: 100%;
-  height: 100%;
-  background-color: #f2f2f2;
-  border-radius: 0.925rem;
-`;
-
-const LoadingText = styled.p`
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.214rem;
-  font-weight: 400;
-  color: #848484;
-  margin: 0;
-`;
-
-const HistorySection = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-`;
-
-const HistoryTitle = styled.h3`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #000000;
-  margin: 0;
-`;
-
-const HistoryCount = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #848484;
-`;
-
-const HistoryItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1.3875rem 2.53125rem;
-  background-color: #f9f9f9;
-  border-radius: 0.17375rem;
-  height: 2.775rem;
 `;

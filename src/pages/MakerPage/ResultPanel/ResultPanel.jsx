@@ -2,8 +2,19 @@ import React from "react";
 import styled from "styled-components";
 import AIModalSelector from "../MainPanel/AIModalSelector";
 import ResultPanelCloseImg from "../assets/prompt-run-close.svg";
+import ResultDisplay from "../shared/ResultDisplay";
+import HistoryBar from "../shared/HistoryBar";
 
-export default function ResultPanel({ isOpen = true, onToggle, onRun }) {
+export default function ResultPanel({
+  isOpen = true,
+  onToggle,
+  onRun,
+  currentHistoryIndex = 3,
+  historyItems = [],
+  onHistoryItemClick,
+  resultImageUrl = null,
+  isResultLoading = false,
+}) {
   return (
     <ResultPanelWrapper $isOpen={isOpen}>
       <ResultPanelHeader>
@@ -20,7 +31,15 @@ export default function ResultPanel({ isOpen = true, onToggle, onRun }) {
           />
         </SecondWrapper>
       </ResultPanelHeader>
-      <ResultContent>{/* 결과 표시 영역 */}</ResultContent>
+      <ResultContent>
+        <ResultDisplay isLoading={isResultLoading} imageUrl={resultImageUrl} />
+        <HistoryBar
+          currentIndex={currentHistoryIndex}
+          totalCount={historyItems.length || 10}
+          historyItems={historyItems}
+          onItemClick={onHistoryItemClick}
+        />
+      </ResultContent>
     </ResultPanelWrapper>
   );
 }
@@ -48,7 +67,10 @@ const ResultPanelHeader = styled.div`
 const ResultContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 0;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 `;
 
 const SecondWrapper = styled.div`

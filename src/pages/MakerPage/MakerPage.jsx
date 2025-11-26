@@ -15,6 +15,17 @@ export default function MakerPage({ selectedPrompt = null }) {
     selectedPrompt?.content ?? ""
   );
   const [latestUpgradeId, setLatestUpgradeId] = useState(null);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(3);
+  const [resultImageUrl] = useState(null);
+  const [isResultLoading] = useState(false);
+
+  // 히스토리 데이터
+  const historyItems = [
+    { id: 1, title: "남자 캐릭터로 변경 요청", status: "New" },
+    { id: 2, title: "배경 변경 요청", time: "PM 16:42" },
+    { id: 3, title: "머리스타일 변경 요청", time: "PM 16:48" },
+    { id: 4, title: "제발", time: "PM 16:48" },
+  ];
 
   useEffect(() => {
     setPromptContent(selectedPrompt?.content ?? "");
@@ -187,6 +198,14 @@ export default function MakerPage({ selectedPrompt = null }) {
           // TODO: 프롬프트 실행 로직
           console.log("프롬프트 실행:", promptContent);
         }}
+        currentHistoryIndex={currentHistoryIndex}
+        historyItems={historyItems}
+        onHistoryItemClick={(item, index) => {
+          setCurrentHistoryIndex(index + 1);
+          console.log("히스토리 항목 클릭:", item, index);
+        }}
+        resultImageUrl={resultImageUrl}
+        isResultLoading={isResultLoading}
       />
 
       <ResultModal
@@ -196,6 +215,14 @@ export default function MakerPage({ selectedPrompt = null }) {
           setIsResultModalOpen(false);
           setIsResultPanelOpen(true);
         }}
+        currentHistoryIndex={currentHistoryIndex}
+        historyItems={historyItems}
+        onHistoryItemClick={(item, index) => {
+          setCurrentHistoryIndex(index + 1);
+          console.log("히스토리 항목 클릭:", item, index);
+        }}
+        resultImageUrl={resultImageUrl}
+        isResultLoading={isResultLoading}
       />
     </MakerPageWrapper>
   );
