@@ -56,7 +56,7 @@ const MeasureText = styled.div`
   visibility: hidden;
   white-space: pre;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.88vw; /* 36px @ 1920px */
+  font-size: 1.625rem;
   font-weight: 600;
   pointer-events: none;
 `;
@@ -64,7 +64,7 @@ const MeasureText = styled.div`
 const TitleInput = styled.input`
   width: 100%;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.88vw; /* 36px @ 1920px */
+  font-size: 1.625rem;
   font-weight: 600;
   color: #aadff7;
   background: transparent;
@@ -73,7 +73,7 @@ const TitleInput = styled.input`
   padding: 0.46vh 0;
 
   &::placeholder {
-    color: #e1e1e0;
+    color: #aadff7;
   }
 
   &:focus {
