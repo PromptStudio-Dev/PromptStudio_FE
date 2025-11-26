@@ -47,7 +47,7 @@ export default function MainPanel({
               />
             )}
           </TitleAndControlRow>
-          <PromptInputWrapper>
+          <PromptInputWrapper $isResultPanelOpen={isResultPanelOpen}>
             <MakerTipButton>
               <MakerTipText>Tip</MakerTipText>
             </MakerTipButton>
@@ -135,7 +135,6 @@ const ContentArea = styled.div`
   padding: 1.75rem 2.81rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   flex: 1;
   min-height: 0;
 `;
@@ -144,8 +143,9 @@ const TopSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2rem;
   width: 100%;
+  flex: 1;
+  min-height: 0;
 `;
 
 const TitleAndControlRow = styled.div`
@@ -160,5 +160,9 @@ const PromptInputWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  /* ResultPanel이 열려있을 때는 적용 x */
+  max-width: ${(props) =>
+    props.$isResultPanelOpen ? "none" : "calc(100% - 20rem)"};
   flex: 1;
+  min-height: 0;
 `;
