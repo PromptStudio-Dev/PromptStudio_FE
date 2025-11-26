@@ -237,9 +237,19 @@ export default function PromptEditor({
 
 const EditorWrapper = styled.div`
   width: 100%;
-  min-height: 40vh;
-  margin-top: 2vh;
+  flex: 1;
   position: relative; /* 자식 요소를 겹치기 위해 position: relative 추가 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0; /* flex 컨테이너 내에서 스크롤이 작동하도록 */
+
+  /* 스크롤바 숨기기 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 `;
 
 // '가짜' Placeholder를 위한 스타일
@@ -265,7 +275,7 @@ const FakePlaceholder = styled.div`
 
 const EditorTextarea = styled.textarea`
   width: 100%;
-  min-height: 40vh;
+  height: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.44rem;
   font-weight: 400;
@@ -274,11 +284,21 @@ const EditorTextarea = styled.textarea`
   background: transparent; /* 중요: FakePlaceholder가 비쳐 보이도록 배경을 투명하게 */
   border: none;
   outline: none;
-  resize: vertical;
+  resize: none; /* resize 핸들 숨기기 */
   padding: 1rem 0;
   position: relative; /* z-index를 주기 위해 추가 */
   z-index: 1; /* FakePlaceholder보다 위에 있도록 설정 */
   caret-color: ${(props) => (props.$shouldHideText ? "#001e40" : "auto")};
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* 스크롤바 숨기기 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 `;
 
 const SelectionOverlay = styled.div`
@@ -286,7 +306,7 @@ const SelectionOverlay = styled.div`
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 40vh;
+  height: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.44rem;
   font-weight: 400;
@@ -308,7 +328,7 @@ const TextOverlay = styled.div`
   top: 0;
   left: 0;
   width: 100%;
-  min-height: 40vh;
+  height: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.44rem;
   font-weight: 400;
