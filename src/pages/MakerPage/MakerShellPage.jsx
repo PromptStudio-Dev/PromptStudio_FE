@@ -7,6 +7,7 @@ import SearchInput from "./SidePanel/TopPanel/SearchInput";
 import MakerPageIcon from "./assets/prompt-maker-image.svg";
 import MakerNextButton from "./assets/maker-next-button.svg";
 import MakerPrevButton from "./assets/maker-prev-button.svg";
+import { createMaker, getMaker } from "./api";
 
 const RUN_STATE = {
   RUN: "RUN",
@@ -14,95 +15,6 @@ const RUN_STATE = {
 };
 
 const MAKER_NOT_FOUND_MESSAGE = "선택한 Maker를 찾을 수 없습니다.";
-
-// mock data
-const RUN_PROMPTS = [
-  {
-    makerId: 101,
-    title: "면접관 시점 자소서 생성",
-    introduction:
-      "아직도 복사 붙여 넣기만 하는 자소서로 고민하고 계신가요? 실제 면접관의 시선에서 필요한 정보를 선별해 자연스럽고 설득력 있게 정리해주는 자소서 프롬프트로, 읽는 사람에게 분명한 메시지를 전달하는 문장을 만들어보세요.",
-    imageUrl: null,
-  },
-  {
-    makerId: 102,
-    title: "자연스러운 한국어 문장 생성",
-    introduction:
-      "AI가 만들어내는 어색함이나 문맥 오류가 걱정되신다면, 상황에 꼭 맞는 자연스러운 흐름을 가진 문장을 생성해보세요. 텍스트의 목적과 분위기를 고려하여 표현을 조절하므로, 실생활에 바로 사용할 수 있는 고품질 문장을 경험하실 수 있습니다.",
-    imageUrl: null,
-  },
-  {
-    makerId: 103,
-    title: "카페 메뉴판 이미지 만들기",
-    introduction:
-      "사진 한 장만 업로드하면 감각적인 메뉴판 이미지를 자동으로 완성합니다. 브랜드의 분위기, 색감, 스타일을 고려해 자연스럽고 통일성 있는 디자인을 제공하므로 디자인 툴 없이도 전문적인 메뉴판 이미지를 쉽고 빠르게 제작할 수 있습니다.",
-    imageUrl: null,
-  },
-  {
-    makerId: 104,
-    title: "고퀄 발표문 자동 생성",
-    introduction:
-      "복잡한 내용을 발표용 문장으로 다듬기 어려우신가요? 핵심 메시지를 중심으로 구조화하여 발표자가 말하기 편하고 청자가 이해하기 쉬운 형태로 재정리해드립니다. 자연스럽게 흘러가는 고퀄리티 발표문을 손쉽게 준비해보세요.",
-    imageUrl: null,
-  },
-  {
-    makerId: 105,
-    title: "SNS 홍보 문구 생성",
-    introduction:
-      "짧은 문장 안에 브랜드의 매력을 담기란 쉽지 않습니다. SNS 특유의 빠른 흐름과 소비 패턴에 맞춰, 자연스럽게 눈길을 끌고 공감을 얻을 수 있는 홍보 문구를 생성해드립니다. 해시태그와 톤까지 고려한 완성도 높은 문구를 받아보세요.",
-    imageUrl: null,
-  },
-  {
-    makerId: 106,
-    title: "웹사이트 메인 히어로 이미지 생성",
-    introduction:
-      "웹사이트의 첫인상을 결정하는 히어로 이미지를 감각적으로 생성해드립니다. 브랜드의 정체성, 컬러 톤, 서비스의 주제를 고려해 자연스럽고 강렬한 메인 이미지를 만들어 사이트 전체의 완성도를 한 번에 높일 수 있습니다.",
-    imageUrl: null,
-  },
-  {
-    makerId: 107,
-    title: "블로그 서론 매끄럽게 작성",
-    introduction:
-      "독자의 관심을 끌어야 하는 블로그 서론이 가장 어렵다면, 핵심 주제를 자연스럽게 흘러가도록 소개하는 매끄러운 서론을 생성해보세요. 글 전체의 톤을 맞추면서도 독자가 읽고 싶게 만드는 매력적인 도입부를 손쉽게 완성합니다.",
-    imageUrl: null,
-  },
-  {
-    makerId: 108,
-    title: "경험 기반 이력서 문장 생성",
-    introduction:
-      "경험은 많은데 문장으로 정리하기 어렵다면, 핵심 성과 중심으로 전문적이고 깔끔하게 재구성해드립니다. 불필요한 정보는 줄이고 강조해야 할 부분은 명확히 드러내 자연스럽게 읽히는 고품질 이력서 문장을 완성하세요.",
-    imageUrl: null,
-  },
-  {
-    makerId: 109,
-    title: "프로젝트 소개문 자동 생성",
-    introduction:
-      "프로젝트 목적, 기여도, 문제 해결 과정, 성과를 한 문장에 담기 어렵다면 이 프롬프트를 활용해보세요. 기술적 정보는 쉽게 풀어내고 성과는 명확히 보여주는 방식으로 자연스럽게 구성된 프로젝트 소개문을 만들어드립니다.",
-    imageUrl: null,
-  },
-  {
-    makerId: 110,
-    title: "이메일 전문적 톤으로 변환",
-    introduction:
-      "비즈니스 상황에서 어색한 말투가 걱정된다면, 자연스럽고 전문적인 이메일 문장으로 변환해보세요. 지나치게 딱딱하지 않으면서도 예의를 갖춘 균형 잡힌 톤으로 작성되어 어떤 상황에도 바로 사용할 수 있는 완성도 높은 이메일을 만든습니다.",
-    imageUrl: null,
-  },
-];
-
-const NO_RUN_PROMPTS = [
-  {
-    makerId: 201,
-    title: "팀 온보딩 교육 스크립트",
-    introduction:
-      "회사 철학과 업무 프로세스를 쉽고 자연스럽게 설명하는 온보딩 스크립트를 구성합니다.",
-  },
-  {
-    makerId: 202,
-    title: "기업 문화 뉴스레터",
-    introduction:
-      "한 주간의 사내 소식을 정리해 구성원들에게 전달할 수 있는 템플릿을 생성하세요.",
-  },
-];
 
 export default function MakerShellPage() {
   const navigate = useNavigate();
@@ -124,8 +36,9 @@ export default function MakerShellPage() {
     setMakerListError(null);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      setMakers(makerView === RUN_STATE.RUN ? RUN_PROMPTS : NO_RUN_PROMPTS);
+      // TODO: 실제 API 호출로 교체
+      // 메이커 프롬프트 전체 조회(메이커 홈) API 연동
+      setMakers([]);
     } catch (error) {
       console.error("Maker 목록을 불러오지 못했습니다.", error);
       setMakerListError("Maker 목록을 불러오지 못했습니다.");
@@ -133,7 +46,7 @@ export default function MakerShellPage() {
     } finally {
       setIsLoadingMakers(false);
     }
-  }, [makerView]);
+  }, []);
 
   useEffect(() => {
     fetchMakers();
@@ -149,47 +62,91 @@ export default function MakerShellPage() {
 
       const fromState = makers.find((item) => item?.makerId === numericId);
 
-      if (fromState) {
-        return fromState;
-      }
-
-      const fromRun = RUN_PROMPTS.find((item) => item?.makerId === numericId);
-
-      if (fromRun) {
-        return fromRun;
-      }
-
-      const fromNoRun = NO_RUN_PROMPTS.find(
-        (item) => item?.makerId === numericId
-      );
-
-      return fromNoRun ?? null;
+      return fromState ?? null;
     },
     [makers]
   );
 
+  // makerIdParam이 있을 때 메이커 상세 정보 조회
   useEffect(() => {
     if (!makerIdParam) {
       setSelectedMaker(null);
       return;
     }
 
+    // 먼저 state에서 찾아보기
     const candidate = findMakerById(makerIdParam);
-
     if (candidate) {
       setSelectedMaker((prev) => {
         if (prev?.makerId === candidate?.makerId) {
           return prev;
         }
-
         return candidate;
       });
       setMakerError(null);
-    } else if (!isLoadingMakers) {
-      setSelectedMaker(null);
-      setMakerError(MAKER_NOT_FOUND_MESSAGE);
+      return;
     }
-  }, [findMakerById, isLoadingMakers, makerIdParam]);
+
+    // state에 없으면 API 호출
+    const fetchMakerDetail = async () => {
+      setIsLoadingMakers(true);
+      setMakerError(null);
+
+      try {
+        const numericId =
+          typeof makerIdParam === "string"
+            ? Number(makerIdParam)
+            : makerIdParam;
+
+        if (Number.isNaN(numericId)) {
+          throw new Error("유효하지 않은 메이커 ID입니다.");
+        }
+
+        const makerData = await getMaker(numericId);
+
+        // API 응답을 컴포넌트에서 사용하는 형식으로 변환
+        const maker = {
+          makerId: makerData.makerId,
+          title: makerData.title || "새 프롬프트",
+          content: makerData.content || "",
+          imageUrl: makerData.images?.[0]?.imageUrl || "",
+        };
+
+        setSelectedMaker(maker);
+        setMakerError(null);
+
+        // makers 목록에도 추가 (중복 방지)
+        setMakers((prev) => {
+          const exists = prev.find((m) => m.makerId === maker.makerId);
+          if (exists) {
+            return prev;
+          }
+          return [maker, ...prev];
+        });
+      } catch (error) {
+        console.error("메이커 상세 정보를 불러오지 못했습니다.", error);
+        setSelectedMaker(null);
+
+        let errorMessage = MAKER_NOT_FOUND_MESSAGE;
+        if (error?.response?.status === 404) {
+          errorMessage = "메이커를 찾을 수 없습니다.";
+        } else if (error?.response) {
+          errorMessage = `서버 오류: ${error.response.status}`;
+          if (error.response.data?.message) {
+            errorMessage = error.response.data.message;
+          }
+        } else if (error?.message) {
+          errorMessage = error.message;
+        }
+
+        setMakerError(errorMessage);
+      } finally {
+        setIsLoadingMakers(false);
+      }
+    };
+
+    fetchMakerDetail();
+  }, [makerIdParam, findMakerById]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -205,12 +162,22 @@ export default function MakerShellPage() {
     setIsCreatingMaker(true);
     setMakerError(null);
 
-    // 현재 프론트에서 makerId 임의로 생성(백엔드에서 생성)
     try {
+      // localStorage에서 memberId 가져오기
+      const memberId = localStorage.getItem("memberId");
+
+      if (!memberId) {
+        throw new Error("로그인이 필요합니다. 먼저 로그인해주세요.");
+      }
+
+      // API를 통해 메이커 생성
+      const response = await createMaker(Number(memberId));
+      const { makerId } = response;
+
+      // 생성된 메이커 정보로 새 메이커 객체 생성
       const newMaker = {
-        makerId: Date.now(),
+        makerId: makerId,
         title: "새 프롬프트",
-        introduction: "아이디어를 자유롭게 펼쳐보세요.",
         content: "",
         imageUrl: "",
       };
@@ -223,7 +190,9 @@ export default function MakerShellPage() {
 
       let errorMessage = "새 Maker를 생성하지 못했습니다.";
 
-      if (
+      if (error?.message?.includes("로그인이 필요")) {
+        errorMessage = error.message;
+      } else if (
         error?.code === "ERR_NAME_NOT_RESOLVED" ||
         error?.message?.includes("ERR_NAME_NOT_RESOLVED")
       ) {
@@ -231,6 +200,9 @@ export default function MakerShellPage() {
           "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
       } else if (error?.response) {
         errorMessage = `서버 오류: ${error.response.status}`;
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
       } else if (error?.request) {
         errorMessage = "서버로부터 응답을 받지 못했습니다.";
       }
@@ -276,7 +248,7 @@ export default function MakerShellPage() {
     const keyword = searchKeyword.trim().toLowerCase();
 
     return makers.filter((maker) => {
-      const searchableText = [maker?.title, maker?.introduction]
+      const searchableText = [maker?.title, maker?.content]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -427,7 +399,7 @@ export default function MakerShellPage() {
                   <MakerPageCard
                     key={prompt?.makerId}
                     title={prompt.title}
-                    description={prompt.introduction}
+                    description={prompt.content}
                     imageUrl={prompt.imageUrl}
                     onClick={() => handleSelectMaker(prompt?.makerId)}
                     onDelete={() => handleDeleteMaker(prompt?.makerId)}
