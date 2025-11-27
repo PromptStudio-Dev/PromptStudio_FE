@@ -4,7 +4,13 @@ import PromptCardList from "./PromptCardList";
 import PromptSectionDetail from "./PromptSectionDetail";
 import PromptCard from "./PromptCard";
 import backButtonIcon from "../../assets/side-panel-close.svg";
-import apiClient from "../../../../api/client";
+import {
+  getRecentPrompts,
+  getHotPrompts,
+  getAllPrompts,
+  searchPrompts,
+  getPromptDetail,
+} from "../../api";
 
 export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   const [currentView, setCurrentView] = useState("main"); // "main" | "detail"
@@ -47,12 +53,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
 
       try {
         const memberId = 1; // TODO: 실제 로그인한 사용자 ID로 교체
-        const { data } = await apiClient.get(
-          `/api/prompts/recent/members/${memberId}`,
-          {
-            signal: controller.signal,
-          }
-        );
+        const data = await getRecentPrompts(memberId);
 
         console.log("최근 조회한 프롬프트 응답 데이터:", data);
 
@@ -104,12 +105,9 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setPopularError(null);
 
       try {
-        const { data } = await apiClient.get("/api/prompts/hot", {
-          params: {
-            memberId: 1,
-            category: "전체",
-          },
-          signal: controller.signal,
+        const data = await getHotPrompts({
+          memberId: 1,
+          category: "전체",
         });
 
         console.log("인기 프롬프트 응답 데이터:", data);
@@ -161,12 +159,9 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setAllError(null);
 
       try {
-        const { data } = await apiClient.get("/api/prompts", {
-          params: {
-            memberId: 1,
-            category: "전체",
-          },
-          signal: controller.signal,
+        const data = await getAllPrompts({
+          memberId: 1,
+          category: "전체",
         });
 
         console.log("전체 프롬프트 응답 데이터:", data);
@@ -227,14 +222,11 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setSearchError(null);
 
       try {
-        const { data } = await apiClient.get("/api/prompts/search", {
-          params: {
-            memberId: 1,
-            category: "전체",
-            q: trimmedKeyword,
-            query: trimmedKeyword,
-          },
-          signal: controller.signal,
+        const data = await searchPrompts({
+          memberId: 1,
+          category: "전체",
+          q: trimmedKeyword,
+          query: trimmedKeyword,
         });
 
         console.log("프롬프트 검색 결과:", data);
@@ -287,10 +279,8 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
     console.log("카드 클릭:", promptId);
 
     try {
-      const { data } = await apiClient.get(`/api/prompts/${promptId}`, {
-        params: {
-          memberId: 1,
-        },
+      const data = await getPromptDetail(promptId, {
+        memberId: 1,
       });
 
       console.log("프롬프트 상세 응답 데이터:", data);
