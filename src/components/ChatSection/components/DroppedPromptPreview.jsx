@@ -1,8 +1,9 @@
 import React, { forwardRef } from "react";
 import styled from "styled-components";
+import infoIcon from "../assets/infoIcon.svg";
 
 const DroppedPromptPreview = forwardRef(
-  ({ backgroundImage, fixedHeight, onRemove, ...props }, ref) => {
+  ({ backgroundImage, fixedHeight, onRemove, onEdit, ...props }, ref) => {
     const hasBackgroundImage = !!backgroundImage;
 
     return (
@@ -31,6 +32,11 @@ const DroppedPromptPreview = forwardRef(
         <DroppedPromptSubtitle $hasBackgroundImage={hasBackgroundImage}>
           {props.subtitle}
         </DroppedPromptSubtitle>
+        <PreviewFooter>
+          <EditButton type="button" onClick={onEdit}>
+            <EditIcon src={infoIcon} alt="수정" />
+          </EditButton>
+        </PreviewFooter>
       </DroppedPromptPreviewContainer>
     );
   }
@@ -45,10 +51,10 @@ const DroppedPromptPreviewContainer = styled.div`
   position: absolute;
   bottom: calc(100% + 0.75rem);
   left: 0;
-  width: min(50%, 26rem);
+  width: 50%;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0;
   padding: 1rem 1.25rem;
   border-radius: 0.9rem;
   background: ${({ $backgroundImage }) =>
@@ -127,6 +133,7 @@ const DroppedPromptHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 0.5rem;
 `;
 
 const DroppedPromptCategory = styled.span`
@@ -151,7 +158,7 @@ const DroppedPromptAiName = styled.span`
 `;
 
 const DroppedPromptTitle = styled.h3`
-  margin: 0;
+  margin: 0 0 0.3rem 0;
   font-family: "Pretendard";
   font-size: 1.05rem;
   font-weight: 700;
@@ -175,4 +182,23 @@ const DroppedPromptSubtitle = styled.p`
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-height: calc(0.925rem * 1.45 * 2);
+`;
+
+const PreviewFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+
+const EditButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+`;
+
+const EditIcon = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
 `;

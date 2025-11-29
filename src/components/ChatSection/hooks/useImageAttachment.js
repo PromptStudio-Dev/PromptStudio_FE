@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -14,15 +14,15 @@ export const useImageAttachment = () => {
     imagesRef.current = attachedImages;
   }, [attachedImages]);
 
-  const revokePreviewUrls = (images) => {
+  const revokePreviewUrls = useCallback((images) => {
     images.forEach((image) => {
       if (image?.preview) {
         URL.revokeObjectURL(image.preview);
       }
     });
-  };
+  }, []);
 
-  const normalizeFiles = (files, currentCount) => {
+  const normalizeFiles = useCallback((files, currentCount) => {
     if (!Array.isArray(files) || files.length === 0) return [];
 
     const imageFiles = files.filter((file) => file.type?.startsWith("image/"));
@@ -52,38 +52,44 @@ export const useImageAttachment = () => {
     }
 
     return validFiles.slice(0, availableSlots);
-  };
+  }, []);
 
-  const addImages = (files) => {
-    if (!files?.length) return;
-    const currentCount = attachedImages.length;
-    const normalized = normalizeFiles(files, currentCount);
-    if (normalized.length === 0) return;
+  const addImages = useCallback(
+    (files) => {
+      if (!files?.length) return;
+      const currentCount = attachedImages.length;
+      const normalized = normalizeFiles(files, currentCount);
+      if (normalized.length === 0) return;
 
-    const newImages = normalized.map((file) => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+      const newImages = normalized.map((file) => ({
+        id: Date.now() + Math.random(),
+        file,
+        preview: URL.createObjectURL(file),
+      }));
 
-    setAttachedImages((prev) => [...prev, ...newImages]);
-  };
+      setAttachedImages((prev) => [...prev, ...newImages]);
+    },
+    [attachedImages.length, normalizeFiles]
+  );
 
-  const replaceImagesWithFiles = (files) => {
-    revokePreviewUrls(attachedImages);
-    setAttachedImages([]);
-    if (!files?.length) return;
-    const normalized = normalizeFiles(files, 0);
-    if (normalized.length === 0) return;
-    const newImages = normalized.map((file) => ({
-      id: Date.now() + Math.random(),
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setAttachedImages(newImages);
-  };
+  const replaceImagesWithFiles = useCallback(
+    (files) => {
+      revokePreviewUrls(attachedImages);
+      setAttachedImages([]);
+      if (!files?.length) return;
+      const normalized = normalizeFiles(files, 0);
+      if (normalized.length === 0) return;
+      const newImages = normalized.map((file) => ({
+        id: Date.now() + Math.random(),
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+      setAttachedImages(newImages);
+    },
+    [attachedImages, normalizeFiles, revokePreviewUrls]
+  );
 
-  const handleImageRemove = (imageId) => {
+  const handleImageRemove = useCallback((imageId) => {
     setAttachedImages((prev) => {
       const imageToRemove = prev.find((img) => img.id === imageId);
       if (imageToRemove) {
@@ -91,27 +97,33 @@ export const useImageAttachment = () => {
       }
       return prev.filter((img) => img.id !== imageId);
     });
-  };
+  }, []);
 
-  const handleImageSelect = (event) => {
-    const files = Array.from(event.target.files || []);
-    addImages(files);
+  const handleImageSelect = useCallback(
+    (event) => {
+      const files = Array.from(event.target.files || []);
+      addImages(files);
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [addImages]
+  );
 
-  const handleImageAttachClick = () => {
+  const handleImageAttachClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const clearImages = ({ keepUrls = false } = {}) => {
-    if (!keepUrls) {
-      revokePreviewUrls(attachedImages);
-    }
-    setAttachedImages([]);
-  };
+  const clearImages = useCallback(
+    ({ keepUrls = false } = {}) => {
+      if (!keepUrls) {
+        revokePreviewUrls(attachedImages);
+      }
+      setAttachedImages([]);
+    },
+    [attachedImages, revokePreviewUrls]
+  );
 
   useEffect(() => {
     return () => {
