@@ -53,6 +53,8 @@ export default function PromptDropModal({
   onClose,
   promptData,
   onApply,
+  initialValues,
+  initialImages,
 }) {
   const [inputValues, setInputValues] = useState({});
   const [currentPromptText, setCurrentPromptText] = useState("");
@@ -73,7 +75,9 @@ export default function PromptDropModal({
     handleImageSelect: handleModalImageSelect,
     handleImageRemove: handleModalImageRemove,
     clearImages: clearModalImages,
+    replaceImagesWithFiles: replaceModalImagesWithFiles,
   } = useImageAttachment();
+  const hasAppliedInitialImagesRef = useRef(false);
 
   const fieldNamesKey = useMemo(() => {
     if (!promptData?.fields?.length && !dummyPromptData.fields?.length) {
@@ -95,20 +99,45 @@ export default function PromptDropModal({
     if (activePromptData?.text && activePromptData?.fields) {
       const fields = {};
       activePromptData.fields.forEach((field) => {
-        fields[field.name] = "";
+        fields[field.name] =
+          (initialValues && initialValues[field.name]) || "";
       });
       setInputValues(fields);
       setCurrentPromptText(activePromptData.text);
     }
-  }, [activePromptData]);
+  }, [activePromptData, initialValues]);
 
   useEffect(() => {
     if (!isOpen) {
       clearModalImages();
       setIsImageMissing(false);
+      hasAppliedInitialImagesRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    if (hasAppliedInitialImagesRef.current) return;
+
+    if (Array.isArray(initialImages) && initialImages.length > 0) {
+      const files = initialImages
+        .map((img) => img?.file)
+        .filter((file) => !!file);
+      if (files.length > 0) {
+        replaceModalImagesWithFiles(files);
+        hasAppliedInitialImagesRef.current = true;
+      }
+    } else {
+      clearModalImages();
+      hasAppliedInitialImagesRef.current = true;
+    }
+  }, [
+    isOpen,
+    initialImages,
+    replaceModalImagesWithFiles,
+    clearModalImages,
+  ]);
 
   const handleInputChange = (fieldName, value) => {
     setInputValues((prev) => ({

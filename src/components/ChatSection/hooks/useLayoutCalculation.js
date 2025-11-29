@@ -10,7 +10,7 @@ export const useLayoutCalculation = (droppedPrompt, attachedImages) => {
   const chatSendAreaRef = useRef(null);
   const savedPromptHeightRef = useRef(null);
 
-  // ChatSendBox 높이 측정
+  // ChatSendBox 높이 측정 (기본값)
   useEffect(() => {
     const measure = () => {
       if (!chatSendBoxRef.current) return;
@@ -30,6 +30,29 @@ export const useLayoutCalculation = (droppedPrompt, attachedImages) => {
       window.removeEventListener("resize", measure);
     };
   }, []);
+
+  // DroppedPromptPreview 비율 기반 높이 계산 (width가 height의 1.97배 → height = width / 1.97)
+  useEffect(() => {
+    const updateRatioHeight = () => {
+      if (!chatSendAreaRef.current) return;
+      const rect = chatSendAreaRef.current.getBoundingClientRect();
+      if (!rect || !rect.width) return;
+      const targetWidth = rect.width * 0.5; // 부모의 절반
+      const targetHeight = targetWidth / 1.97; // width가 height의 1.97배
+      savedPromptHeightRef.current = targetHeight;
+      setPreviewHeightPx((prev) =>
+        typeof prev === "number" && Math.abs(prev - targetHeight) <= 0.5
+          ? prev
+          : targetHeight
+      );
+    };
+
+    updateRatioHeight();
+    window.addEventListener("resize", updateRatioHeight);
+    return () => {
+      window.removeEventListener("resize", updateRatioHeight);
+    };
+  }, [droppedPrompt]);
 
   // 이미지 미리보기 높이와 이미지 크기 설정
   useEffect(() => {

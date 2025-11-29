@@ -24,6 +24,8 @@ export default function ChatBar() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pendingPromptData, setPendingPromptData] = useState(null);
   const [modalPromptData, setModalPromptData] = useState(null);
+  const [modalInitialValues, setModalInitialValues] = useState(null);
+  const [modalInitialImages, setModalInitialImages] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const isAutoScrollEnabledRef = useRef(true);
   const chatViewSectionRef = useRef(null);
@@ -62,6 +64,8 @@ export default function ChatBar() {
       setDroppedPrompt(null);
       setPendingPromptData(null);
       setModalPromptData(null);
+      setModalInitialValues(null);
+      setModalInitialImages(null);
       setTextareaValue("");
       clearImages();
 
@@ -102,6 +106,8 @@ export default function ChatBar() {
 
       setPendingPromptData(parsed);
       setModalPromptData(null);
+      setModalInitialValues(null);
+      setModalInitialImages(null);
 
       const { data } = await apiClient.get(
         `/api/prompts/${parsed.promptId}/placeholders`
@@ -131,6 +137,7 @@ export default function ChatBar() {
           rawPromptText: templateData.text,
           fieldValues: {},
           fields: placeholders,
+          imageRequired: templateData.imageRequired,
         });
         setPendingPromptData(null);
       }
@@ -147,6 +154,8 @@ export default function ChatBar() {
     setIsModalOpen(false);
     setPendingPromptData(null);
     setModalPromptData(null);
+    setModalInitialValues(null);
+    setModalInitialImages(null);
   };
 
   const handleModalApply = ({
@@ -164,6 +173,8 @@ export default function ChatBar() {
       rawPromptText: originalPromptText,
       fieldValues,
       fields,
+      imageRequired:
+        pendingPromptData.imageRequired ?? modalPromptData?.imageRequired,
     });
 
     if (Array.isArray(images) && images.length > 0) {
@@ -173,6 +184,24 @@ export default function ChatBar() {
     setIsModalOpen(false);
     setPendingPromptData(null);
     setModalPromptData(null);
+    setModalInitialValues(null);
+    setModalInitialImages(null);
+  };
+
+  const handleEditPrompt = () => {
+    if (!droppedPrompt) return;
+
+    const templateData = {
+      text: droppedPrompt.rawPromptText || droppedPrompt.promptText || "",
+      fields: droppedPrompt.fields || [],
+      imageRequired: Boolean(droppedPrompt.imageRequired),
+    };
+
+    setPendingPromptData(droppedPrompt);
+    setModalPromptData(templateData);
+    setModalInitialValues(droppedPrompt.fieldValues || {});
+    setModalInitialImages(attachedImages || []);
+    setIsModalOpen(true);
   };
 
   // 메시지 전송 핸들러
@@ -386,6 +415,7 @@ export default function ChatBar() {
             backgroundImage={droppedPrompt.backgroundImage}
             fixedHeight={previewHeightPx}
             onRemove={() => setDroppedPrompt(null)}
+            onEdit={handleEditPrompt}
             category={droppedPrompt.category}
             aiName={droppedPrompt.aiName}
             title={droppedPrompt.title}
@@ -421,6 +451,8 @@ export default function ChatBar() {
         onClose={handleModalClose}
         promptData={modalPromptData}
         onApply={handleModalApply}
+        initialValues={modalInitialValues}
+        initialImages={modalInitialImages}
       />
     </ChatBarContainer>
   );
