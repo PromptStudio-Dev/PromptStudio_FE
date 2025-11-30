@@ -148,8 +148,6 @@ const DroppedPromptCategory = styled.span`
   font-size: 0.875rem;
   font-weight: 600;
   color: #000000;
-
- 
 `;
 
 const DroppedPromptAiName = styled.span`
@@ -157,7 +155,6 @@ const DroppedPromptAiName = styled.span`
   font-size: 0.8125rem;
   font-weight: 600;
   color: #00aeff;
-
 `;
 
 const DroppedPromptTitle = styled.h3`
@@ -171,8 +168,9 @@ const DroppedPromptTitle = styled.h3`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-
-
+  @media (max-width: 1600px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const DroppedPromptSubtitle = styled.p`
@@ -188,7 +186,7 @@ const DroppedPromptSubtitle = styled.p`
   overflow: hidden;
   max-height: calc(0.925rem * 1.45 * 2);
 
-  @media (max-width: 1600px) {
+  @media (max-width: 1800px) {
     display: none;
   }
 `;
@@ -196,6 +194,7 @@ const DroppedPromptSubtitle = styled.p`
 const PreviewFooter = styled.div`
   display: flex;
   justify-content: flex-end;
+  margin-top: auto;
 `;
 
 const EditButton = styled.button`

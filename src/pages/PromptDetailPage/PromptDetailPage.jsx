@@ -145,7 +145,9 @@ export default function PromptDetailPage() {
           </InfoSection>
           <InfoTime>{formatDate(promptData?.createdAt)}</InfoTime>
         </WriterInfo>
-        <IntroductionSection>{promptData?.introduction}</IntroductionSection>
+        <IntroductionSection>
+          <IntroductionText>{promptData?.introduction}</IntroductionText>
+        </IntroductionSection>
         <LeftBottomSection>
           <BottomFirstSection>
             <div
@@ -426,15 +428,35 @@ const IntroductionSection = styled.div`
   width: 55%;
   padding: 1.06rem 1.62rem;
   background: #f5fcff;
-  color: #000;
-  background: #f5fcff;
   text-align: left;
   align-self: flex-start;
+  margin-top: 1.5rem;
+  box-sizing: border-box;
+`;
+
+const IntroductionText = styled.div`
+  color: #000;
   font-family: "Pretendard Variable";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 400;
-  margin-top: 1.5rem;
+  line-height: 1.4;
+  word-break: break-word;
+
+  /* 3줄까지는 박스가 커지고, 그 이후부터는 스크롤 */
+  /* 1.1875rem(폰트) * 1.4(line-height) * 3줄 */
+  max-height: calc(1.1875rem * 1.4 * 3);
+  overflow-y: auto;
+
+  /* 스크롤바 스타일 */
+  &::-webkit-scrollbar {
+    width: 0.5rem;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.25rem;
+  }
 `;
 
 const LeftBottomSection = styled.div`
