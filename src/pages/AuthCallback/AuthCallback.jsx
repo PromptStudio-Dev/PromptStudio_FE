@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useLocation, useNavigate } from "react-router-dom";
 import apiClient from "../../api/client";
 import { PKCE_VERIFIER_KEY } from "../../utils/pkce";
+import { storeAuthData } from "../../utils/authStorage";
 
 export default function AuthCallback() {
   const location = useLocation();
@@ -41,15 +42,7 @@ export default function AuthCallback() {
 
         const { accessToken, refreshToken, memberId } = data || {};
 
-        if (accessToken) {
-          localStorage.setItem("token", accessToken);
-        }
-        if (refreshToken) {
-          localStorage.setItem("refreshToken", refreshToken);
-        }
-        if (memberId) {
-          localStorage.setItem("memberId", memberId);
-        }
+        storeAuthData({ accessToken, refreshToken, memberId });
 
         sessionStorage.removeItem(PKCE_VERIFIER_KEY);
         window.dispatchEvent(new Event("auth-changed"));

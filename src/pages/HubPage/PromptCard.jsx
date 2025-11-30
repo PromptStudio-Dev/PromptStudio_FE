@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import heartIcon from "./assets/heartIcon.svg";
 import colorHeartIcon from "./assets/colorHeartIcon.svg";
@@ -18,9 +18,16 @@ export default function PromptCard({
   onDragEnd,
   initialLiked = false,
   onClick,
+  onHeartToggle,
+  heartIconSrc = heartIcon,
+  heartSelectedIconSrc = colorHeartIcon,
 }) {
   const [isHeartClicked, setIsHeartClicked] = useState(initialLiked);
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    setIsHeartClicked(initialLiked);
+  }, [initialLiked]);
 
   const handleMouseDown = () => {
     setIsDragging(false);
@@ -44,15 +51,14 @@ export default function PromptCard({
     e.stopPropagation(); // 상위로 클릭 이벤트 전파 방지
     if (!promptId) return;
 
-    const memberId = 1; // memberId는 현재 고정값 1 사용
-
     try {
-      const response = await apiClient.post(
-        `/api/prompts/${promptId}/members/${memberId}/likes`
-      );
+      const response = await apiClient.post(`/api/prompts/${promptId}/likes`);
 
       if (response.data) {
         setIsHeartClicked(response.data.liked);
+        if (onHeartToggle) {
+          onHeartToggle(promptId, response.data.liked);
+        }
         console.log("좋아요 상태 업데이트:", response.data);
       }
     } catch (error) {
@@ -98,16 +104,16 @@ export default function PromptCard({
       </CardHeader>
       <CardTitle $hasBackgroundImage={!!backgroundImage}>{title}</CardTitle>
       <CardSubTitle $hasBackgroundImage={!!backgroundImage}>
-        {subtitle}
-      </CardSubTitle>
-      <ButtonSection>
-        <HeartIcon
-          src={isHeartClicked ? colorHeartIcon : heartIcon}
-          onClick={handleHeartClick}
-        />
-        <CopyIcon src={copyIcon} onClick={handleCopyClick} />
-      </ButtonSection>
-    </PromptCardContainer>
+      {subtitle}
+    </CardSubTitle>
+    <ButtonSection>
+      <HeartIcon
+        src={isHeartClicked ? heartSelectedIconSrc : heartIconSrc}
+        onClick={handleHeartClick}
+      />
+      <CopyIcon src={copyIcon} onClick={handleCopyClick} />
+    </ButtonSection>
+  </PromptCardContainer>
   );
 }
 

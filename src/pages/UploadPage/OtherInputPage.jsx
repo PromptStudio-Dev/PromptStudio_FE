@@ -5,11 +5,14 @@ export default function OtherInputPage({
   formData,
   setFormData,
   setImageFile,
+  onRemoveImage,
 }) {
   const [selectedAi, setSelectedAi] = useState(
     formData.aiEnvironment || "Chat GPT"
   );
-  const [imagePreview, setImagePreview] = useState(null);
+  const [imagePreview, setImagePreview] = useState(
+    formData.existingImageUrl || null
+  );
   const [selectedResultType, setSelectedResultType] = useState(
     formData.resultType || "image"
   );
@@ -58,6 +61,7 @@ export default function OtherInputPage({
     }
 
     setImageFile(file);
+    setImagePreview(null); // 새 파일 기준으로 프리뷰 갱신
 
     // 미리보기 생성
     const reader = new FileReader();
@@ -71,6 +75,7 @@ export default function OtherInputPage({
     e.stopPropagation(); // 부모 요소의 클릭 이벤트 방지
     setImageFile(null);
     setImagePreview(null);
+    onRemoveImage?.();
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -86,17 +91,24 @@ export default function OtherInputPage({
   }, [formData.resultType]);
 
   useEffect(() => {
-    if (formData.file && !imagePreview) {
+    if (formData.file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(formData.file);
+      return;
     }
-    if (!formData.file && imagePreview) {
+
+    if (!formData.file && formData.existingImageUrl) {
+      setImagePreview(formData.existingImageUrl);
+      return;
+    }
+
+    if (!formData.file && !formData.existingImageUrl) {
       setImagePreview(null);
     }
-  }, [formData.file, imagePreview]);
+  }, [formData.file, formData.existingImageUrl]);
 
   return (
     <OtherInputPageWrapper>

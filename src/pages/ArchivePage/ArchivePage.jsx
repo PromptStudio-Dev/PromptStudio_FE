@@ -4,15 +4,41 @@ import ChatBar from "../../components/ChatSection/ChatBar";
 import PromptCard from "../HubPage/PromptCard";
 import ArchiveCategoryTag from "./ArchiveCategoryTag";
 import apiClient from "../../api/client";
+import { useNavigate } from "react-router-dom";
 import tempoProfileImage from "./assets/imageAttachIcon.svg";
+import archiveNotSelectedHeartIcon from "./assets/archiveNotSelectedHeartIcon.svg";
+import colorHeartIcon from "../HubPage/assets/colorHeartIcon.svg";
+import heartIcon from "./assets/heartIcon.svg";
 import businessIcon from "../HubPage/assets/businessIcon.svg";
 import employeeIcon from "../HubPage/assets/employeeIcon.svg";
 import investIcon from "../HubPage/assets/investIcon.svg";
 import designIcon from "../HubPage/assets/designIcon.svg";
 import normalIcon from "../HubPage/assets/normalIcon.svg";
 import studyIcon from "../HubPage/assets/studyIcon.svg";
+import SearchIconImg from "./assets/searchIcon.svg";
+import archivePublicIcon from "./assets/archivePublicIcon.svg";
+import archivePrivateIcon from "./assets/archivePrivateIcon.svg";
 
 // SVG Components
+const DropdownArrowIcon = ({ isOpen }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="8"
+    viewBox="0 0 14 8"
+    fill="none"
+    style={{
+      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+      transition: "transform 0.2s ease",
+    }}
+  >
+    <path
+      d="M12.998 0C13.85 0 14.295 0.986 13.781 1.623L13.705 1.707L7.705 7.707C7.53281 7.87918 7.30371 7.98261 7.06068 7.99789C6.81766 8.01317 6.5774 7.93925 6.385 7.79L6.291 7.707L0.291 1.707L0.208 1.613L0.154 1.536L0.1 1.44L0.0830002 1.404L0.0560002 1.337L0.0240002 1.229L0.0139999 1.176L0.00400019 1.116L0 1.059V0.941L0.00500011 0.883L0.0139999 0.823L0.0240002 0.771L0.0560002 0.663L0.0830002 0.596L0.153 0.464L0.218 0.374L0.291 0.293L0.385 0.21L0.462 0.156L0.558 0.102L0.594 0.085L0.661 0.0579996L0.769 0.026L0.822 0.0159998L0.882 0.00599956L0.939 0.00199985L12.998 0Z"
+      fill="#49D8FF"
+    />
+  </svg>
+);
+
 const CategoryIcon = ({ color }) => (
   <svg
     width="36"
@@ -58,12 +84,29 @@ const HeartIcon = ({ color }) => (
   </svg>
 );
 
+const MenuHeartIcon = styled.img`
+  width: 2.25rem;
+  height: 2.25rem;
+  display: block;
+`;
+
 export default function ArchivePage() {
   const [activeTab, setActiveTab] = useState("category");
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [prompts, setPrompts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [searchInputValue, setSearchInputValue] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedVisibility, setSelectedVisibility] = useState("전체");
+  const navigate = useNavigate();
+
+  const visibilityOptions = [
+    { name: "전체", icon: null },
+    { name: "공개", icon: archivePublicIcon },
+    { name: "비공개", icon: archivePrivateIcon },
+  ];
 
   const categories = [
     { name: "전체", img: "" },
@@ -82,17 +125,36 @@ export default function ArchivePage() {
       setError(null);
 
       try {
-        const memberId = 1; // 고정값 사용
         let endpoint = "";
-        let params = { memberId };
+        const visibilityParam =
+          selectedVisibility === "공개"
+            ? "public"
+            : selectedVisibility === "비공개"
+            ? "private"
+            : "all";
+
+        const trimmedQuery = searchQuery.trim();
+        const isSearching = Boolean(trimmedQuery);
 
         if (activeTab === "category") {
-          endpoint = "/api/prompts/me";
-          params.category = selectedCategory;
+          endpoint = isSearching ? "/api/prompts/me/search" : "/api/prompts/me";
         } else if (activeTab === "heart") {
-          endpoint = "/api/prompts/likes";
-          params.category = selectedCategory;
+          endpoint = isSearching
+            ? "/api/prompts/likes/search"
+            : "/api/prompts/likes";
         }
+
+        const params =
+          activeTab === "category"
+            ? {
+                category: selectedCategory,
+                visibility: visibilityParam,
+                ...(isSearching ? { q: trimmedQuery } : {}),
+              }
+            : {
+                category: selectedCategory,
+                ...(isSearching ? { q: trimmedQuery } : {}),
+              };
 
         const { data } = await apiClient.get(endpoint, { params });
         setPrompts(Array.isArray(data) ? data : []);
@@ -109,7 +171,57 @@ export default function ArchivePage() {
     };
 
     fetchPrompts();
-  }, [activeTab, selectedCategory]);
+  }, [activeTab, selectedCategory, selectedVisibility, searchQuery]);
+
+  const handlePromptDragStart = (event, promptData) => {
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData("application/json", JSON.stringify(promptData));
+
+    window.dispatchEvent(new Event("chatbar-reset"));
+
+    const dragElement = event.currentTarget;
+    if (dragElement) {
+      const rect = dragElement.getBoundingClientRect();
+      const dragImage = dragElement.cloneNode(true);
+
+      const computedStyle = window.getComputedStyle(dragElement);
+      dragImage.style.cssText = computedStyle.cssText;
+      dragImage.style.position = "absolute";
+      dragImage.style.top = "-9999px";
+      dragImage.style.left = "-9999px";
+      dragImage.style.setProperty("width", `${rect.width}px`, "important");
+      dragImage.style.setProperty("height", `${rect.height}px`, "important");
+      dragImage.style.boxSizing = "border-box";
+      dragImage.style.maxWidth = "none";
+      dragImage.style.maxHeight = "none";
+      dragImage.style.minWidth = "0";
+      dragImage.style.minHeight = "0";
+      dragImage.style.margin = "0";
+      dragImage.style.transformOrigin = "top left";
+      dragImage.style.transform = "none";
+      dragImage.style.opacity = "1";
+
+      dragElement.style.opacity = "0";
+      document.body.appendChild(dragImage);
+
+      event.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
+
+      setTimeout(() => {
+        if (document.body.contains(dragImage)) {
+          document.body.removeChild(dragImage);
+        }
+      }, 0);
+    }
+
+    window.dispatchEvent(new Event("prompt-card-dragstart"));
+  };
+
+  const handlePromptDragEnd = (event) => {
+    if (event?.currentTarget) {
+      event.currentTarget.style.opacity = "1";
+    }
+    window.dispatchEvent(new Event("prompt-card-dragend"));
+  };
 
   return (
     <MainSection>
@@ -138,14 +250,32 @@ export default function ArchivePage() {
               onClick={() => setActiveTab("heart")}
             >
               <IconWrapper>
-                <HeartIcon
-                  color={activeTab === "heart" ? "#00AEFF" : "#454545"}
+                <MenuHeartIcon
+                  src={
+                    activeTab === "heart"
+                      ? colorHeartIcon
+                      : archiveNotSelectedHeartIcon
+                  }
+                  alt="heart tab"
                 />
               </IconWrapper>
             </MenuItem>
           </MenuSection>
         </ProfileSection>
         <LeftBottomSection>
+          <SearchBar>
+            <SearchIcon src={SearchIconImg} />
+            <SearchInput
+              placeholder="프롬프트를 검색하세요"
+              value={searchInputValue}
+              onChange={(e) => setSearchInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setSearchQuery(e.target.value.trim());
+                }
+              }}
+            />
+          </SearchBar>
           <CategorySection>
             <CategoryList>
               {categories.map((category) => (
@@ -158,6 +288,44 @@ export default function ArchivePage() {
                 />
               ))}
             </CategoryList>
+            {activeTab !== "heart" && (
+              <CategoryDropdownContainer>
+                <CategoryDropdownButton
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                >
+                  <DropdownItemIconWrapper>
+                    <DropdownArrowIcon isOpen={isDropdownOpen} />
+                  </DropdownItemIconWrapper>
+                  <DropdownItemText>{selectedVisibility}</DropdownItemText>
+                </CategoryDropdownButton>
+                {isDropdownOpen && (
+                  <CategoryDropdownMenu>
+                    {visibilityOptions.map((option) => (
+                      <CategoryDropdownItem
+                        key={option.name}
+                        $isSelected={selectedVisibility === option.name}
+                        onClick={() => {
+                          setSelectedVisibility(option.name);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        <DropdownItemIconWrapper>
+                          {option.icon ? (
+                            <DropdownItemIcon
+                              src={option.icon}
+                              alt={option.name}
+                            />
+                          ) : (
+                            <DropdownArrowIcon isOpen={false} />
+                          )}
+                        </DropdownItemIconWrapper>
+                        <DropdownItemText>{option.name}</DropdownItemText>
+                      </CategoryDropdownItem>
+                    ))}
+                  </CategoryDropdownMenu>
+                )}
+              </CategoryDropdownContainer>
+            )}
           </CategorySection>
           <PromptSection>
             <PromptCards>
@@ -186,19 +354,23 @@ export default function ArchivePage() {
                       }
                       {...promptData}
                       draggable
-                      onDragStart={(event) => {
-                        event.dataTransfer.effectAllowed = "copy";
-                        event.dataTransfer.setData(
-                          "application/json",
-                          JSON.stringify(promptData)
-                        );
-                        window.dispatchEvent(new Event("chatbar-reset"));
-                        window.dispatchEvent(
-                          new Event("prompt-card-dragstart")
+                      onDragStart={(event) =>
+                        handlePromptDragStart(event, promptData)
+                      }
+                      onDragEnd={handlePromptDragEnd}
+                      onHeartToggle={(id, liked) => {
+                        setPrompts((prev) =>
+                          prev.map((p) =>
+                            p.promptId === id ? { ...p, liked } : p
+                          )
                         );
                       }}
-                      onDragEnd={() => {
-                        window.dispatchEvent(new Event("prompt-card-dragend"));
+                      heartIconSrc={heartIcon}
+                      heartSelectedIconSrc={colorHeartIcon}
+                      onClick={() => {
+                        if (prompt.promptId) {
+                          navigate(`/prompt/${prompt.promptId}`);
+                        }
                       }}
                     />
                   );
@@ -351,20 +523,6 @@ const CategoryList = styled.div`
   gap: 0.75rem;
   height: fit-content;
   margin-top: 0;
-  margin-bottom: 1.19rem;
-  padding: 0 10%;
-
-  @media (max-width: 1600px) {
-    padding: 0 10%;
-  }
-
-  @media (max-width: 1440px) {
-    padding: 0 10%;
-  }
-
-  @media (max-width: 1024px) {
-    padding: 0 10%;
-  }
 `;
 
 const PromptSection = styled.section`
@@ -419,4 +577,170 @@ const CategorySection = styled.section`
   width: 100%;
   height: fit-content;
   background-color: #fff;
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 1.19rem;
+  position: relative;
+
+  padding: 0 10%;
+
+  @media (max-width: 1600px) {
+    padding: 0 10%;
+  }
+
+  @media (max-width: 1440px) {
+    padding: 0 10%;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 0 10%;
+  }
+`;
+
+const CategoryDropdownContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  position: relative;
+`;
+
+const CategoryDropdownButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.12rem 1.25rem 0.12rem 0.56rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--Light-blue, #49d8ff);
+  background: #fff;
+  cursor: pointer;
+  font-family: "Pretendard Variable", sans-serif;
+  transition: border-color 0.2s ease;
+
+  &:hover {
+    border-color: #49d8ff;
+  }
+`;
+
+const DropdownIconWrapper = styled.div`
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const DropdownText = styled.span`
+  color: #454545;
+  width: 2.125rem;
+  font-size: 1rem;
+  font-weight: 500;
+`;
+
+const CategoryDropdownMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  background: #fff;
+  border: 1px solid var(--Light-blue, #49d8ff);
+  border-radius: 0.25rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  min-width: 100%;
+  overflow: hidden;
+`;
+
+const CategoryDropdownItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.12rem 1.25rem 0.12rem 0.56rem;
+  cursor: pointer;
+  border-radius: 0.25rem;
+  border: 1px solid transparent;
+  background: #fff;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #f5fcff;
+  }
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+  }
+`;
+
+const DropdownArrowWrapper = styled.div`
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+`;
+
+const DropdownItemIconWrapper = styled.div`
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const DropdownItemIcon = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+`;
+
+const DropdownItemText = styled.span`
+  color: #454545;
+  font-size: 0.8125rem;
+  font-family: "Pretendard", sans-serif;
+  width: 2.25rem;
+  text-align: left;
+  font-weight: 500;
+`;
+
+const SearchBar = styled.div`
+  display: flex;
+  width: 14.375rem;
+  height: 2.5625rem;
+  padding: 0.25rem 0.81rem;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 7.5rem;
+  border: 2px solid var(--Line_Blue-light, #aadff7);
+  background: #fff;
+  margin-left: auto;
+  margin-right: 2.87rem;
+  margin-bottom: 1.74rem;
+`;
+
+const SearchIcon = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+`;
+
+const SearchInput = styled.input`
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  font-family: "Pretendard Variable", sans-serif;
+  color: #000;
+  background: transparent;
+
+  &::placeholder {
+    color: #a6a6a6;
+  }
+
+  &:focus {
+    outline: none;
+  }
 `;

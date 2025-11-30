@@ -144,45 +144,36 @@ export default function HubPage() {
     const dragElement = event.currentTarget;
     if (dragElement) {
       const rect = dragElement.getBoundingClientRect();
-
-      // 요소를 복제하여 모든 스타일(border-radius 포함)을 유지
       const dragImage = dragElement.cloneNode(true);
 
-      // 복제된 요소에 원본의 모든 computed style 적용
       const computedStyle = window.getComputedStyle(dragElement);
       dragImage.style.cssText = computedStyle.cssText;
       dragImage.style.position = "absolute";
       dragImage.style.top = "-9999px";
       dragImage.style.left = "-9999px";
-      // 너비와 높이를 고정 픽셀값으로 설정하여 반응형 스타일의 영향을 받지 않게 함
       dragImage.style.width = `${rect.width}px`;
       dragImage.style.height = `${rect.height}px`;
-      // box-sizing 명시 및 !important 적용하여 크기 강제
       dragImage.style.boxSizing = "border-box";
       dragImage.style.setProperty("width", `${rect.width}px`, "important");
       dragImage.style.setProperty("height", `${rect.height}px`, "important");
-      // max-width, max-height 등 크기 제한 속성 초기화
       dragImage.style.maxWidth = "none";
       dragImage.style.maxHeight = "none";
       dragImage.style.minWidth = "0";
       dragImage.style.minHeight = "0";
       dragImage.style.margin = "0";
+      dragImage.style.transformOrigin = "top left";
       dragImage.style.transform = "none";
       dragImage.style.opacity = "1";
 
-      // 드래그 중 원본 요소의 모서리가 보이지 않도록 임시로 숨김
       dragElement.style.opacity = "0";
-
       document.body.appendChild(dragImage);
 
-      // 복제된 요소를 드래그 이미지로 사용 (border-radius 포함)
       event.dataTransfer.setDragImage(
         dragImage,
         rect.width / 2,
         rect.height / 2
       );
 
-      // 드래그 이미지 설정 후 복제된 요소 제거
       setTimeout(() => {
         if (document.body.contains(dragImage)) {
           document.body.removeChild(dragImage);
@@ -469,6 +460,19 @@ export default function HubPage() {
     navigate(`/prompt/${promptId}`);
   };
 
+  const handleHeartToggle = (promptId, liked) => {
+    setHottestPrompts((prev) =>
+      prev.map((p) =>
+        p.promptId === promptId ? { ...p, liked } : p
+      )
+    );
+    setCategoryPrompts((prev) =>
+      prev.map((p) =>
+        p.promptId === promptId ? { ...p, liked } : p
+      )
+    );
+  };
+
   return (
     <MainSection>
       <LeftSection>
@@ -530,6 +534,7 @@ export default function HubPage() {
                         }
                         onDragEnd={handlePromptDragEnd}
                         onClick={() => handlePromptCardClick(prompt.promptId)}
+                        onHeartToggle={handleHeartToggle}
                       />
                     );
                   })
@@ -562,6 +567,7 @@ export default function HubPage() {
                     }
                     onDragEnd={handlePromptDragEnd}
                     onClick={() => handlePromptCardClick(prompt.promptId)}
+                    onHeartToggle={handleHeartToggle}
                   />
                 );
               })
