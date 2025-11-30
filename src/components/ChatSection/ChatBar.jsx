@@ -83,32 +83,18 @@ export default function ChatBar() {
     };
   }, [clearImages, textareaRef]);
 
-  // 드래그 앤 드롭 핸들러
-  const handleDrop = async (event) => {
-    event.preventDefault();
+  const loadPromptData = async (parsed) => {
+    if (!parsed?.promptId) {
+      console.warn("프롬프트에 promptId가 없습니다.", parsed);
+      return;
+    }
 
-    const dataTransfer = event.dataTransfer;
-
-    // 드래그 상태 초기화를 위한 이벤트 발생
-    window.dispatchEvent(new Event("prompt-card-dragend"));
+    setPendingPromptData(parsed);
+    setModalPromptData(null);
+    setModalInitialValues(null);
+    setModalInitialImages(null);
 
     try {
-      const rawData = dataTransfer?.getData("application/json");
-      if (!rawData) return;
-
-      const parsed = JSON.parse(rawData);
-      if (!parsed || typeof parsed !== "object") return;
-
-      if (!parsed.promptId) {
-        console.warn("드랍된 프롬프트에 promptId가 없습니다.", parsed);
-        return;
-      }
-
-      setPendingPromptData(parsed);
-      setModalPromptData(null);
-      setModalInitialValues(null);
-      setModalInitialImages(null);
-
       const { data } = await apiClient.get(
         `/api/prompts/${parsed.promptId}/placeholders`
       );
@@ -141,6 +127,31 @@ export default function ChatBar() {
         });
         setPendingPromptData(null);
       }
+    } catch (error) {
+      console.error("프롬프트 상세 정보를 불러오지 못했습니다.", error);
+      setPendingPromptData(null);
+      setModalPromptData(null);
+      setIsModalOpen(false);
+    }
+  };
+
+  // 드래그 앤 드롭 핸들러
+  const handleDrop = async (event) => {
+    event.preventDefault();
+
+    const dataTransfer = event.dataTransfer;
+
+    // 드래그 상태 초기화를 위한 이벤트 발생
+    window.dispatchEvent(new Event("prompt-card-dragend"));
+
+    try {
+      const rawData = dataTransfer?.getData("application/json");
+      if (!rawData) return;
+
+      const parsed = JSON.parse(rawData);
+      if (!parsed || typeof parsed !== "object") return;
+
+      await loadPromptData(parsed);
     } catch (error) {
       console.error("프롬프트 상세 정보를 불러오지 못했습니다.", error);
       setPendingPromptData(null);
@@ -347,6 +358,20 @@ export default function ChatBar() {
     });
   }, [messages.length, scrollToBottom]);
 
+  // 상세/다른 페이지에서 "사용해 보기" 이벤트 처리
+  useEffect(() => {
+    const handleUsePrompt = (event) => {
+      const data = event.detail;
+      if (!data) return;
+      loadPromptData(data);
+    };
+
+    window.addEventListener("use-prompt", handleUsePrompt);
+    return () => {
+      window.removeEventListener("use-prompt", handleUsePrompt);
+    };
+  }, []);
+
   // 메시지 영역 DOM 변경(타이핑, 애니메이션 등) 시 하단으로 스크롤
   useEffect(() => {
     if (
@@ -398,8 +423,8 @@ export default function ChatBar() {
           <EmptyMessageWrapper>
             <EmptyMessageIcon src={promptDragIcon} alt="프롬프트 드래그 안내" />
             <EmptyMessageText>
-              프로의 프롬프트를{"\n"}여기로 끌어당겨서{"\n"}지금 바로
-              사용해보세요.
+              고퀄리티 프롬프트를{"\n"}여기로 끌어당겨서{"\n"}지금 바로
+              사용해보세요!
             </EmptyMessageText>
           </EmptyMessageWrapper>
         ) : (
@@ -510,7 +535,7 @@ const EmptyMessageText = styled.p`
   margin: 0;
   white-space: pre-line;
   color: var(--B-A6, #a6a6a6);
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1.3125rem;
   font-style: normal;
   font-weight: 400;

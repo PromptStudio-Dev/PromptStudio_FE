@@ -37,7 +37,7 @@ const StyledButton = styled.button`
   background: transparent;
   font-size: 0.99vw;
   font-weight: 700;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   padding: 0.93vh 0.52vw;
   color: #454545;
   cursor: pointer;

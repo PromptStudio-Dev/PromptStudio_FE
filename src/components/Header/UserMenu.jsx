@@ -5,6 +5,7 @@ import {
   generateCodeChallenge,
   PKCE_VERIFIER_KEY,
 } from "../../utils/pkce";
+import { clearAuthData } from "../../utils/authStorage";
 
 export default function UserMenu() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -58,9 +59,7 @@ export default function UserMenu() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("memberId");
+    clearAuthData();
     sessionStorage.removeItem(PKCE_VERIFIER_KEY);
     setIsLoggedIn(false);
     window.dispatchEvent(new Event("auth-changed"));
@@ -86,7 +85,7 @@ const LogoutButton = styled.button`
   border-radius: 7.5rem;
   border: none;
   background: transparent;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 0.99vw;
   font-weight: 600;
   color: #00aeff;

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { API_CONFIG } from "./config";
+import { storeAuthData, clearAuthData, getRefreshToken } from "../utils/authStorage";
 
 // Axios 인스턴스 생성
 const apiClient = axios.create({
@@ -70,7 +71,7 @@ apiClient.interceptors.response.use(
       !originalRequest?.url?.includes("/api/auth/reissue")
     ) {
       originalRequest._retry = true;
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
         localStorage.removeItem("token");
@@ -102,24 +103,18 @@ apiClient.interceptors.response.use(
         .then((res) => {
           const { accessToken, refreshToken: newRefreshToken, memberId } =
             res.data || {};
-          if (accessToken) {
-            localStorage.setItem("token", accessToken);
-          }
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
-          }
-          if (memberId) {
-            localStorage.setItem("memberId", memberId);
-          }
+          storeAuthData({
+            accessToken,
+            refreshToken: newRefreshToken,
+            memberId,
+          });
           window.dispatchEvent(new Event("auth-changed"));
           resolveQueue(accessToken);
           return accessToken;
         })
         .catch((refreshError) => {
           console.error("토큰 재발급 실패:", refreshError);
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("memberId");
+          clearAuthData();
           window.dispatchEvent(new Event("auth-changed"));
           resolveQueue(null);
           return Promise.reject(refreshError);

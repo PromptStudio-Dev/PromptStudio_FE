@@ -74,7 +74,7 @@ const UploadIconImg = styled.img`
 `;
 
 const UploadText = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 0.99vw;
   font-weight: 600;
   color: #ffffff;

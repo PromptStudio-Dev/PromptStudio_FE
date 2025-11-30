@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
+import { useLocation } from "react-router-dom";
 import promptTemplate from "./assets/promptTemplate.svg";
 import infoIcon from "./assets/infoIcon.svg";
 import otherIcon from "./assets/otherIcon.svg";
@@ -10,6 +11,11 @@ import OtherInputPage from "./OtherInputPage";
 import apiClient from "../../api/client";
 
 export default function UploadPage() {
+  const location = useLocation();
+  const editMode = Boolean(location.state?.editMode);
+  const editPromptData = location.state?.promptData;
+  const editPromptId = editPromptData?.promptId;
+
   const [currentPage, setCurrentPage] = useState(0);
   const [isRegistering, setIsRegistering] = useState(false);
 
@@ -28,7 +34,38 @@ export default function UploadPage() {
     file: null,
     resultType: "image",
     result: "",
+    existingImageUrl: "",
+    removeImage: false,
   });
+
+  // edit mode 초기 데이터 세팅
+  useEffect(() => {
+    if (!editMode || !editPromptData) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      content: editPromptData.content || "",
+      imageRequired:
+        typeof editPromptData.imgRequired === "boolean"
+          ? editPromptData.imgRequired
+          : typeof editPromptData.imageRequired === "boolean"
+          ? editPromptData.imageRequired
+          : prev.imageRequired,
+      title: editPromptData.title || "",
+      introduction: editPromptData.introduction || "",
+      aiEnvironment: editPromptData.aiEnvironment || "Chat GPT",
+      category: editPromptData.category || "",
+      visible:
+        typeof editPromptData.visible === "boolean"
+          ? editPromptData.visible
+          : prev.visible,
+      resultType: editPromptData.imageUrl ? "image" : "text",
+      result: editPromptData.result || "",
+      existingImageUrl: editPromptData.imageUrl || "",
+      file: null,
+      removeImage: false,
+    }));
+  }, [editMode, editPromptData]);
 
   const handleNext = () => {
     setCurrentPage((prev) => prev + 1);
@@ -60,17 +97,30 @@ export default function UploadPage() {
       alert("공개 범위를 선택해주세요.");
       return;
     }
-    if (
-      formData.resultType === "text" &&
-      (!formData.result || !formData.result.trim())
-    ) {
-      alert("결과 텍스트를 입력해주세요.");
-      return;
-    }
 
     setIsRegistering(true);
 
     try {
+      const hasExistingImage = Boolean(formData.existingImageUrl);
+      const hasNewFile = Boolean(formData.file);
+      const isImageResult = formData.resultType === "image";
+
+      // removeImage 결정 로직
+      let removeImageFlag = Boolean(formData.removeImage);
+      if (isImageResult) {
+        // 새 이미지가 있으면 제거 플래그는 해제
+        if (hasNewFile) {
+          removeImageFlag = false;
+        }
+        // 이미지 모드에서는 result는 빈 문자열로 전송
+        formData.result = "";
+      } else {
+        // 텍스트 모드로 전환 시 기존 이미지가 있으면 제거
+        if (hasExistingImage) {
+          removeImageFlag = true;
+        }
+      }
+
       // FormData 생성 (multipart/form-data)
       const formDataToSend = new FormData();
       formDataToSend.append("title", formData.title);
@@ -83,7 +133,7 @@ export default function UploadPage() {
       );
       formDataToSend.append(
         "result",
-        formData.resultType === "text" ? formData.result : ""
+        formData.resultType === "text" ? formData.result || "" : ""
       );
       formDataToSend.append(
         "imageRequired",
@@ -92,26 +142,29 @@ export default function UploadPage() {
           : "false"
       );
       formDataToSend.append("aiEnvironment", formData.aiEnvironment);
+      formDataToSend.append("removeImage", removeImageFlag ? "true" : "false");
 
-      // 이미지 파일 추가
+      // 이미지 파일 추가 (새 업로드 시)
       if (formData.resultType !== "text" && formData.file) {
         formDataToSend.append("file", formData.file);
       }
 
-      const memberId = 1; // 로그인 기능이 없으므로 1로 고정
-      const response = await apiClient.post(
-        `/api/prompts/members/${memberId}`,
-        formDataToSend
-      );
+      let response;
+      if (editMode && editPromptId) {
+        response = await apiClient.patch(
+          `/api/prompts/${editPromptId}`,
+          formDataToSend
+        );
+        alert("프롬프트가 성공적으로 수정되었습니다.");
+      } else {
+        response = await apiClient.post(`/api/prompts`, formDataToSend);
+        alert("프롬프트가 성공적으로 등록되었습니다.");
+      }
 
-      console.log("프롬프트 등록 성공:", response.data);
-      alert("프롬프트가 성공적으로 등록되었습니다.");
-
-      // 등록 성공 후 초기화 또는 리다이렉트
-      // 예: window.location.href = "/hub";
+      console.log("프롬프트 등록/수정 성공:", response.data);
     } catch (error) {
-      console.error("프롬프트 등록 실패:", error);
-      alert("프롬프트 등록에 실패했습니다. 다시 시도해주세요.");
+      console.error("프롬프트 등록/수정 실패:", error);
+      alert("프롬프트 처리에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsRegistering(false);
     }
@@ -130,9 +183,6 @@ export default function UploadPage() {
           formData.visible === null
         );
       case 2:
-        if (formData.resultType === "text") {
-          return !formData.result.trim();
-        }
         return false; // 마지막 페이지는 등록 버튼이므로 항상 활성화(단, 등록 중일 때는 제외)
       default:
         return true;
@@ -178,7 +228,22 @@ export default function UploadPage() {
           <OtherInputPage
             formData={formData}
             setFormData={setFormData}
-            setImageFile={(file) => setFormData((prev) => ({ ...prev, file }))}
+            setImageFile={(file) =>
+              setFormData((prev) => ({
+                ...prev,
+                file,
+                existingImageUrl: "",
+                removeImage: false,
+              }))
+            }
+            onRemoveImage={() =>
+              setFormData((prev) => ({
+                ...prev,
+                file: null,
+                existingImageUrl: "",
+                removeImage: true,
+              }))
+            }
           />
         );
       default:
@@ -228,7 +293,13 @@ export default function UploadPage() {
         ) : (
           <RegisterButton onClick={handleRegister} disabled={isRegistering}>
             <RegisterButtonText>
-              {isRegistering ? "등록 중..." : "등록"}
+              {isRegistering
+                ? editMode
+                  ? "수정 중..."
+                  : "등록 중..."
+                : editMode
+                ? "수정"
+                : "등록"}
             </RegisterButtonText>
           </RegisterButton>
         )}
@@ -241,7 +312,6 @@ const ContentWrapper = styled.div`
   margin-top: 2rem;
   width: 70vw;
   height: 72%;
-  /* 각 페이지 컴포넌트가 이 영역을 채우도록 함 */
   display: flex;
   flex-direction: column;
 `;
@@ -339,7 +409,7 @@ const PrevButtonIcon = styled.img`
 const PrevButtonText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;
@@ -371,7 +441,7 @@ const NextButton = styled.button`
 const NextButtonText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;
@@ -409,7 +479,7 @@ const RegisterButton = styled.button`
 const RegisterButtonText = styled.span`
   color: #fff;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;

@@ -99,8 +99,7 @@ export default function PromptDropModal({
     if (activePromptData?.text && activePromptData?.fields) {
       const fields = {};
       activePromptData.fields.forEach((field) => {
-        fields[field.name] =
-          (initialValues && initialValues[field.name]) || "";
+        fields[field.name] = (initialValues && initialValues[field.name]) || "";
       });
       setInputValues(fields);
       setCurrentPromptText(activePromptData.text);
@@ -132,12 +131,7 @@ export default function PromptDropModal({
       clearModalImages();
       hasAppliedInitialImagesRef.current = true;
     }
-  }, [
-    isOpen,
-    initialImages,
-    replaceModalImagesWithFiles,
-    clearModalImages,
-  ]);
+  }, [isOpen, initialImages, replaceModalImagesWithFiles, clearModalImages]);
 
   const handleInputChange = (fieldName, value) => {
     setInputValues((prev) => ({
@@ -265,78 +259,81 @@ export default function PromptDropModal({
         <CloseButton onClick={onClose}>×</CloseButton>
         <Title>프롬프트 사용하기</Title>
         <Subtitle>프롬프트 내용을 채우고 실행결과를 확인해보세요.</Subtitle>
-        <ContentContainer ref={contentContainerRef}>
-          {renderedPromptSegments
-            ? renderedPromptSegments.map((segment, index) => (
-                <PromptTextPart
-                  key={`${segment.type}-${index}`}
-                  $type={segment.type}
-                  ref={
-                    segment.fieldName
-                      ? (el) => {
-                          if (el) {
-                            segmentRefs.current[segment.fieldName] = el;
+        <ContentRow>
+          <ContentContainer ref={contentContainerRef}>
+            {renderedPromptSegments
+              ? renderedPromptSegments.map((segment, index) => (
+                  <PromptTextPart
+                    key={`${segment.type}-${index}`}
+                    $type={segment.type}
+                    ref={
+                      segment.fieldName
+                        ? (el) => {
+                            if (el) {
+                              segmentRefs.current[segment.fieldName] = el;
+                            }
                           }
-                        }
-                      : null
-                  }
-                >
-                  {segment.content}
-                </PromptTextPart>
-              ))
-            : currentPromptText}
-        </ContentContainer>
-        {(activePromptData?.fields?.length > 0 || isImageRequired) && (
-          <InputSection>
-            {activePromptData?.fields?.map((field) => {
-              const isEmpty =
-                !inputValues[field.name] ||
-                inputValues[field.name].trim() === "";
-              return (
-                <InputRow key={field.name}>
-                  <FieldName
-                    ref={(el) => {
-                      if (el) {
-                        fieldNameRefs.current[field.name] = el;
-                      }
-                    }}
-                    $fixedWidth={fieldNameMaxWidth}
-                  >
-                    <RequiredMark $isVisible={isEmpty}>*</RequiredMark>
-                    {`[${field.name}]`}
-                  </FieldName>
-                  <FieldInput
-                    type="text"
-                    value={inputValues[field.name] || ""}
-                    onChange={(e) =>
-                      handleInputChange(field.name, e.target.value)
+                        : null
                     }
-                    onFocus={() => setFocusedField(field.name)}
-                    onBlur={() => setFocusedField(null)}
-                    ref={(el) => {
-                      if (el) {
-                        inputFieldRefs.current[field.name] = el;
+                  >
+                    {segment.content}
+                  </PromptTextPart>
+                ))
+              : currentPromptText}
+          </ContentContainer>
+          {(activePromptData?.fields?.length > 0 || isImageRequired) && (
+            <InputSection>
+              {activePromptData?.fields?.map((field) => {
+                const isEmpty =
+                  !inputValues[field.name] ||
+                  inputValues[field.name].trim() === "";
+                return (
+                  <InputRow key={field.name}>
+                    <FieldName
+                      ref={(el) => {
+                        if (el) {
+                          fieldNameRefs.current[field.name] = el;
+                        }
+                      }}
+                      $fixedWidth={fieldNameMaxWidth}
+                    >
+                      <RequiredMark $isVisible={isEmpty}>*</RequiredMark>
+                      {`[${field.name}]`}
+                    </FieldName>
+                    <FieldInput
+                      type="text"
+                      value={inputValues[field.name] || ""}
+                      onChange={(e) =>
+                        handleInputChange(field.name, e.target.value)
                       }
-                    }}
-                    $isInvalid={invalidFieldName === field.name}
-                    placeholder={`${field.name}을(를) 입력하세요`}
-                  />
-                </InputRow>
-              );
-            })}
+                      onFocus={() => setFocusedField(field.name)}
+                      onBlur={() => setFocusedField(null)}
+                      ref={(el) => {
+                        if (el) {
+                          inputFieldRefs.current[field.name] = el;
+                        }
+                      }}
+                      $isInvalid={invalidFieldName === field.name}
+                      placeholder={`${field.name}을(를) 입력하세요`}
+                    />
+                  </InputRow>
+                );
+              })}
 
-            {isImageRequired && (
-              <InputRow>
-                <FieldName
-                  ref={(el) => {
-                    imageFieldRef.current = el;
-                  }}
-                  $fixedWidth={fieldNameMaxWidth}
-                >
-                  <RequiredMark $isVisible={isImageMissing}>*</RequiredMark>
-                  [이미지 첨부]
-                </FieldName>
-                <ImageInputColumn>
+              {isImageRequired && (
+                <ImageBlock>
+                  <ImageBlockTitle
+                    ref={(el) => {
+                      imageFieldRef.current = el;
+                    }}
+                  >
+                    <RequiredMark
+                      $isVisible={isImageMissing || modalImages.length === 0}
+                    >
+                      *
+                    </RequiredMark>
+                    이미지
+                  </ImageBlockTitle>
                   <HiddenImageInput
                     type="file"
                     accept="image/*"
@@ -347,16 +344,7 @@ export default function PromptDropModal({
                       setIsImageMissing(false);
                     }}
                   />
-                  <ImageUploadControls>
-                    <ImageUploadButton
-                      type="button"
-                      onClick={handleModalImageAttachClick}
-                    >
-                      이미지 선택
-                    </ImageUploadButton>
-                    <ImageGuideText>최대 6장, 파일당 50MB 이하</ImageGuideText>
-                  </ImageUploadControls>
-                  {modalImages.length > 0 ? (
+                  <ImageArea $isInvalid={isImageMissing}>
                     <ImagePreviewGrid>
                       {modalImages.map((image) => (
                         <ImagePreviewItem key={image.id}>
@@ -372,17 +360,47 @@ export default function PromptDropModal({
                           </ImageRemoveButton>
                         </ImagePreviewItem>
                       ))}
+                      {modalImages.length < 6 && (
+                        <ImageUploadArea
+                          $isInvalid={isImageMissing}
+                          onClick={handleModalImageAttachClick}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const files = Array.from(
+                              e.dataTransfer.files
+                            ).filter((file) => file.type.startsWith("image/"));
+                            if (files.length > 0) {
+                              const dataTransfer = new DataTransfer();
+                              files.forEach((file) =>
+                                dataTransfer.items.add(file)
+                              );
+                              const event = new Event("change", {
+                                bubbles: true,
+                              });
+                              Object.defineProperty(event, "target", {
+                                value: { files: dataTransfer.files },
+                                enumerable: true,
+                              });
+                              handleModalImageSelect(event);
+                              setIsImageMissing(false);
+                            }
+                          }}
+                        >
+                          <PlusIcon $isInvalid={isImageMissing}>+</PlusIcon>
+                        </ImageUploadArea>
+                      )}
                     </ImagePreviewGrid>
-                  ) : (
-                    <ImagePlaceholder $isInvalid={isImageMissing}>
-                      이미지를 첨부해주세요.
-                    </ImagePlaceholder>
-                  )}
-                </ImageInputColumn>
-              </InputRow>
-            )}
-          </InputSection>
-        )}
+                  </ImageArea>
+                </ImageBlock>
+              )}
+            </InputSection>
+          )}
+        </ContentRow>
         <ButtonSection>
           <ActionButton
             type="button"
@@ -455,7 +473,7 @@ const ModalContent = styled.div`
   border-radius: 1rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  padding: 2.87rem;
+  padding: 2.5rem 3.5rem;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -482,17 +500,23 @@ const Subtitle = styled.p`
   margin-top: 1.19rem;
 `;
 
+const ContentRow = styled.div`
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+`;
+
 const ContentContainer = styled.div`
-  width: 65%;
-  height: 35%; /* ModalContent(70vh)의 35% = 약 24.5vh */
-  min-height: 35%;
-  flex-shrink: 0;
+  flex: 1;
+  height: 100%;
   border-radius: 1rem;
   border: 2px solid var(--Light-blue, #49d8ff);
   background: #f7fcff;
-  padding: 1.25rem 2.87rem;
+  padding: 1.25rem 2rem;
   font-size: 1.1875rem;
-  margin-top: 2rem;
   white-space: pre-wrap;
   overflow-y: auto;
   color: #000;
@@ -508,25 +532,26 @@ const PromptTextPart = styled.span`
     switch ($type) {
       case "active":
         return `
-          background-color: rgba(73, 216, 255, 0.35);
+        background-color: rgba(73, 216, 255, 0.2);
+          border-radius: 0.25rem;
+          padding: 0.1rem 0.25rem;
+          font-weight: 600;
+          color: #00324d;
+        
+        `;
+      case "filled":
+        return `
+        background-color: rgba(73, 216, 255, 0.35);
           border-radius: 0.35rem;
           padding: 0.1rem 0.25rem;
           border-bottom: 2px solid #00aeff;
           font-weight: 600;
           color: #00324d;
         `;
-      case "filled":
-        return `
-          background-color: rgba(73, 216, 255, 0.2);
-          border-radius: 0.25rem;
-          padding: 0.1rem 0.25rem;
-          font-weight: 600;
-          color: #00324d;
-        `;
       case "placeholder":
         return `
           color: #7a7a7a;
-          font-style: italic;
+          // font-style: italic;
           border-bottom: 1px dashed rgba(255, 193, 7, 0.8);
         `;
       default:
@@ -538,23 +563,21 @@ const PromptTextPart = styled.span`
 `;
 
 const InputSection = styled.div`
-  width: 65%;
-  margin-top: 1.5rem;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-left: 1.75rem;
-  max-height: calc(
-    4 * 2.875rem + 3 * 1rem
-  ); /* InputRow 4개(각 2.875rem) + gap 3개(각 1rem) */
+  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
 `;
 
 const InputRow = styled.div`
   width: 100%;
   display: flex;
-  align-items: center;
-  gap: 1.19rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.69rem;
 `;
 
 const FieldName = styled.span`
@@ -565,25 +588,31 @@ const FieldName = styled.span`
   font-weight: 500;
   line-height: normal;
   text-align: left;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   white-space: nowrap;
-  flex: ${({ $fixedWidth }) =>
-    $fixedWidth ? `0 0 ${$fixedWidth}px` : "0 0 auto"};
+  position: relative;
+  flex: 0 0 auto;
+  padding-left: 0.7rem;
+  width: ${({ $fixedWidth }) => ($fixedWidth ? `${$fixedWidth}px` : "auto")};
   max-width: ${({ $fixedWidth }) =>
     $fixedWidth ? `${$fixedWidth}px` : "none"};
+  box-sizing: border-box;
 `;
 
 const RequiredMark = styled.span`
+  position: absolute;
+  left: 0rem;
   display: inline-block;
   width: 0.75rem;
+  text-align: left;
   color: ${({ $isVisible }) => ($isVisible ? "#49d8ff" : "transparent")};
-  margin-right: 0.25rem;
   font-weight: 600;
   text-align: center;
 `;
 
 const FieldInput = styled.input`
+  width: 100%;
   padding: 0.75rem 1.25rem;
   border: 1px solid ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#a6a6a6")};
   border-radius: 0.5rem;
@@ -603,57 +632,50 @@ const FieldInput = styled.input`
   }
 `;
 
-const ImageInputColumn = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  flex: 1;
-`;
-
 const HiddenImageInput = styled.input`
   display: none;
 `;
 
-const ImageUploadControls = styled.div`
+const ImageBlock = styled.div`
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.69rem;
+  width: 100%;
 `;
 
-const ImageUploadButton = styled.button`
-  padding: 0.5rem 1.25rem;
-  border-radius: 999px;
-  border: 1px solid #49d8ff;
-  background: #f5fcff;
-  color: #00aeff;
+const ImageBlockTitle = styled.div`
+  color: #000;
   font-family: Pretendard;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-
-  &:hover {
-    background: #00aeff;
-    color: #fff;
-  }
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  position: relative;
+  flex: 0 0 auto;
+  padding-left: 0.7rem;
+  box-sizing: border-box;
 `;
 
-const ImageGuideText = styled.span`
-  font-size: 0.875rem;
-  color: #7a7a7a;
+const ImageArea = styled.div`
+  width: 100%;
+  padding: 0 2rem;
+  box-sizing: border-box;
 `;
 
 const ImagePreviewGrid = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
 `;
 
 const ImagePreviewItem = styled.div`
   position: relative;
-  width: 4.5rem;
-  height: 4.5rem;
+  width: 100%;
+  aspect-ratio: 4 / 3;
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid #d9ecff;
@@ -688,25 +710,44 @@ const ImageRemoveButton = styled.button`
   }
 `;
 
-const ImagePlaceholder = styled.div`
-  padding: 1.25rem;
-  border: 1px dashed ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#c4eaf8")};
+const ImageUploadArea = styled.div`
+  width: 100%;
+  height: 0;
+  padding-bottom: 75%;
+  position: relative;
+  border: 1px dashed ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#616161")};
   border-radius: 0.5rem;
-  color: ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#7a7a7a")};
-  font-size: 0.95rem;
-  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  background-color: #fff;
+
+  &:hover {
+    border-color: ${({ $isInvalid }) => ($isInvalid ? "#ff6b6b" : "#616161")};
+  }
+`;
+
+const PlusIcon = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: #616161;
+  font-weight: 300;
+  line-height: 1;
 `;
 
 const ButtonSection = styled.div`
   display: flex;
   justify-content: center;
-  margin-top: auto;
   width: 65%;
+  margin-top: auto;
   padding-left: 1.75rem;
 `;
 
 const ActionButton = styled.button`
-  padding: 0.75rem 2rem;
+  padding: 0.62rem 6rem;
+  margin-top: 2rem;
   background-color: #49d8ff;
   color: white;
   border: none;

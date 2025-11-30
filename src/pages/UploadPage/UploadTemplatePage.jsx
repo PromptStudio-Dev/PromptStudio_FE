@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import checkIcon from "./assets/uploadImageCheckIcon.svg";
 import styled from "styled-components";
 
 export default function UploadTemplatePage({
@@ -245,20 +246,7 @@ export default function UploadTemplatePage({
           <CheckImageRequiredCheckButtonImage
             $isSelected={imageRequired === true}
           >
-            <svg
-              width="8"
-              height="8"
-              viewBox="0 0 8 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="4"
-                cy="4"
-                r="4"
-                fill={imageRequired === true ? "#49D8FF" : "#D9D9D9"}
-              />
-            </svg>
+            {imageRequired === true && <img src={checkIcon} alt="checked" />}
           </CheckImageRequiredCheckButtonImage>
           <CheckImageRequiredCheckButtonText style={{ marginRight: "1.75rem" }}>
             예
@@ -271,20 +259,7 @@ export default function UploadTemplatePage({
           <CheckImageRequiredCheckButtonImage
             $isSelected={imageRequired === false}
           >
-            <svg
-              width="8"
-              height="8"
-              viewBox="0 0 8 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                cx="4"
-                cy="4"
-                r="4"
-                fill={imageRequired === false ? "#49D8FF" : "#D9D9D9"}
-              />
-            </svg>
+            {imageRequired === false && <img src={checkIcon} alt="checked" />}
           </CheckImageRequiredCheckButtonImage>
           <CheckImageRequiredCheckButtonText>
             아니오
@@ -430,7 +405,7 @@ const CheckImageRequiredSection = styled.div`
 const CheckImageRequiredText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.3rem;
   font-style: normal;
   font-weight: 500;
@@ -447,23 +422,26 @@ const CheckImageRequiredCheckButton = styled.div`
 `;
 
 const CheckImageRequiredCheckButtonImage = styled.div`
-  width: 0.65rem;
-  height: 0.65rem;
-  margin-right: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: ${({ $isSelected }) => ($isSelected ? "#49D8FF" : "#D9D9D9")};
+  margin-right: 0.56rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0.25rem;
 
-  svg {
+  img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
   }
 `;
 
 const CheckImageRequiredCheckButtonText = styled.span`
   color: #000;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.05625rem;
   font-style: normal;
   font-weight: 500;
