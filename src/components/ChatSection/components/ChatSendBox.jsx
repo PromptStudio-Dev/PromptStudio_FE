@@ -157,7 +157,7 @@ const ChatSendBoxInput = styled.textarea`
   border-radius: 0.75rem;
   background: transparent;
   color: #001e40;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1rem;
   line-height: 1.5;
   resize: none;

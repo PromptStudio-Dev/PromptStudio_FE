@@ -405,7 +405,7 @@ const CheckImageRequiredSection = styled.div`
 const CheckImageRequiredText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.3rem;
   font-style: normal;
   font-weight: 500;
@@ -441,7 +441,7 @@ const CheckImageRequiredCheckButtonImage = styled.div`
 const CheckImageRequiredCheckButtonText = styled.span`
   color: #000;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.05625rem;
   font-style: normal;
   font-weight: 500;

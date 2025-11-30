@@ -159,6 +159,14 @@ const CategoryList = styled.div`
   gap: 0.75rem;
   margin-top: 1rem;
   width: 100%;
+
+  /* 이 페이지에서만 CategoryTag의 font-size를 1.625rem으로 설정 */
+  & > * {
+    font-size: 1.625rem;
+    font-style: normal;
+    font-weight: 600;
+    padding: 0.42rem 1rem;
+  }
 `;
 
 const ScopeInputSection = styled.div`
@@ -183,7 +191,8 @@ const ScopeItem = styled.div`
   display: flex;
   padding: 0.38rem 1.25rem;
   border-radius: 0.5rem;
-  border: ${({ $isSelected }) => ($isSelected ? "1px solid var(--Light-blue, #49D8FF)" : "1px solid #A9A9A9")};
+  border: ${({ $isSelected }) =>
+    $isSelected ? "1px solid var(--Light-blue, #49D8FF)" : "1px solid #A9A9A9"};
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
@@ -200,7 +209,7 @@ const ScopeIcon = styled.img`
 const ScopeItemText = styled.span`
   color: ${({ $isSelected }) => ($isSelected ? "#00AEFF" : "#A9A9A9")};
   text-align: center;
-  font-family: Pretendard;
+  font-family: inherit;
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 500;
@@ -210,7 +219,7 @@ const ScopeItemText = styled.span`
 const TitleText = styled.span`
   color: var(--B-Blue-line, #00aeff);
   text-align: center;
-  font-family: Pretendard;
+  font-family: inherit;
   font-size: 1.625rem;
   font-style: normal;
   font-weight: 700;
@@ -233,7 +242,7 @@ const DescriptionSection = styled.div`
 
 const Title = styled.span`
   color: var(--B-Blue-line, #00aeff);
-  font-family: Pretendard;
+  font-family: inherit;
   font-size: 1.625rem;
   font-style: normal;
   font-weight: 700;
@@ -251,6 +260,7 @@ const TitleInput = styled.input`
   font-weight: 400;
   line-height: normal;
   color: #454545;
+  font-family: inherit;
 
   &::placeholder {
     color: #d9d9d9;

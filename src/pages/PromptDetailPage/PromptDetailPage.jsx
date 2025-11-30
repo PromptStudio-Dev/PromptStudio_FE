@@ -196,7 +196,7 @@ export default function PromptDetailPage() {
                   style={{
                     color: "#000",
                     textAlign: "center",
-                    fontFamily: "Pretendard Variable, sans-serif",
+                    fontFamily: "Pretendard, sans-serif",
                     fontSize: "1.1875rem",
                     fontStyle: "normal",
                     fontWeight: "600",
@@ -258,7 +258,7 @@ export default function PromptDetailPage() {
                   style={{
                     color: "#000",
                     textAlign: "center",
-                    fontFamily: "Pretendard Variable, sans-serif",
+                    fontFamily: "Pretendard, sans-serif",
                     fontSize: "1.1875rem",
                     fontStyle: "normal",
                     fontWeight: "normal",
@@ -293,7 +293,7 @@ export default function PromptDetailPage() {
 const MainSection = styled.div`
   display: flex;
   height: 100%;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   overflow: hidden;
 `;
 
@@ -328,7 +328,7 @@ const TitlePart = styled.div`
 `;
 
 const CategoryTag = styled.div`
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1.1875rem;
   font-weight: 600;
   padding: 0.62rem;
@@ -341,7 +341,7 @@ const CategoryTag = styled.div`
 const Title = styled.div`
   color: #001e40;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 2.25rem;
   font-style: normal;
   font-weight: 600;
@@ -373,7 +373,7 @@ const WriterImg = styled.img`
 const WriterName = styled.div`
   color: #000;
   text-align: left;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.625rem;
   font-style: normal;
   font-weight: 500;
@@ -405,7 +405,7 @@ const InfoIcon = styled.img`
 const InfoText = styled.div`
   color: #a6a6a6;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 500;
@@ -415,7 +415,7 @@ const InfoText = styled.div`
 const InfoTime = styled.div`
   color: #a6a6a6;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 500;
@@ -436,7 +436,7 @@ const IntroductionSection = styled.div`
 
 const IntroductionText = styled.div`
   color: #000;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 400;
@@ -487,7 +487,7 @@ const PromptInfoSectionIcon = styled.img`
 const PromptInfoSectionText = styled.div`
   color: #000;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 500;
@@ -496,7 +496,7 @@ const PromptInfoSectionText = styled.div`
 const AiEnvironmentText = styled.div`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;
@@ -519,7 +519,7 @@ const PromptContent = styled.div`
   color: #000;
   overflow-y: auto;
 
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 400;
@@ -572,7 +572,7 @@ const DetailButtonIcon = styled.img`
 
 const DetailButtonText = styled.div`
   color: var(--B-Blue-line, #00aeff);
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
@@ -600,7 +600,7 @@ const DirectUseButton = styled(DetailButton)`
 
 const DirectUseButtonText = styled.div`
   color: white;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;

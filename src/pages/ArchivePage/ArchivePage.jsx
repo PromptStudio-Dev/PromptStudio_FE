@@ -204,7 +204,11 @@ export default function ArchivePage() {
       dragElement.style.opacity = "0";
       document.body.appendChild(dragImage);
 
-      event.dataTransfer.setDragImage(dragImage, rect.width / 2, rect.height / 2);
+      event.dataTransfer.setDragImage(
+        dragImage,
+        rect.width / 2,
+        rect.height / 2
+      );
 
       setTimeout(() => {
         if (document.body.contains(dragImage)) {
@@ -230,7 +234,9 @@ export default function ArchivePage() {
           <ProfileHeader>
             <ProfileImage src={tempoProfileImage} />
             <ProfileDetail>
-              <ProfileName>연동이 안돼서 안떠요 옆에 이미지도 더미데이터</ProfileName>
+              <ProfileName>
+                연동이 안돼서 안떠요 옆에 이미지도 더미데이터
+              </ProfileName>
               <ProfileInput placeholder="자기소개를 입력해주세요" />
             </ProfileDetail>
           </ProfileHeader>
@@ -390,7 +396,7 @@ export default function ArchivePage() {
 const MainSection = styled.div`
   display: flex;
   height: 100%;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   overflow: hidden;
 `;
 
@@ -451,7 +457,7 @@ const ProfileDetail = styled.div`
 const ProfileName = styled.div`
   color: #000;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
@@ -465,7 +471,7 @@ const ProfileInput = styled.input`
 
   padding: 0.62rem;
   color: #a6a6a6;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 500;
@@ -613,7 +619,7 @@ const CategoryDropdownButton = styled.button`
   border: 1px solid var(--Light-blue, #49d8ff);
   background: #fff;
   cursor: pointer;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   transition: border-color 0.2s ease;
 
   &:hover {
@@ -732,7 +738,7 @@ const SearchInput = styled.input`
   border: none;
   outline: none;
   font-size: 1rem;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   color: #000;
   background: transparent;
 

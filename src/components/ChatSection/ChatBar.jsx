@@ -535,7 +535,7 @@ const EmptyMessageText = styled.p`
   margin: 0;
   white-space: pre-line;
   color: var(--B-A6, #a6a6a6);
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1.3125rem;
   font-style: normal;
   font-weight: 400;

@@ -28,7 +28,9 @@ export default function AuthCallback() {
 
       const redirectUri = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
       if (!redirectUri) {
-        setMessage("환경 변수를 확인해주세요. redirect URI가 설정되지 않았습니다.");
+        setMessage(
+          "환경 변수를 확인해주세요. redirect URI가 설정되지 않았습니다."
+        );
         return;
       }
 
@@ -66,7 +68,7 @@ const StatusMessage = styled.div`
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1rem;
   color: #333;
   text-align: center;

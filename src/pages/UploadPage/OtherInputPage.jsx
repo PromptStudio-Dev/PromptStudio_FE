@@ -350,7 +350,7 @@ const TitleText = styled.span`
 
 const ResultGuideText = styled.span`
   color: var(--B-T, #454545);
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;

@@ -462,14 +462,10 @@ export default function HubPage() {
 
   const handleHeartToggle = (promptId, liked) => {
     setHottestPrompts((prev) =>
-      prev.map((p) =>
-        p.promptId === promptId ? { ...p, liked } : p
-      )
+      prev.map((p) => (p.promptId === promptId ? { ...p, liked } : p))
     );
     setCategoryPrompts((prev) =>
-      prev.map((p) =>
-        p.promptId === promptId ? { ...p, liked } : p
-      )
+      prev.map((p) => (p.promptId === promptId ? { ...p, liked } : p))
     );
   };
 
@@ -625,7 +621,7 @@ const HotImg = styled.img`
 
 const HotText = styled.p`
   color: #fff;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 1rem;
   font-style: normal;
   font-weight: 700;
@@ -710,7 +706,7 @@ const SearchIcon = styled.img`
 const MainSection = styled.div`
   display: flex;
   height: 100%;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   overflow: hidden;
 `;
 
@@ -720,7 +716,7 @@ const SearchBar = styled.div`
   width: 30.4375rem;
   height: 3.3125rem;
   border-radius: 7.5rem;
-  border: 3px solid var(--Light-blue, #49D8FF);
+  border: 3px solid var(--Light-blue, #49d8ff);
   background: #fff;
   position: relative;
   z-index: 2;
@@ -731,7 +727,7 @@ const SearchLabel = styled.span`
   align-items: center;
   height: 3.3125rem;
   // padding-top: 0.4rem;
-  color: #E0F5FF;
+  color: #e0f5ff;
   font-family: "Instrument Sans", sans-serif;
   font-size: 3.5rem;
   font-style: normal;

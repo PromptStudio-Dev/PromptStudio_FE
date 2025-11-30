@@ -8,6 +8,15 @@ import UploadPage from "./pages/UploadPage/UploadPage.jsx";
 import PromptDetailPage from "./pages/PromptDetailPage/PromptDetailPage.jsx";
 import AuthCallback from "./pages/AuthCallback/AuthCallback.jsx";
 import "./index.css";
+import { createGlobalStyle } from "styled-components";
+
+const GlobalStyle = createGlobalStyle`
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+  body {
+    font-family: "Pretendard", sans-serif;
+  }
+`;
 
 const router = createBrowserRouter([
   {
@@ -51,5 +60,8 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />
+  <>
+    <GlobalStyle />
+    <RouterProvider router={router} />
+  </>
 );

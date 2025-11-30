@@ -85,7 +85,7 @@ const LogoutButton = styled.button`
   border-radius: 7.5rem;
   border: none;
   background: transparent;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   font-size: 0.99vw;
   font-weight: 600;
   color: #00aeff;

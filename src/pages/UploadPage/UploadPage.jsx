@@ -142,10 +142,7 @@ export default function UploadPage() {
           : "false"
       );
       formDataToSend.append("aiEnvironment", formData.aiEnvironment);
-      formDataToSend.append(
-        "removeImage",
-        removeImageFlag ? "true" : "false"
-      );
+      formDataToSend.append("removeImage", removeImageFlag ? "true" : "false");
 
       // 이미지 파일 추가 (새 업로드 시)
       if (formData.resultType !== "text" && formData.file) {
@@ -412,7 +409,7 @@ const PrevButtonIcon = styled.img`
 const PrevButtonText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;
@@ -444,7 +441,7 @@ const NextButton = styled.button`
 const NextButtonText = styled.span`
   color: var(--B-T, #454545);
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;
@@ -482,7 +479,7 @@ const RegisterButton = styled.button`
 const RegisterButtonText = styled.span`
   color: #fff;
   text-align: center;
-  font-family: "Pretendard Variable";
+  font-family: "Pretendard";
   font-size: 1.4375rem;
   font-style: normal;
   font-weight: 400;

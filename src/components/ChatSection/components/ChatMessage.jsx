@@ -439,7 +439,7 @@ const MessageText = styled.div`
   background: #f1f1f1;
   padding: 1rem 0.75rem;
   font-size: 1rem;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   line-height: 1.5;
   color: #001e40;
   word-wrap: break-word;
@@ -454,7 +454,7 @@ const AssistantMessageContainer = styled.div`
 const AssistantMessageText = styled.div`
   width: 100%;
   font-size: 1rem;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   line-height: 1.5;
   color: #001e40;
   word-wrap: break-word;
@@ -482,7 +482,7 @@ const TypingCursor = styled.span`
 const LoadingMessageText = styled.div`
   width: 100%;
   font-size: 1rem;
-  font-family: "Pretendard Variable", sans-serif;
+  font-family: "Pretendard", sans-serif;
   line-height: 1.5;
   color: #001e40;
   word-wrap: break-word;
