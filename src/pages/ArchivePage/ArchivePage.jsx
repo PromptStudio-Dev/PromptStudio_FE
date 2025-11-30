@@ -99,11 +99,11 @@ export default function ArchivePage() {
   const [searchInputValue, setSearchInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedVisibility, setSelectedVisibility] = useState("전체");
+  const [selectedVisibility, setSelectedVisibility] = useState("모두");
   const navigate = useNavigate();
 
   const visibilityOptions = [
-    { name: "전체", icon: null },
+    { name: "모두", icon: null },
     { name: "공개", icon: archivePublicIcon },
     { name: "비공개", icon: archivePrivateIcon },
   ];
@@ -230,7 +230,7 @@ export default function ArchivePage() {
           <ProfileHeader>
             <ProfileImage src={tempoProfileImage} />
             <ProfileDetail>
-              <ProfileName>John Doe</ProfileName>
+              <ProfileName>연동이 안돼서 안떠요 옆에 이미지도 더미데이터</ProfileName>
               <ProfileInput placeholder="자기소개를 입력해주세요" />
             </ProfileDetail>
           </ProfileHeader>
