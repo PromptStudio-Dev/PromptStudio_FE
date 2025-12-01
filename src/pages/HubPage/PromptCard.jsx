@@ -5,6 +5,7 @@ import colorHeartIcon from "./assets/colorHeartIcon.svg";
 import copyIcon from "./assets/copyIcon.svg";
 
 import apiClient from "../../api/client";
+import { isLoggedIn } from "../../utils/authStorage";
 
 export default function PromptCard({
   promptId = "", // promptID가 필요하므로 기본값 설정
@@ -50,6 +51,11 @@ export default function PromptCard({
   const handleHeartClick = async (e) => {
     e.stopPropagation(); // 상위로 클릭 이벤트 전파 방지
     if (!promptId) return;
+    if (!isLoggedIn()) {
+      alert("로그인이 필요합니다!");
+      window.location.href = "/";
+      return;
+    }
 
     try {
       const response = await apiClient.post(`/api/prompts/${promptId}/likes`);
