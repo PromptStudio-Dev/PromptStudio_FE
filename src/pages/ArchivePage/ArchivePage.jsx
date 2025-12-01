@@ -18,6 +18,9 @@ import studyIcon from "../HubPage/assets/studyIcon.svg";
 import SearchIconImg from "./assets/searchIcon.svg";
 import archivePublicIcon from "./assets/archivePublicIcon.svg";
 import archivePrivateIcon from "./assets/archivePrivateIcon.svg";
+import { isLoggedIn } from "../../utils/authStorage";
+import myCategorySelectedIcon from "./assets/myCategorySelectedIcon.svg";
+import myCategoryIcon from "./assets/myCategoryIcon.svg";
 
 // SVG Components
 const DropdownArrowIcon = ({ isOpen }) => (
@@ -35,22 +38,6 @@ const DropdownArrowIcon = ({ isOpen }) => (
     <path
       d="M12.998 0C13.85 0 14.295 0.986 13.781 1.623L13.705 1.707L7.705 7.707C7.53281 7.87918 7.30371 7.98261 7.06068 7.99789C6.81766 8.01317 6.5774 7.93925 6.385 7.79L6.291 7.707L0.291 1.707L0.208 1.613L0.154 1.536L0.1 1.44L0.0830002 1.404L0.0560002 1.337L0.0240002 1.229L0.0139999 1.176L0.00400019 1.116L0 1.059V0.941L0.00500011 0.883L0.0139999 0.823L0.0240002 0.771L0.0560002 0.663L0.0830002 0.596L0.153 0.464L0.218 0.374L0.291 0.293L0.385 0.21L0.462 0.156L0.558 0.102L0.594 0.085L0.661 0.0579996L0.769 0.026L0.822 0.0159998L0.882 0.00599956L0.939 0.00199985L12.998 0Z"
       fill="#49D8FF"
-    />
-  </svg>
-);
-
-const CategoryIcon = ({ color }) => (
-  <svg
-    width="36"
-    height="36"
-    viewBox="0 0 36 36"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M5 20.5H14.5C15.0523 20.5 15.5 20.9477 15.5 21.5V31C15.5 31.5523 15.0523 32 14.5 32H5C4.44772 32 4 31.5523 4 31V21.5C4 20.9477 4.44772 20.5 5 20.5ZM21.5 20.5H31C31.5523 20.5 32 20.9477 32 21.5V31C32 31.5523 31.5523 32 31 32H21.5C20.9477 32 20.5 31.5523 20.5 31V21.5C20.5 20.9477 20.9477 20.5 21.5 20.5ZM5 4H14.5C15.0523 4 15.5 4.44772 15.5 5V14.5C15.5 15.0523 15.0523 15.5 14.5 15.5H5C4.44772 15.5 4 15.0523 4 14.5V5C4 4.44772 4.44772 4 5 4ZM21.5 4H31C31.5523 4 32 4.44772 32 5V14.5C32 15.0523 31.5523 15.5 31 15.5H21.5C20.9477 15.5 20.5 15.0523 20.5 14.5V5C20.5 4.44772 20.9477 4 21.5 4Z"
-      stroke={color}
-      strokeWidth="2"
     />
   </svg>
 );
@@ -83,6 +70,12 @@ const HeartIcon = ({ color }) => (
     </defs>
   </svg>
 );
+
+const CategoryIconImg = styled.img`
+  width: 2.25rem;
+  height: 2.25rem;
+  display: block;
+`;
 
 const MenuHeartIcon = styled.img`
   width: 2.25rem;
@@ -173,6 +166,13 @@ export default function ArchivePage() {
     fetchPrompts();
   }, [activeTab, selectedCategory, selectedVisibility, searchQuery]);
 
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      alert("로그인이 필요합니다!");
+      navigate("/");
+    }
+  }, [navigate]);
+
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("application/json", JSON.stringify(promptData));
@@ -246,8 +246,13 @@ export default function ArchivePage() {
               onClick={() => setActiveTab("category")}
             >
               <IconWrapper>
-                <CategoryIcon
-                  color={activeTab === "category" ? "#00AEFF" : "#454545"}
+                <CategoryIconImg
+                  src={
+                    activeTab === "category"
+                      ? myCategorySelectedIcon
+                      : myCategoryIcon
+                  }
+                  alt="category tab"
                 />
               </IconWrapper>
             </MenuItem>

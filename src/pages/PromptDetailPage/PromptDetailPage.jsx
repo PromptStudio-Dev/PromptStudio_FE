@@ -16,6 +16,7 @@ import detailEditIcon from "./assets/detailEditIcon.svg";
 import detailDirectUseIcon from "./assets/detailDirectUseIcon.svg";
 import detailCopyButtonIcon from "./assets/detailCopyButtonIcon.svg";
 import detailPromptIcon from "./assets/detailPromptIcon.svg";
+import { isLoggedIn } from "../../utils/authStorage";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -49,10 +50,7 @@ export default function PromptDetailPage() {
     const fetchPromptDetail = async () => {
       setIsLoading(true);
       try {
-        const memberId = 1; // 임시 memberId
-        const { data } = await apiClient.get(
-          `/api/prompts/${promptId}?memberId=${memberId}`
-        );
+        const { data } = await apiClient.get(`/api/prompts/${promptId}`);
         setPromptData(data);
         setIsLiked(Boolean(data?.liked));
       } catch (err) {
@@ -84,6 +82,11 @@ export default function PromptDetailPage() {
   };
 
   const handleDirectUse = () => {
+    if (!isLoggedIn()) {
+      alert("로그인이 필요합니다!");
+      window.location.href = "/";
+      return;
+    }
     if (!promptData?.promptId) return;
 
     const payload = {
@@ -103,6 +106,11 @@ export default function PromptDetailPage() {
 
   const handleLikeToggle = async () => {
     if (!promptId) return;
+    if (!isLoggedIn()) {
+      alert("로그인이 필요합니다!");
+      window.location.href = "/";
+      return;
+    }
     try {
       const { data } = await apiClient.post(`/api/prompts/${promptId}/likes`);
       if (data) {

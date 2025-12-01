@@ -16,6 +16,7 @@ import ChatSendBox from "./components/ChatSendBox";
 import ChatMessage from "./components/ChatMessage";
 import PromptDropModal from "./components/PromptDropModal";
 import promptDragIcon from "./assets/promptDragIcon.svg";
+import { isLoggedIn } from "../../utils/authStorage";
 
 export default function ChatBar() {
   const [droppedPrompt, setDroppedPrompt] = useState(null);
@@ -48,6 +49,13 @@ export default function ChatBar() {
   const handleTextareaChange = (e) => {
     originalHandleTextareaChange(e);
     setTextareaValue(e.target.value);
+  };
+
+  const ensureLoggedIn = () => {
+    if (isLoggedIn()) return true;
+    alert("로그인이 필요합니다!");
+    window.location.href = "/";
+    return false;
   };
   const {
     previewHeightPx,
@@ -151,6 +159,7 @@ export default function ChatBar() {
       const parsed = JSON.parse(rawData);
       if (!parsed || typeof parsed !== "object") return;
 
+      if (!ensureLoggedIn()) return;
       await loadPromptData(parsed);
     } catch (error) {
       console.error("프롬프트 상세 정보를 불러오지 못했습니다.", error);
@@ -217,6 +226,7 @@ export default function ChatBar() {
 
   // 메시지 전송 핸들러
   const handleSendMessage = () => {
+    if (!ensureLoggedIn()) return;
     // 응답 대기 중이면 전송 차단
     if (isLoading) return;
 
@@ -363,6 +373,10 @@ export default function ChatBar() {
     const handleUsePrompt = (event) => {
       const data = event.detail;
       if (!data) return;
+       if (!isLoggedIn()) {
+        alert("로그인이 필요합니다!");
+        return;
+      }
       loadPromptData(data);
     };
 

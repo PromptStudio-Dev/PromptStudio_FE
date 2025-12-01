@@ -437,7 +437,7 @@ const MessageText = styled.div`
   max-width: 75%;
   border-radius: 0.5rem;
   background: #f1f1f1;
-  padding: 1rem 0.75rem;
+  padding: 0.4rem 0.75rem;
   font-size: 1rem;
   font-family: "Pretendard", sans-serif;
   line-height: 1.5;
