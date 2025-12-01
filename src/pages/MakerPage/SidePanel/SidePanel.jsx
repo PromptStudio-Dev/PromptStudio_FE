@@ -12,6 +12,7 @@ export default function SidePanel({
   onAcceptUpgrade,
   onCancelUpgrade,
   onEditUpgrade,
+  onReupgrade,
 }) {
   const hasUpgrades = Array.isArray(upgrades) && upgrades.length > 0;
   const [searchInput, setSearchInput] = useState("");
@@ -53,6 +54,7 @@ export default function SidePanel({
               onAccept={onAcceptUpgrade}
               onCancel={onCancelUpgrade}
               onEdit={onEditUpgrade}
+              onReupgrade={onReupgrade}
             />
           </UpgradeOnlyContainer>
         ) : (
@@ -69,7 +71,7 @@ export default function SidePanel({
 }
 
 const SidebarWrapper = styled.div`
-  width: 23.8vw; /* 457px / 1920px */
+  width: 28.5625rem;
   height: 100%;
   background-color: #001e40;
   display: ${(props) => (props.$isOpen ? "flex" : "none")};
