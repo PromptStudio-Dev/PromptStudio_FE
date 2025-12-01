@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import styled from "styled-components";
 import ImgUploadButtonImg from "../assets/image-upload-button.svg";
 
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-export default function ImageUploader() {
-  const [attachedImages, setAttachedImages] = useState([]);
+export default function ImageUploader({
+  attachedImages = [],
+  onAttachedImagesChange,
+}) {
   const fileInputRef = useRef(null);
 
   const revokePreviewUrls = (images) => {
@@ -61,17 +63,18 @@ export default function ImageUploader() {
       preview: URL.createObjectURL(file),
     }));
 
-    setAttachedImages((prev) => [...prev, ...newImages]);
+    const updatedImages = [...attachedImages, ...newImages];
+    onAttachedImagesChange?.(updatedImages);
   };
 
   const handleImageRemove = (imageId) => {
-    setAttachedImages((prev) => {
-      const imageToRemove = prev.find((img) => img.id === imageId);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.preview);
-      }
-      return prev.filter((img) => img.id !== imageId);
-    });
+    const imageToRemove = attachedImages.find((img) => img.id === imageId);
+    if (imageToRemove && imageToRemove.preview) {
+      // 로컬 파일의 preview URL만 정리 (서버 이미지는 preview가 없음)
+      URL.revokeObjectURL(imageToRemove.preview);
+    }
+    const updatedImages = attachedImages.filter((img) => img.id !== imageId);
+    onAttachedImagesChange?.(updatedImages);
   };
 
   const handleImageSelect = (event) => {
@@ -89,7 +92,10 @@ export default function ImageUploader() {
 
   useEffect(() => {
     return () => {
-      revokePreviewUrls(attachedImages);
+      // cleanup: 컴포넌트 언마운트 시 preview URL 정리
+      if (attachedImages && attachedImages.length > 0) {
+        revokePreviewUrls(attachedImages);
+      }
     };
   }, [attachedImages]);
 
@@ -111,7 +117,10 @@ export default function ImageUploader() {
                 >
                   ✕
                 </ImagePreviewRemoveButton>
-                <ImagePreview src={image.preview} alt="첨부된 이미지" />
+                <ImagePreview
+                  src={image.preview || image.imageUrl || image.url}
+                  alt="첨부된 이미지"
+                />
               </ImagePreviewItem>
             ))}
           </ImagesPreviewContainer>
@@ -132,7 +141,7 @@ const UploaderWrapper = styled.div`
   width: 100%;
   margin-top: 4vh;
   position: relative;
-  margin-bottom: 10vh;
+  margin-bottom: 0;
 `;
 
 const Divider = styled.div`
@@ -148,6 +157,8 @@ const BottomSection = styled.div`
   gap: 1rem;
   width: 100%;
   max-width: 80vh;
+  min-height: 6rem; /* 고정 높이: 이미지 크기와 동일 (6rem = 96px) */
+  height: 6rem; /* 고정 높이로 설정하여 이미지 추가해도 크기 변하지 않음 */
 `;
 
 const UploadButton = styled.button`
