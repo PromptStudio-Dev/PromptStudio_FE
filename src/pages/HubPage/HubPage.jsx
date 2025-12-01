@@ -13,6 +13,7 @@ import CategoryTag from "./CategoryTag";
 import apiClient from "../../api/client";
 import ChatBar from "../../components/ChatSection/ChatBar";
 import { useNavigate } from "react-router-dom";
+import { isLoggedIn } from "../../utils/authStorage";
 
 // TODO: 서버 설정 완료 후 이 플래그를 false로 변경하거나 삭제하세요
 const USE_DUMMY_DATA = false;

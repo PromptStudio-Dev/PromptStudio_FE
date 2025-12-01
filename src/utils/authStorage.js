@@ -29,3 +29,5 @@ export const getMemberId = () => localStorage.getItem(MEMBER_ID_KEY);
 export const getAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
 
 export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
+
+export const isLoggedIn = () => Boolean(getAccessToken());
