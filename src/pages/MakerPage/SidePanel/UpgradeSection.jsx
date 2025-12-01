@@ -9,6 +9,7 @@ export default function UpgradeSection({
   onAccept,
   onCancel,
   onEdit,
+  onReupgrade,
 }) {
   const [selectedUpgradeId, setSelectedUpgradeId] = useState(null);
 
@@ -38,7 +39,8 @@ export default function UpgradeSection({
       <SectionWrapper>
         <SectionHeader>
           <SectionTitle>업그레이드 결과</SectionTitle>
-          <UpgradeAgainButton>
+          <UpgradeAgainButton onClick={onReupgrade}>
+            <UpgradeAgainButtonText>새로고침</UpgradeAgainButtonText>
             <UpgradeAgainButtonImage src={UpgradeAgainButtonImg} />
           </UpgradeAgainButton>
         </SectionHeader>
@@ -72,12 +74,25 @@ export default function UpgradeSection({
 
 const UpgradeAgainButton = styled.button`
   background-color: transparent;
-  border: none;
+  border: 0.0625rem solid #454545;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 7.5rem;
+  padding: 0.19rem 1rem;
+`;
+
+const UpgradeAgainButtonText = styled.p`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #848484;
+  line-height: 1.625rem;
 `;
 
 const UpgradeAgainButtonImage = styled.img`
-  width: 1.75rem;
+  width: 1.1875rem;
   height: auto;
 `;
 

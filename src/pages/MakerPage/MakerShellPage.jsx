@@ -46,7 +46,7 @@ export default function MakerShellPage() {
     } finally {
       setIsLoadingMakers(false);
     }
-  }, []);
+  }, [makerView]);
 
   useEffect(() => {
     fetchMakers();
@@ -107,9 +107,10 @@ export default function MakerShellPage() {
         // API 응답을 컴포넌트에서 사용하는 형식으로 변환
         const maker = {
           makerId: makerData.makerId,
-          title: makerData.title || "새 프롬프트",
+          title: makerData.title || "", // 백엔드에서 오는 값(기본값: 새로운 프롬프트)
           content: makerData.content || "",
           imageUrl: makerData.images?.[0]?.imageUrl || "",
+          images: makerData.images || [], // images 배열 전체 전달
         };
 
         setSelectedMaker(maker);
@@ -177,7 +178,7 @@ export default function MakerShellPage() {
       // 생성된 메이커 정보로 새 메이커 객체 생성
       const newMaker = {
         makerId: makerId,
-        title: "새 프롬프트",
+        title: "", // 빈 문자열로 설정하여 placeholder 표시
         content: "",
         imageUrl: "",
       };
