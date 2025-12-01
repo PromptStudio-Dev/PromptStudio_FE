@@ -17,10 +17,13 @@ export default function AIUpgradeModal({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  // activeUpgradeId가 생기면 자동으로 메뉴 표시
+  // activeUpgradeId가 생기면 자동으로 메뉴 표시 및 모달 재활성화
   useEffect(() => {
     if (activeUpgradeId != null) {
       setShowMenu(true);
+      // 업그레이드 결과가 나오면 모달을 다시 활성화 (입력 가능한 상태로)
+      setIsSubmitted(false);
+      setInputValue(""); // 입력값 초기화
     }
   }, [activeUpgradeId]);
 
