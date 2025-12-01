@@ -166,6 +166,13 @@ export default function ArchivePage() {
     fetchPrompts();
   }, [activeTab, selectedCategory, selectedVisibility, searchQuery]);
 
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      alert("로그인이 필요합니다!");
+      navigate("/");
+    }
+  }, [navigate]);
+
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("application/json", JSON.stringify(promptData));
