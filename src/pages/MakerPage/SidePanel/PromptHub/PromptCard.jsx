@@ -1,7 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import styled from "styled-components";
-import heartIcon from "../../assets/heartIcon.svg";
-import colorHeartIcon from "../../assets/colorHeartIcon.svg";
 import copyIcon from "../../assets/copyIcon.svg";
 
 export default function PromptCard({
@@ -13,13 +11,6 @@ export default function PromptCard({
   backgroundImage = "",
   onClick,
 }) {
-  const [isHeartClicked, setIsHeartClicked] = useState(false);
-
-  const handleHeartClick = (event) => {
-    event.stopPropagation();
-    setIsHeartClicked((prev) => !prev);
-  };
-
   const handleCopyClick = (event) => {
     event.stopPropagation();
     console.log("복사 버튼 클릭");
@@ -43,32 +34,22 @@ export default function PromptCard({
         {subtitle}
       </CardSubTitle>
       <ButtonSection>
-        <HeartIcon
-          src={isHeartClicked ? colorHeartIcon : heartIcon}
-          onClick={handleHeartClick}
-        />
         <CopyIcon src={copyIcon} onClick={handleCopyClick} />
       </ButtonSection>
     </PromptCardContainer>
   );
 }
 
-const HeartIcon = styled.img`
+const CopyIcon = styled.img`
   width: 1.75rem;
   height: 1.75rem;
+  margin-left: 0.37rem;
   cursor: pointer;
   transition: opacity 0.2s ease;
 
   &:hover {
     opacity: 0.8;
   }
-`;
-
-const CopyIcon = styled.img`
-  width: 1.75rem;
-  height: 1.75rem;
-  margin-left: 0.37rem;
-  cursor: pointer;
 `;
 
 const ButtonSection = styled.div`
@@ -102,27 +83,37 @@ const PromptAiName = styled.div`
 const PromptCardContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 0.94rem 1.19rem;
+  padding: 0.94rem 1.56rem;
   width: 18rem;
   height: 10rem;
-  aspect-ratio: 2 / 1;
+  aspect-ratio: 2/1;
   border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  position: relative;
   background: ${({ backgroundImage }) =>
     backgroundImage
       ? `url(${backgroundImage}) center / cover no-repeat`
-      : `#dbf5ff;`};
+      : `#DBF5FF`};
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
   outline: none;
 
-  &:hover {
-    transform: translateY(4px);
-    box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.08);
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: ${({ backgroundImage }) =>
+      backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
+    border-radius: 1rem;
+    pointer-events: none;
+    z-index: 0;
   }
 
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 174, 255, 0.4);
+  > * {
+    position: relative;
+    z-index: 1;
   }
 `;
 
@@ -131,8 +122,10 @@ const CategoryTag = styled.div`
   justify-content: center;
   align-items: center;
   text-align: center;
+  font-style: normal;
+  font-weight: 600;
   border-radius: 0.5rem;
-  width: 4.5rem;
+  padding: 0.5rem;
   height: 1.4rem;
   font-size: 1rem;
   background-color: white;
@@ -140,17 +133,17 @@ const CategoryTag = styled.div`
 
 const CardTitle = styled.p`
   width: 100%;
-  font-size: 1.25rem; /* 20px */
+  font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
-  line-height: 1.4;
-  margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
+  line-height: 1.5rem;
+  margin-top: 0.69rem;
+  margin-left: 0.37rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: ${({ $hasBackgroundImage }) =>
-    $hasBackgroundImage ? "#fff" : "#000"};
+    $hasBackgroundImage ? "#ffffff" : "#000000"};
 `;
 
 const CardSubTitle = styled.p`
@@ -158,16 +151,18 @@ const CardSubTitle = styled.p`
   font-size: 0.9rem;
   font-weight: 400;
   margin-top: 0.1rem;
+  margin-left: 0.37rem;
   flex: 1;
   min-height: 0;
+  overflow-wrap: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   word-break: break-word;
-  line-height: 1.4;
-  max-height: calc(1rem * 1.4 * 2);
+  line-height: 1.2;
+  max-height: 2.4em;
   color: ${({ $hasBackgroundImage }) =>
-    $hasBackgroundImage ? "#fff" : "#000"};
+    $hasBackgroundImage ? "#ffffff" : "#000000"};
 `;
