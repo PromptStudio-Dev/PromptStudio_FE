@@ -41,15 +41,16 @@ export default function SearchInput({
 
 // 1. 전체를 감싸는 div (여기 에 모든 겉모양 스타일을 적용)
 const SearchContainer = styled.div`
-  width: ${(props) => props.$width ?? "18.23vw"}; /* 350px @ 1920px */
-  height: 4.54vh; /* 49px @ 1080px */
+  width: ${(props) => props.$width ?? "21.875rem"}; /* 350px @ 1920px */
+  height: 3.0625rem;
   background-color: #ffffff;
   border: 0.0625rem solid #aadff7;
   border-radius: 120px;
-  padding: 0.37vh 0.68vw; /* 4px 13px */
+  padding: 0.25rem 0.8125rem; /* 4px 13px */
   display: flex;
   align-items: center;
-  gap: 0.52vw; /* 10px */
+  gap: 0.625rem; /* 10px */
+  flex-shrink: 0;
 `;
 
 // 2. 텍스트 입력 input (테두리, 배경 등은 모두 제거)
@@ -60,7 +61,7 @@ const StyledInput = styled.input`
   outline: none;
   background-color: transparent;
   padding: 0;
-  font-size: 1vw; /* 23px @ 1920px */
+  font-size: 1.1875rem; /* 23px @ 1920px */
   font-family: "Pretendard Variable", sans-serif;
   font-weight: 500;
   color: #454545;
@@ -83,6 +84,6 @@ const SearchButton = styled.button`
 `;
 
 const SearchButtonIcon = styled.img`
-  width: 1.3vw; /* 36px @ 1920px */
+  width: 1.5rem; /* 36px @ 1920px */
   height: auto;
 `;
