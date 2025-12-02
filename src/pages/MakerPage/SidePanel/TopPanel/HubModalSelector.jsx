@@ -7,7 +7,7 @@ export default function HubModalSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  const models = ["모든 허브", "아카이브", "좋아요"];
+  const models = ["모든 허브", "내가 작성한 글", "좋아요"];
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -74,12 +74,12 @@ const SelectorWrapper = styled.div`
 `;
 
 const SelectorButton = styled.button`
-  width: 18.23vw;
-  height: 4.54vh;
+  width: 21.875rem;
+  height: 3.0625rem;
   background-color: #ffffff;
   border: 0.0625rem solid #aadff7;
   border-radius: 120px;
-  padding: 0 1vw 0 1.5vw;
+  padding: 0 1rem 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -98,14 +98,15 @@ const ModelInfo = styled.div`
 
 const ModelName = styled.span`
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 0.99vw;
+  font-size: 1.1875rem;
+  line-height: 100%;
   font-weight: 500;
   color: #454545;
 `;
 
 const DropdownIcon = styled.img`
-  width: 1.35vw;
-  height: 2.41vh;
+  width: 1.25rem;
+  height: 1.25rem;
 `;
 
 const DropdownMenu = styled.div`
@@ -114,7 +115,7 @@ const DropdownMenu = styled.div`
   left: 0;
   background: white;
   border: 0.1rem solid #aadff7;
-  width: 18.23vw;
+  width: 21.875rem;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-top: 0.5rem;
@@ -130,7 +131,7 @@ const MenuItem = styled.button`
   text-align: left;
   cursor: pointer;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 0.99vw;
+  font-size: 1rem;
   color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
 
   &:hover {
