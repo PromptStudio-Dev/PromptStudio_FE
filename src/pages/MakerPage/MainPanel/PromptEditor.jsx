@@ -261,8 +261,8 @@ const FakePlaceholder = styled.div`
   color: #bcbcbc;
   pointer-events: none; /* 중요: 이 요소가 클릭 이벤트를 가로채지 않도록 설정 */
   font-family: "Pretendard Variable", sans-serif;
-  line-height: 1.5;
-  font-size: 1.4375rem;
+  line-height: 1.625rem;
+  font-size: 1.25rem;
   p {
     margin: 0; /* p 태그의 기본 마진 제거 */
   }
@@ -277,10 +277,10 @@ const EditorTextarea = styled.textarea`
   width: 100%;
   height: 100%;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.44rem;
+  font-size: 1.25rem;
   font-weight: 400;
   color: ${(props) => (props.$shouldHideText ? "transparent" : "#001e40")};
-  line-height: 1.5;
+  line-height: 1.625rem;
   background: transparent; /* 중요: FakePlaceholder가 비쳐 보이도록 배경을 투명하게 */
   border: none;
   outline: none;
@@ -308,10 +308,10 @@ const SelectionOverlay = styled.div`
   width: 100%;
   height: 100%;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.44rem;
+  font-size: 1.25rem;
   font-weight: 400;
   color: #001e40;
-  line-height: 1.5;
+  line-height: 1.625rem;
   padding: 1rem 0;
   pointer-events: none;
   white-space: pre-wrap;
@@ -330,10 +330,10 @@ const TextOverlay = styled.div`
   width: 100%;
   height: 100%;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.44rem;
+  font-size: 1.25rem;
   font-weight: 400;
   color: #001e40;
-  line-height: 1.5;
+  line-height: 1.625rem;
   padding: 1rem 0;
   pointer-events: none;
   white-space: pre-wrap;
