@@ -12,17 +12,19 @@ export default function TopPanel({
 }) {
   return (
     <TopContainer>
-      <SearchInput
-        value={searchValue}
-        onChange={onSearchChange}
-        onSearch={onSearchSubmit}
-      />
+      <SearchRow>
+        <SearchInput
+          value={searchValue}
+          onChange={onSearchChange}
+          onSearch={onSearchSubmit}
+        />
+        {onClose && (
+          <CloseButton onClick={onClose} aria-label="사이드바 닫기">
+            <CloseIcon src={SidePanelCloseImg} />
+          </CloseButton>
+        )}
+      </SearchRow>
       <HubModalSelector />
-      {onClose && (
-        <CloseButton onClick={onClose} aria-label="사이드바 닫기">
-          <CloseIcon src={SidePanelCloseImg} />
-        </CloseButton>
-      )}
     </TopContainer>
   );
 }
@@ -37,13 +39,16 @@ const TopContainer = styled.div`
   padding: 2.7vh 1.93vw;
   width: 100%;
   background-color: #f6fcff;
-  position: relative;
+`;
+
+const SearchRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
 `;
 
 const CloseButton = styled.button`
-  position: absolute;
-  right: 1rem;
-  top: 1rem;
   width: 2rem;
   height: 2rem;
   background-color: transparent;
@@ -52,6 +57,7 @@ const CloseButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   &:hover {
     opacity: 0.7;
@@ -60,5 +66,5 @@ const CloseButton = styled.button`
 
 const CloseIcon = styled.img`
   width: auto;
-  height: 2.5vh;
+  height: 1.5rem;
 `;
