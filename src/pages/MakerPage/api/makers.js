@@ -21,6 +21,58 @@ export const getMaker = async (makerId) => {
 };
 
 /**
+ * 메이커 삭제
+ * 메이커와 연관된 모든 데이터를 삭제합니다.
+ *
+ * @param {number} makerId - 메이커 ID (필수)
+ * @returns {Promise<any>} 서버 응답 데이터
+ */
+export const deleteMaker = async (makerId) => {
+  if (!makerId) {
+    throw new Error("makerId는 필수입니다.");
+  }
+
+  const response = await apiClient.delete(`/api/makers/${makerId}`);
+  return response.data;
+};
+
+/**
+ * 메이커 전체 목록 조회
+ * RUN / NO RUN 여부에 따라 hasHistory(boolean)으로 구분합니다.
+ *
+ * @param {Object} params - 조회 파라미터
+ * @param {boolean} params.hasHistory - true: RUN, false: NO RUN
+ * @param {number} [params.page=0] - 페이지 번호(0부터 시작)
+ * @param {number} [params.size=9] - 페이지 크기 (기본 9개)
+ * @returns {Promise<{
+ *   makers: Array<{
+ *     makerId: number,
+ *     title: string,
+ *     resultType: string,
+ *     resultText: string,
+ *     resultImageUrl: string,
+ *     content: string,
+ *     updatedAt: string
+ *   }>,
+ *   currentPage: number,
+ *   totalPages: number,
+ *   totalElements: number,
+ *   hasNext: boolean
+ * }>}
+ */
+export const getMakers = async ({ hasHistory, page = 0, size = 9 }) => {
+  const response = await apiClient.get(`/api/makers`, {
+    params: {
+      hasHistory,
+      page,
+      size,
+    },
+  });
+
+  return response.data;
+};
+
+/**
  * 메이커 자동 저장 (2초 debounce).
  * @param {number} makerId - 메이커 ID (필수)
  * @param {Object} data - 저장할 메이커 데이터
