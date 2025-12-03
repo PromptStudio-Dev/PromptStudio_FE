@@ -7,7 +7,7 @@ import SearchInput from "./SidePanel/TopPanel/SearchInput";
 import MakerPageIcon from "./assets/prompt-maker-image.svg";
 import MakerNextButton from "./assets/maker-next-button.svg";
 import MakerPrevButton from "./assets/maker-prev-button.svg";
-import { createMaker, getMaker } from "./api";
+import { createMaker, getMaker, getMakers, deleteMaker } from "./api";
 
 const RUN_STATE = {
   RUN: "RUN",
@@ -36,9 +36,52 @@ export default function MakerShellPage() {
     setMakerListError(null);
 
     try {
-      // TODO: 실제 API 호출로 교체
-      // 메이커 프롬프트 전체 조회(메이커 홈) API 연동
-      setMakers([]);
+      // RUN / NO RUN에 따라 hasHistory(boolean) 결정
+      const hasHistory = makerView === RUN_STATE.RUN;
+
+      // 백엔드 메이커 전체 조회 API 호출
+      // page=0, size=1000 으로 충분히 많이 가져와서
+      // 프론트에서 CARDS_PER_PAGE(9) 단위로 페이징
+      const response = await getMakers({
+        hasHistory,
+        page: 0,
+        size: 1000,
+      });
+
+      const makerList = Array.isArray(response?.makers) ? response.makers : [];
+
+      // 카드에서 사용할 수 있도록 필요한 필드만 정규화
+      // RUN: 카드에는 결과 텍스트/이미지, 상세 페이지의 에디터에는 항상 사용자가 작성한 텍스트(content)
+      const normalized = makerList.map((maker) => {
+        const isRun = makerView === RUN_STATE.RUN;
+
+        // RUN일 때만 결과 이미지를 카드 썸네일로 사용
+        const imageUrl =
+          isRun && maker.resultType === "IMAGE" && maker.resultImageUrl
+            ? maker.resultImageUrl
+            : "";
+
+        // 리스트 카드에 보여줄 텍스트
+        const displayContent = isRun
+          ? maker.resultText || ""
+          : maker.content || "";
+
+        return {
+          makerId: maker.makerId,
+          title: maker.title || "",
+          // 상세 페이지의 PromptEditor에 들어갈 사용자가 작성한 원본 텍스트
+          content: maker.content || "",
+          // 리스트(카드)에서만 사용하는 표시용 텍스트
+          displayContent,
+          imageUrl,
+          resultType: maker.resultType,
+          resultText: maker.resultText,
+          resultImageUrl: maker.resultImageUrl,
+          updatedAt: maker.updatedAt,
+        };
+      });
+
+      setMakers(normalized);
     } catch (error) {
       console.error("Maker 목록을 불러오지 못했습니다.", error);
       setMakerListError("Maker 목록을 불러오지 못했습니다.");
@@ -74,7 +117,8 @@ export default function MakerShellPage() {
       return;
     }
 
-    // 먼저 state에서 찾아보기
+    // 먼저 state에서 찾아본 뒤, 있으면 즉시 표시하되
+    // 항상 상세 조회 API를 한 번 더 호출해서 최신 자동 저장 내용/이미지를 반영한다.
     const candidate = findMakerById(makerIdParam);
     if (candidate) {
       setSelectedMaker((prev) => {
@@ -84,10 +128,9 @@ export default function MakerShellPage() {
         return candidate;
       });
       setMakerError(null);
-      return;
     }
 
-    // state에 없으면 API 호출
+    // 상세 정보는 항상 API로 최신 상태를 다시 가져온다.
     const fetchMakerDetail = async () => {
       setIsLoadingMakers(true);
       setMakerError(null);
@@ -104,6 +147,20 @@ export default function MakerShellPage() {
 
         const makerData = await getMaker(numericId);
 
+        // 목록에서 가져온 결과 정보가 있다면 그대로 유지
+        const baseResultInfo =
+          candidate && candidate.makerId === makerData.makerId
+            ? {
+                resultType: candidate.resultType,
+                resultText: candidate.resultText,
+                resultImageUrl: candidate.resultImageUrl,
+              }
+            : {
+                resultType: makerData.resultType,
+                resultText: makerData.resultText,
+                resultImageUrl: makerData.resultImageUrl,
+              };
+
         // API 응답을 컴포넌트에서 사용하는 형식으로 변환
         const maker = {
           makerId: makerData.makerId,
@@ -111,6 +168,7 @@ export default function MakerShellPage() {
           content: makerData.content || "",
           imageUrl: makerData.images?.[0]?.imageUrl || "",
           images: makerData.images || [], // images 배열 전체 전달
+          ...baseResultInfo,
         };
 
         setSelectedMaker(maker);
@@ -225,15 +283,36 @@ export default function MakerShellPage() {
     [navigate]
   );
 
-  const handleDeleteMaker = useCallback((makerId) => {
-    if (!makerId) {
-      return;
-    }
+  const handleDeleteMaker = useCallback(
+    async (makerId) => {
+      if (!makerId) {
+        return;
+      }
 
-    // TODO: 실제 삭제 API 호출
-    console.log("삭제:", makerId);
-    setMakers((prev) => prev.filter((maker) => maker?.makerId !== makerId));
-  }, []);
+      try {
+        // 서버에서 메이커 삭제
+        await deleteMaker(makerId);
+
+        // 프론트 목록에서 해당 메이커 제거
+        setMakers((prev) => prev.filter((maker) => maker?.makerId !== makerId));
+
+        // 선택된 메이커가 삭제된 경우 상세 페이지 초기화
+        setSelectedMaker((prev) => {
+          if (prev?.makerId === makerId) {
+            return null;
+          }
+          return prev;
+        });
+
+        // 백엔드 상태와 동기화(실제 삭제 여부 확인)
+        await fetchMakers();
+      } catch (error) {
+        console.error("메이커를 삭제하지 못했습니다.", error);
+        setMakerListError("메이커를 삭제하지 못했습니다.");
+      }
+    },
+    [setMakers, fetchMakers]
+  );
 
   const makerKey = useMemo(() => {
     if (!selectedMaker) return "maker-empty";
@@ -400,7 +479,7 @@ export default function MakerShellPage() {
                   <MakerPageCard
                     key={prompt?.makerId}
                     title={prompt.title}
-                    description={prompt.content}
+                    description={prompt.displayContent ?? prompt.content}
                     imageUrl={prompt.imageUrl}
                     onClick={() => handleSelectMaker(prompt?.makerId)}
                     onDelete={() => handleDeleteMaker(prompt?.makerId)}
