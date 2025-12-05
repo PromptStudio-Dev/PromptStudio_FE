@@ -1,9 +1,21 @@
 import React from "react";
 import styled from "styled-components";
 import AIModalSelector from "../AIModalSelector";
-import ResultPanelOpenImg from "../../assets/prompt-run-open-disabled.svg";
+import ResultPanelOpenEnabledImg from "../../assets/prompt-run-open-enabled.svg";
+import ResultPanelOpenDisabledImg from "../../assets/prompt-run-open-disabled.svg";
 
-export default function ControlBar({ onRun, onOpenResultPanel }) {
+export default function ControlBar({
+  onRun,
+  onOpenResultPanel,
+  hasHistory = false,
+}) {
+  const handleOpenResultPanel = () => {
+    // History가 있을 때만 ResultPanel 열기
+    if (hasHistory && onOpenResultPanel) {
+      onOpenResultPanel();
+    }
+  };
+
   return (
     <ControlBarWrapper>
       <AIModalSelector />
@@ -13,9 +25,12 @@ export default function ControlBar({ onRun, onOpenResultPanel }) {
           <ButtonText>RUN</ButtonText>
         </RunButton>
         <OpenResultPanelButton
-          src={ResultPanelOpenImg}
-          onClick={onOpenResultPanel}
+          src={
+            hasHistory ? ResultPanelOpenEnabledImg : ResultPanelOpenDisabledImg
+          }
+          onClick={handleOpenResultPanel}
           alt="결과 패널 열기"
+          $isEnabled={hasHistory}
         />
       </SecondWrapper>
     </ControlBarWrapper>
@@ -31,14 +46,15 @@ const SecondWrapper = styled.div`
 const OpenResultPanelButton = styled.img`
   width: 2.25rem;
   height: auto;
-  cursor: pointer;
+  cursor: ${(props) => (props.$isEnabled ? "pointer" : "not-allowed")};
+  opacity: ${(props) => (props.$isEnabled ? 1 : 0.5)};
 
   &:hover {
-    opacity: 0.8;
+    opacity: ${(props) => (props.$isEnabled ? 0.8 : 0.5)};
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: ${(props) => (props.$isEnabled ? "scale(0.95)" : "none")};
   }
 `;
 

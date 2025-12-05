@@ -19,6 +19,7 @@ export default function MainPanel({
   onEditUpgrade,
   activeUpgradeId,
   activeUpgrade,
+  historyItems = [],
   onRunPrompt,
   onOpenResultPanel,
   isResultPanelOpen = false,
@@ -48,6 +49,7 @@ export default function MainPanel({
               <ControlBar
                 onRun={onRunPrompt}
                 onOpenResultPanel={onOpenResultPanel}
+                hasHistory={historyItems.length > 0}
               />
             )}
           </TitleAndControlRow>
