@@ -22,11 +22,13 @@ export default function MainPanel({
   onRunPrompt,
   onOpenResultPanel,
   isResultPanelOpen = false,
+  isResultPanelExpanded = false,
 }) {
   return (
     <MakerPanelWrapper
       $isSidebarOpen={isSidebarOpen}
       $isResultPanelOpen={isResultPanelOpen}
+      $isResultPanelExpanded={isResultPanelExpanded}
       data-main-panel
     >
       {/* 사이드바 토글 버튼 */}
@@ -41,8 +43,8 @@ export default function MainPanel({
         <TopSection>
           <TitleAndControlRow>
             <PromptTitleInput />
-            {/* ResultPanel이 열려있을 때 ControlBar 숨기기 */}
-            {!isResultPanelOpen && (
+            {/* ResultPanel이 열려있거나 확장되었을 때 ControlBar 숨기기 */}
+            {!isResultPanelOpen && !isResultPanelExpanded && (
               <ControlBar
                 onRun={onRunPrompt}
                 onOpenResultPanel={onOpenResultPanel}
@@ -104,6 +106,9 @@ const MakerPanelWrapper = styled.div`
 
   /* 사이드바 상태에 따른 왼쪽 여백 */
   padding-left: ${(props) => (props.$isSidebarOpen ? "0" : "3vw")};
+
+  /* ResultPanel이 확장되었을 때는 MainPanel 숨기기 */
+  display: ${(props) => (props.$isResultPanelExpanded ? "none" : "flex")};
 
   /* ResultPanel이 열려있을 때 오른쪽 여백 추가 (ResultPanel 너비만큼) */
   margin-right: ${(props) => (props.$isResultPanelOpen ? "36.0625rem" : "0")};

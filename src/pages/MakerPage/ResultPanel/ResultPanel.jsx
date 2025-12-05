@@ -17,13 +17,20 @@ export default function ResultPanel({
   resultText = null,
   isResultLoading = false,
   feedbackText = null,
+  isSidebarOpen = true,
+  isResultPanelExpanded = false,
+  onExpandChange,
 }) {
   const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
 
   return (
-    <ResultPanelWrapper $isOpen={isOpen}>
-      <ResultPanelHeader>
-        <AIModalSelector />
+    <ResultPanelWrapper
+      $isOpen={isOpen}
+      $isExpanded={isResultPanelExpanded}
+      $isSidebarOpen={isSidebarOpen}
+    >
+      <ResultPanelHeader $isExpanded={isResultPanelExpanded}>
+        {!isResultPanelExpanded && <AIModalSelector />}
         <SecondWrapper>
           <RunButton onClick={onRun}>
             <ButtonText>PROMPT</ButtonText>
@@ -36,14 +43,22 @@ export default function ResultPanel({
           />
         </SecondWrapper>
       </ResultPanelHeader>
-      <ResultContent>
-        <ResultDisplay
-          isLoading={isResultLoading}
-          imageUrl={resultImageUrl}
-          textContent={resultText}
-        />
+      <ResultContent $isExpanded={isResultPanelExpanded}>
+        <ResultDisplayWrapper $isExpanded={isResultPanelExpanded}>
+          <ResultDisplay
+            isLoading={isResultLoading}
+            imageUrl={resultImageUrl}
+            textContent={resultText}
+            onExpand={() => {
+              if (onExpandChange) {
+                onExpandChange(!isResultPanelExpanded);
+              }
+            }}
+            isExpanded={isResultPanelExpanded}
+          />
+        </ResultDisplayWrapper>
 
-        <BottomSection>
+        <BottomSection $isExpanded={isResultPanelExpanded}>
           <TabHeader>
             <TabButton
               type="button"
@@ -81,7 +96,13 @@ export default function ResultPanel({
 }
 
 const ResultPanelWrapper = styled.div`
-  width: 36.0625rem; /* 기본 너비 (rem 기준) */
+  width: ${(props) => {
+    if (props.$isExpanded) {
+      // 확장 시: SidePanel이 열려있으면 그 너비만큼 빼기
+      return props.$isSidebarOpen ? "calc(100% - 28.5625rem)" : "100%";
+    }
+    return "36.0625rem"; // 기본 너비
+  }};
   height: 100%;
   background-color: #ffffff;
   position: absolute;
@@ -90,29 +111,49 @@ const ResultPanelWrapper = styled.div`
   display: ${(props) => (props.$isOpen ? "flex" : "none")};
   flex-direction: column;
   z-index: 10;
-  border-left: 0.0625rem solid #49d8ff;
+  border-left: ${(props) =>
+    props.$isExpanded ? "none" : "0.0625rem solid #49d8ff"};
+  transition: width 0.3s ease;
 `;
 
 const ResultPanelHeader = styled.div`
-  padding: 1.25rem 0;
+  padding: ${(props) =>
+    props.$isExpanded ? "1.75rem 5.69rem" : "1.25rem 0rem"};
   display: flex;
   align-items: center;
+  justify-content: ${(props) =>
+    props.$isExpanded ? "flex-end" : "space-between"};
   gap: 0;
 `;
 
 const ResultContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: 3rem;
+  padding: ${(props) => (props.$isExpanded ? "0" : "3rem")};
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  align-items: stretch;
+`;
+
+const ResultDisplayWrapper = styled.div`
+  display: flex;
+  justify-content: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
+  align-items: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
+  padding: ${(props) =>
+    props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  flex-shrink: 0;
 `;
 
 const BottomSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  width: ${(props) => (props.$isExpanded ? "62rem" : "100%")};
+  padding: ${(props) =>
+    props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  box-sizing: border-box;
+  flex-shrink: 0;
 `;
 
 const TabHeader = styled.div`
