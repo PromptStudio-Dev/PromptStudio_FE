@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import AIModalSelector from "../MainPanel/AIModalSelector";
 import ResultPanelCloseImg from "../assets/prompt-run-close.svg";
 import ResultDisplay from "../shared/ResultDisplay";
 import HistoryBar from "../shared/HistoryBar";
+import ResultFeedback from "../shared/ResultFeedback";
 
 export default function ResultPanel({
   isOpen = true,
@@ -13,8 +14,12 @@ export default function ResultPanel({
   historyItems = [],
   onHistoryItemClick,
   resultImageUrl = null,
+  resultText = null,
   isResultLoading = false,
+  feedbackText = null,
 }) {
+  const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
+
   return (
     <ResultPanelWrapper $isOpen={isOpen}>
       <ResultPanelHeader>
@@ -32,13 +37,44 @@ export default function ResultPanel({
         </SecondWrapper>
       </ResultPanelHeader>
       <ResultContent>
-        <ResultDisplay isLoading={isResultLoading} imageUrl={resultImageUrl} />
-        <HistoryBar
-          currentIndex={currentHistoryIndex}
-          totalCount={historyItems.length || 10}
-          historyItems={historyItems}
-          onItemClick={onHistoryItemClick}
+        <ResultDisplay
+          isLoading={isResultLoading}
+          imageUrl={resultImageUrl}
+          textContent={resultText}
         />
+
+        <BottomSection>
+          <TabHeader>
+            <TabButton
+              type="button"
+              data-active={activeTab === "HISTORY"}
+              onClick={() => setActiveTab("HISTORY")}
+            >
+              <TabTitle>History</TabTitle>
+              <TabCount>
+                ({currentHistoryIndex}/{historyItems.length || 0})
+              </TabCount>
+            </TabButton>
+            <TabButton
+              type="button"
+              data-active={activeTab === "FEEDBACK"}
+              onClick={() => setActiveTab("FEEDBACK")}
+            >
+              <TabTitle>Feedback</TabTitle>
+            </TabButton>
+          </TabHeader>
+
+          {activeTab === "HISTORY" ? (
+            <HistoryBar
+              currentIndex={currentHistoryIndex}
+              totalCount={historyItems.length || 10}
+              historyItems={historyItems}
+              onItemClick={onHistoryItemClick}
+            />
+          ) : (
+            <ResultFeedback feedbackText={feedbackText} />
+          )}
+        </BottomSection>
       </ResultContent>
     </ResultPanelWrapper>
   );
@@ -71,6 +107,48 @@ const ResultContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 2rem;
+`;
+
+const BottomSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const TabHeader = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+`;
+
+const TabButton = styled.button`
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  border-bottom: 0.1875rem solid
+    ${(props) => (props["data-active"] ? "#21C3FF" : "transparent")};
+  color: ${(props) => (props["data-active"] ? "#000000" : "#A6A6A6")};
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const TabTitle = styled.span`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1.4375rem;
+  font-weight: 700;
+`;
+
+const TabCount = styled.span`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #848484;
 `;
 
 const SecondWrapper = styled.div`

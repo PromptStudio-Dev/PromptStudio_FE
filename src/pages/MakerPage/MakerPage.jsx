@@ -9,6 +9,12 @@ import {
   upgradeMakerText,
   reupgradeMakerText,
 } from "./api/makers";
+import {
+  runPrompt,
+  getRunHistory,
+  restoreHistory,
+  getPromptFeedback,
+} from "./api/results";
 
 export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -21,14 +27,28 @@ export default function MakerPage({ selectedPrompt = null }) {
   );
   const [attachedImages, setAttachedImages] = useState([]);
   const [latestUpgradeId, setLatestUpgradeId] = useState(null);
-  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(3);
-  const [resultImageUrl] = useState(null);
-  const [isResultLoading] = useState(false);
+  const [currentHistoryIndex, setCurrentHistoryIndex] = useState(1);
+  const [resultImageUrl, setResultImageUrl] = useState(
+    selectedPrompt?.resultImageUrl ?? null
+  );
+  const [resultText, setResultText] = useState(
+    selectedPrompt?.resultText ?? null
+  );
+
+  const [resultType, setResultType] = useState(
+    selectedPrompt?.resultType ?? null
+  );
+  const [resultFeedback, setResultFeedback] = useState(null);
+  const [historyFeedbackMap, setHistoryFeedbackMap] = useState({});
+  const [isResultLoading, setIsResultLoading] = useState(false);
+  const [historyItems, setHistoryItems] = useState([]);
+  const [currentHistoryId, setCurrentHistoryId] = useState(null);
   const [currentMakerId, setCurrentMakerId] = useState(
     selectedPrompt?.makerId ?? null
   );
   const [existingImageUrls, setExistingImageUrls] = useState([]);
   const saveIntervalRef = useRef(null);
+  const skipNextAutoSaveRef = useRef(false);
   const isSavingRef = useRef(false);
   const isInitialLoadRef = useRef(true); // 초기 로드 여부 추적
 
@@ -44,13 +64,59 @@ export default function MakerPage({ selectedPrompt = null }) {
     newImageCount: 0,
   });
 
-  // 히스토리 mock 데이터
-  const historyItems = [
-    { id: 1, title: "남자 캐릭터로 변경 요청", status: "New" },
-    { id: 2, title: "배경 변경 요청", time: "PM 16:42" },
-    { id: 3, title: "머리스타일 변경 요청", time: "PM 16:48" },
-    { id: 4, title: "제발", time: "PM 16:48" },
-  ];
+  // 히스토리 목록 조회 (목록/인덱스만 세팅, 내용은 자동 복원하지 않음)
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!currentMakerId) return;
+
+      try {
+        const histories = await getRunHistory(currentMakerId);
+        const formattedHistories = histories.map((history) => ({
+          id: history.historyId,
+          title: history.title || `History ${history.historyId}`,
+        }));
+        setHistoryItems(formattedHistories);
+
+        // 가장 최신 히스토리의 인덱스/ID만 기억
+        if (formattedHistories.length > 0) {
+          const latest = formattedHistories[0];
+          setCurrentHistoryIndex(1);
+          setCurrentHistoryId(latest.id);
+        }
+      } catch (error) {
+        console.error("히스토리 조회 실패:", error);
+      }
+    };
+
+    fetchHistory();
+  }, [currentMakerId]);
+
+  // makerId 변경 시, 로컬스토리지에 저장된 피드백 캐시 불러오기
+  useEffect(() => {
+    if (!currentMakerId) return;
+
+    try {
+      const raw = localStorage.getItem(`makerFeedback:${currentMakerId}`);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        setHistoryFeedbackMap(parsed);
+      }
+    } catch (error) {
+      console.error("피드백 캐시 로드 실패:", error);
+    }
+  }, [currentMakerId]);
+
+  // 선택된 히스토리가 바뀔 때, 캐시에 피드백이 있으면 바로 반영
+  useEffect(() => {
+    if (!currentHistoryId) return;
+
+    const cachedFeedback = historyFeedbackMap[currentHistoryId];
+    if (cachedFeedback !== undefined) {
+      setResultFeedback(cachedFeedback);
+    }
+  }, [currentHistoryId, historyFeedbackMap]);
 
   useEffect(() => {
     const title = selectedPrompt?.title ?? "";
@@ -59,6 +125,11 @@ export default function MakerPage({ selectedPrompt = null }) {
     setPromptTitle(title);
     setPromptContent(content);
     setCurrentMakerId(selectedPrompt?.makerId ?? null);
+
+    // 선택된 메이커가 바뀔 때, 마지막 실행 결과도 함께 반영
+    setResultType(selectedPrompt?.resultType ?? null);
+    setResultImageUrl(selectedPrompt?.resultImageUrl ?? null);
+    setResultText(selectedPrompt?.resultText ?? null);
 
     // 기존 이미지 URL 추출 (서버에서 받은 이미지들)
     let urls = [];
@@ -118,6 +189,10 @@ export default function MakerPage({ selectedPrompt = null }) {
 
     // 저장 함수
     const performAutoSave = async () => {
+      if (skipNextAutoSaveRef.current) {
+        skipNextAutoSaveRef.current = false;
+        return;
+      }
       // 이미 저장 중이면 스킵
       if (isSavingRef.current) {
         return;
@@ -515,17 +590,178 @@ export default function MakerPage({ selectedPrompt = null }) {
       <ResultPanel
         isOpen={isResultPanelOpen}
         onToggle={() => setIsResultPanelOpen(false)}
-        onRun={() => {
-          // TODO: 프롬프트 실행 로직
-          console.log("프롬프트 실행:", promptContent);
+        onRun={async () => {
+          if (!currentMakerId || !promptContent.trim()) {
+            alert("메이커 ID 또는 프롬프트 내용이 없습니다.");
+            return;
+          }
+
+          setIsResultLoading(true);
+          try {
+            // RUN 전에 한 번 더 강제 자동 저장을 실행하여
+            // 히스토리 스냅샷과 MainPanel 내용이 최대한 일치하도록 맞춘다.
+            try {
+              // 전송해야 할 로컬 이미지 파일들
+              const newImages = attachedImages.filter(
+                (img) => img.file && !img.isServerImage
+              );
+
+              // 현재 attachedImages에 있는 서버 이미지 URL들만 추출
+              const serverImageUrls = attachedImages
+                .filter((img) => img.imageUrl || img.url || img.isServerImage)
+                .map((img) => img.imageUrl || img.url)
+                .filter(Boolean);
+
+              const urlsToKeep = serverImageUrls;
+
+              const newImageFiles = newImages
+                .map((img) => img.file)
+                .filter(Boolean);
+
+              await autoSaveMaker(currentMakerId, {
+                title: promptTitle,
+                content: promptContent,
+                existingImageUrls: urlsToKeep,
+                newImages: newImageFiles,
+              });
+            } catch (e) {
+              // 강제 자동 저장 실패는 RUN 자체를 막지는 않는다.
+              console.error("RUN 직전 자동 저장 실패:", e);
+            }
+
+            const result = await runPrompt(currentMakerId, promptContent);
+
+            // 결과 저장
+            setResultType(result.resultType);
+            setResultImageUrl(result.resultImageUrl || null);
+            setResultText(result.resultText || null);
+            setCurrentHistoryId(result.historyId);
+
+            // 히스토리 목록 새로고침
+            const histories = await getRunHistory(currentMakerId);
+            const formattedHistories = histories.map((history) => ({
+              id: history.historyId,
+              title: history.title || `History ${history.historyId}`,
+            }));
+            setHistoryItems(formattedHistories);
+
+            // 가장 최신 히스토리 선택 (인덱스 1)
+            setCurrentHistoryIndex(1);
+
+            // 최신 프롬프트에 대한 피드백 조회 (히스토리별로 한 번만 호출)
+            const cachedFeedback = historyFeedbackMap[result.historyId];
+            if (cachedFeedback !== undefined) {
+              setResultFeedback(cachedFeedback);
+            } else {
+              try {
+                const feedbackResponse = await getPromptFeedback(
+                  currentMakerId
+                );
+                const feedbackText = feedbackResponse?.feedback ?? null;
+
+                setResultFeedback(feedbackText);
+                setHistoryFeedbackMap((prev) => {
+                  const next = { ...prev, [result.historyId]: feedbackText };
+                  try {
+                    localStorage.setItem(
+                      `makerFeedback:${currentMakerId}`,
+                      JSON.stringify(next)
+                    );
+                  } catch (error) {
+                    console.error("피드백 캐시 저장 실패:", error);
+                  }
+                  return next;
+                });
+              } catch (e) {
+                console.error("피드백 조회 실패:", e);
+              }
+            }
+          } catch (error) {
+            console.error("프롬프트 실행 실패:", error);
+            alert("프롬프트 실행에 실패했습니다.");
+          } finally {
+            setIsResultLoading(false);
+          }
         }}
         currentHistoryIndex={currentHistoryIndex}
         historyItems={historyItems}
-        onHistoryItemClick={(item, index) => {
-          setCurrentHistoryIndex(index + 1);
-          console.log("히스토리 항목 클릭:", item, index);
+        feedbackText={resultFeedback}
+        onHistoryItemClick={async (item, index) => {
+          if (!currentMakerId || !item.id) {
+            console.error("메이커 ID 또는 히스토리 ID가 없습니다.");
+            return;
+          }
+
+          try {
+            const restored = await restoreHistory(currentMakerId, item.id);
+            skipNextAutoSaveRef.current = true;
+            // 메이커 내용 복원
+            setPromptTitle(restored.snapshotTitle || "");
+            setPromptContent(restored.snapshotContent || "");
+
+            // 이미지 복원
+            if (
+              restored.snapshotImages &&
+              Array.isArray(restored.snapshotImages)
+            ) {
+              const restoredImages = restored.snapshotImages.map((img) => ({
+                id: Date.now() + Math.random(),
+                imageUrl: img.imageUrl,
+                isServerImage: true,
+              }));
+              setAttachedImages(restoredImages);
+              setExistingImageUrls(
+                restored.snapshotImages
+                  .map((img) => img.imageUrl)
+                  .filter(Boolean)
+              );
+            } else {
+              setAttachedImages([]);
+              setExistingImageUrls([]);
+            }
+
+            // 결과 표시
+            setResultType(restored.resultType);
+            setResultImageUrl(restored.resultImageUrl || null);
+            setResultText(restored.resultText || null);
+            setCurrentHistoryId(restored.historyId);
+            setCurrentHistoryIndex(index + 1);
+
+            // 복원된 프롬프트에 대한 피드백: 캐시 우선, 없으면 한 번만 조회
+            const targetHistoryId = restored.historyId ?? item.id;
+            const cachedFeedback = historyFeedbackMap[targetHistoryId];
+            if (cachedFeedback !== undefined) {
+              setResultFeedback(cachedFeedback);
+            } else {
+              try {
+                const feedbackResponse = await getPromptFeedback(
+                  currentMakerId
+                );
+                const feedbackText = feedbackResponse?.feedback ?? null;
+                setResultFeedback(feedbackText);
+                setHistoryFeedbackMap((prev) => {
+                  const next = { ...prev, [targetHistoryId]: feedbackText };
+                  try {
+                    localStorage.setItem(
+                      `makerFeedback:${currentMakerId}`,
+                      JSON.stringify(next)
+                    );
+                  } catch (error) {
+                    console.error("피드백 캐시 저장 실패:", error);
+                  }
+                  return next;
+                });
+              } catch (e) {
+                console.error("피드백 조회 실패:", e);
+              }
+            }
+          } catch (error) {
+            console.error("히스토리 복원 실패:", error);
+            alert("히스토리 복원에 실패했습니다.");
+          }
         }}
         resultImageUrl={resultImageUrl}
+        resultText={resultText}
         isResultLoading={isResultLoading}
       />
 
@@ -538,11 +774,83 @@ export default function MakerPage({ selectedPrompt = null }) {
         }}
         currentHistoryIndex={currentHistoryIndex}
         historyItems={historyItems}
-        onHistoryItemClick={(item, index) => {
-          setCurrentHistoryIndex(index + 1);
-          console.log("히스토리 항목 클릭:", item, index);
+        onHistoryItemClick={async (item, index) => {
+          if (!currentMakerId || !item.id) {
+            console.error("메이커 ID 또는 히스토리 ID가 없습니다.");
+            return;
+          }
+
+          try {
+            const restored = await restoreHistory(currentMakerId, item.id);
+            skipNextAutoSaveRef.current = true;
+            // 메이커 내용 복원
+            setPromptTitle(restored.snapshotTitle || "");
+            setPromptContent(restored.snapshotContent || "");
+
+            // 이미지 복원
+            if (
+              restored.snapshotImages &&
+              Array.isArray(restored.snapshotImages)
+            ) {
+              const restoredImages = restored.snapshotImages.map((img) => ({
+                id: Date.now() + Math.random(),
+                imageUrl: img.imageUrl,
+                isServerImage: true,
+              }));
+              setAttachedImages(restoredImages);
+              setExistingImageUrls(
+                restored.snapshotImages
+                  .map((img) => img.imageUrl)
+                  .filter(Boolean)
+              );
+            } else {
+              setAttachedImages([]);
+              setExistingImageUrls([]);
+            }
+
+            // 결과 표시
+            setResultType(restored.resultType);
+            setResultImageUrl(restored.resultImageUrl || null);
+            setResultText(restored.resultText || null);
+            setCurrentHistoryId(restored.historyId);
+            setCurrentHistoryIndex(index + 1);
+
+            // 복원된 프롬프트에 대한 피드백: 캐시 우선, 없으면 한 번만 조회
+            const targetHistoryId = restored.historyId ?? item.id;
+            const cachedFeedback = historyFeedbackMap[targetHistoryId];
+            if (cachedFeedback !== undefined) {
+              setResultFeedback(cachedFeedback);
+            } else {
+              try {
+                const feedbackResponse = await getPromptFeedback(
+                  currentMakerId
+                );
+                const feedbackText = feedbackResponse?.feedback ?? null;
+                setResultFeedback(feedbackText);
+                setHistoryFeedbackMap((prev) => {
+                  const next = { ...prev, [targetHistoryId]: feedbackText };
+                  try {
+                    localStorage.setItem(
+                      `makerFeedback:${currentMakerId}`,
+                      JSON.stringify(next)
+                    );
+                  } catch (error) {
+                    console.error("피드백 캐시 저장 실패:", error);
+                  }
+                  return next;
+                });
+              } catch (e) {
+                console.error("피드백 조회 실패:", e);
+              }
+            }
+          } catch (error) {
+            console.error("히스토리 복원 실패:", error);
+            alert("히스토리 복원에 실패했습니다.");
+          }
         }}
         resultImageUrl={resultImageUrl}
+        resultText={resultText}
+        feedbackText={resultFeedback}
         isResultLoading={isResultLoading}
       />
     </MakerPageWrapper>

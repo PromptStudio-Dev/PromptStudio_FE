@@ -4,6 +4,7 @@ import ExpandIconImg from "../assets/result-modal-expansion-button.svg";
 import CloseIconImg from "../assets/result-modal-close-button.svg";
 import ResultDisplay from "./ResultDisplay";
 import HistoryBar from "./HistoryBar";
+import ResultFeedback from "./ResultFeedback";
 
 export default function ResultModal({
   isOpen,
@@ -13,8 +14,10 @@ export default function ResultModal({
   historyItems = [],
   onHistoryItemClick,
   resultImageUrl = null,
+  resultText = null,
   isResultLoading = false,
 }) {
+  const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
   // 모달 크기는 CSS에서 관리하고, JavaScript에서는 실제 렌더링된 크기를 사용
   const modalRef = useRef(null);
 
@@ -38,6 +41,11 @@ export default function ResultModal({
         const currentWidth = rect.width;
         const currentHeight = rect.height;
 
+        // 크기가 0이면 아직 렌더링이 완료되지 않은 것
+        if (currentWidth === 0 || currentHeight === 0) {
+          return;
+        }
+
         // 오른쪽 여백
         const rightMarginPx = 32;
 
@@ -56,10 +64,22 @@ export default function ResultModal({
         setIsPositionCalculated(true);
       };
 
-      // DOM이 완전히 렌더링된 후 실제 크기로 위치 계산
+      // DOM이 완전히 렌더링되고 레이아웃이 안정화된 후 위치 계산
       // requestAnimationFrame을 두 번 사용하여 브라우저가 레이아웃을 완료한 후 실행
       requestAnimationFrame(() => {
-        requestAnimationFrame(updateSizeAndPosition);
+        requestAnimationFrame(() => {
+          // 한 번 더 확인하여 모달이 완전히 렌더링되었는지 확인
+          if (modalRef.current) {
+            updateSizeAndPosition();
+          } else {
+            // 아직 마운트되지 않았다면 약간의 지연 후 재시도
+            setTimeout(() => {
+              if (modalRef.current) {
+                updateSizeAndPosition();
+              }
+            }, 10);
+          }
+        });
       });
 
       // 화면 크기 변경 시에도 위치 재계산
@@ -106,13 +126,41 @@ export default function ResultModal({
           <ResultDisplay
             isLoading={isResultLoading}
             imageUrl={resultImageUrl}
+            textContent={resultText}
           />
-          <HistoryBar
-            currentIndex={currentHistoryIndex}
-            totalCount={historyItems.length || 10}
-            historyItems={historyItems}
-            onItemClick={onHistoryItemClick}
-          />
+
+          <BottomSection>
+            <TabHeader>
+              <TabButton
+                type="button"
+                data-active={activeTab === "HISTORY"}
+                onClick={() => setActiveTab("HISTORY")}
+              >
+                <TabTitle>History</TabTitle>
+                <TabCount>
+                  ({currentHistoryIndex}/{historyItems.length || 0})
+                </TabCount>
+              </TabButton>
+              <TabButton
+                type="button"
+                data-active={activeTab === "FEEDBACK"}
+                onClick={() => setActiveTab("FEEDBACK")}
+              >
+                <TabTitle>Feedback</TabTitle>
+              </TabButton>
+            </TabHeader>
+
+            {activeTab === "HISTORY" ? (
+              <HistoryBar
+                currentIndex={currentHistoryIndex}
+                totalCount={historyItems.length || 10}
+                historyItems={historyItems}
+                onItemClick={onHistoryItemClick}
+              />
+            ) : (
+              <ResultFeedback />
+            )}
+          </BottomSection>
         </ModalBody>
       </ModalContent>
     </ModalOverlay>
@@ -199,4 +247,46 @@ const ModalBody = styled.div`
   flex-direction: column;
   gap: 2rem;
   overflow-y: auto;
+`;
+
+const BottomSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const TabHeader = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+`;
+
+const TabButton = styled.button`
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  border-bottom: 0.1875rem solid
+    ${(props) => (props["data-active"] ? "#21C3FF" : "transparent")};
+  color: ${(props) => (props["data-active"] ? "#000000" : "#A6A6A6")};
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const TabTitle = styled.span`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1.4375rem;
+  font-weight: 700;
+`;
+
+const TabCount = styled.span`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #848484;
 `;
