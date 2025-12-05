@@ -18,12 +18,11 @@ export const runPrompt = async (makerId, prompt) => {
   const params = new URLSearchParams();
   params.append("prompt", prompt);
 
-  // GPT API 호출은 시간이 오래 걸릴 수 있으므로 타임아웃을 120초(2분)로 설정
   const response = await apiClient.post(
     `/api/makers/${makerId}/histories/run?${params.toString()}`,
     null,
     {
-      timeout: 2000000, // 120초 (2분)
+      timeout: 2000000,
     }
   );
   return response.data;
