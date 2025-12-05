@@ -127,6 +127,7 @@ export default function ResultModal({
             isLoading={isResultLoading}
             imageUrl={resultImageUrl}
             textContent={resultText}
+            showActions={false}
           />
 
           <BottomSection>
