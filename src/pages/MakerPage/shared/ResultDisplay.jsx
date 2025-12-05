@@ -18,10 +18,8 @@ export default function ResultDisplay({ imageUrl, textContent, isLoading }) {
 
 const DisplayContainer = styled.div`
   position: relative;
-  width: 27.3125rem; /* 437px - Figma 디자인 기준 */
-  height: 26.3125rem; /* 421px - Figma 디자인 기준 */
-  border-radius: 0.925rem;
-  background-color: #f2f2f2;
+  width: 29.25rem;
+  height: 25.6875rem;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -46,13 +44,12 @@ const ResultImage = styled.img`
 const TextContent = styled.div`
   width: 100%;
   height: 100%;
-  padding: 1.5rem;
   overflow-y: auto;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.0625rem; /* 17px */
-  line-height: 1.35;
+  font-size: 1.25rem;
+  line-height: 1.625rem;
+  letter-spacing: 0;
   color: #000000;
-  letter-spacing: -0.425px;
   box-sizing: border-box;
 
   /* 스크롤바 숨기기 */
