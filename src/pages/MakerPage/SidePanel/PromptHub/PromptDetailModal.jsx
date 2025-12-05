@@ -299,8 +299,8 @@ const ModalContent = styled.div`
 
 const ModalBody = styled.div`
   flex: 1;
-  padding: 3rem 6rem;
-  overflow-y: auto;
+  min-height: 0;
+  padding: 4.31rem 3rem;
   display: flex;
   flex-direction: column;
 `;
@@ -441,7 +441,7 @@ const IntroductionText = styled.div`
   font-weight: 400;
   line-height: 1.4;
   word-break: break-word;
-  max-height: calc(1.1875rem * 1.4 * 3);
+  max-height: calc(1.1875rem * 1.4 * 2);
   overflow-y: auto;
 
   &::-webkit-scrollbar {
