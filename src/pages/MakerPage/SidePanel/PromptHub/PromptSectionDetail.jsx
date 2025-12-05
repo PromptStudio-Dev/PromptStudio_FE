@@ -23,6 +23,7 @@ export default function PromptSectionDetail({
             prompts.map((prompt) => (
               <PromptCard
                 key={prompt.promptId ?? prompt.id}
+                promptId={prompt.promptId ?? prompt.id ?? prompt.ID}
                 category={prompt.category}
                 aiName={prompt.aiEnvironment}
                 title={prompt.title}

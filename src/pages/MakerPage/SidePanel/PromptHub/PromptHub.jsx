@@ -3,18 +3,21 @@ import styled from "styled-components";
 import PromptCardList from "./PromptCardList";
 import PromptSectionDetail from "./PromptSectionDetail";
 import PromptCard from "./PromptCard";
+import PromptDetailModal from "./PromptDetailModal";
 import backButtonIcon from "../../assets/side-panel-close.svg";
 import {
   getRecentPrompts,
   getHotPrompts,
-  getAllPrompts,
   searchPrompts,
   getPromptDetail,
+  getGeneratedPrompts,
 } from "../../api";
 
 export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   const [currentView, setCurrentView] = useState("main"); // "main" | "detail"
   const [selectedSection, setSelectedSection] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedPromptId, setSelectedPromptId] = useState(null);
 
   // 로딩 및 에러
   const [isAllLoading, setIsAllLoading] = useState(false);
@@ -32,8 +35,8 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   const [isRecentLoading, setIsRecentLoading] = useState(false);
   const [recentError, setRecentError] = useState(null);
 
-  // 추천 프롬프트 (임시 - 나중에 API 연동)
-  const [recommendPrompts, setRecommendPrompts] = useState([]);
+  // 최근 생성한 프롬프트
+  const [generatedPrompts, setGeneratedPrompts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
 
   useEffect(() => {
@@ -52,8 +55,7 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setRecentError(null);
 
       try {
-        const memberId = 1; // TODO: 실제 로그인한 사용자 ID로 교체
-        const data = await getRecentPrompts(memberId);
+        const data = await getRecentPrompts();
 
         console.log("최근 조회한 프롬프트 응답 데이터:", data);
 
@@ -105,10 +107,14 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setPopularError(null);
 
       try {
-        const data = await getHotPrompts({
-          memberId: 1,
+        const memberId = localStorage.getItem("memberId");
+        const params = {
           category: "전체",
-        });
+        };
+        if (memberId) {
+          params.memberId = Number(memberId);
+        }
+        const data = await getHotPrompts(params);
 
         console.log("인기 프롬프트 응답 데이터:", data);
 
@@ -149,34 +155,42 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
     };
   }, []);
 
-  // 전체 프롬프트 조회
-  // (추천용 api 연동이 되어 있지 않아, 전체 프롬프트 조회로 진행)
+  // 최근 생성한 프롬프트 조회
   useEffect(() => {
     const controller = new AbortController();
 
-    const fetchAllPrompts = async () => {
+    const fetchGeneratedPrompts = async () => {
       setIsAllLoading(true);
       setAllError(null);
 
       try {
-        const data = await getAllPrompts({
-          memberId: 1,
-          category: "전체",
-        });
+        const memberId = localStorage.getItem("memberId");
+        const params = {
+          sort: "desc", // 최신순
+        };
 
-        console.log("전체 프롬프트 응답 데이터:", data);
+        if (memberId) {
+          params.memberId = Number(memberId);
+        }
+
+        const data = await getGeneratedPrompts(params);
+
+        console.log("최근 생성한 프롬프트 응답 데이터:", data);
 
         const formattedPrompts = Array.isArray(data) ? data : [];
 
-        setRecommendPrompts(formattedPrompts.slice(0, 6));
+        setGeneratedPrompts(formattedPrompts);
       } catch (fetchError) {
         if (fetchError?.code === "ERR_CANCELED") {
           return;
         }
 
-        console.error("전체 프롬프트를 불러오지 못했습니다.", fetchError);
+        console.error(
+          "최근 생성한 프롬프트를 불러오지 못했습니다.",
+          fetchError
+        );
 
-        let errorMessage = "프롬프트를 불러오지 못했습니다.";
+        let errorMessage = "최근 생성한 프롬프트를 불러오지 못했습니다.";
         if (
           fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
           fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
@@ -190,13 +204,13 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
         }
 
         setAllError(errorMessage);
-        setRecommendPrompts([]);
+        setGeneratedPrompts([]);
       } finally {
         setIsAllLoading(false);
       }
     };
 
-    fetchAllPrompts();
+    fetchGeneratedPrompts();
 
     return () => {
       controller.abort();
@@ -222,12 +236,16 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
       setSearchError(null);
 
       try {
-        const data = await searchPrompts({
-          memberId: 1,
+        const memberId = localStorage.getItem("memberId");
+        const params = {
           category: "전체",
           q: trimmedKeyword,
           query: trimmedKeyword,
-        });
+        };
+        if (memberId) {
+          params.memberId = Number(memberId);
+        }
+        const data = await searchPrompts(params);
 
         console.log("프롬프트 검색 결과:", data);
 
@@ -273,15 +291,26 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
     };
   }, [searchKeyword]);
 
-  // 카드 클릭 시 동작 (프롬프트 상세 보기 페이지 UI 없어서 API 호출만 진행 - 최근 정렬 위해서)
-  // 프롬프트 상세보기 API
+  // 카드 클릭 시 모달 열기
   const handleCardClick = async (promptId) => {
     console.log("카드 클릭:", promptId);
+    if (!promptId) {
+      console.error("promptId가 없습니다:", promptId);
+      return;
+    }
+    console.log("모달 열기 - promptId:", promptId);
+    setSelectedPromptId(promptId);
+    setIsModalOpen(true);
+    console.log("모달 상태 업데이트 완료");
 
+    // 최근 조회한 프롬프트 업데이트를 위한 API 호출
     try {
-      const data = await getPromptDetail(promptId, {
-        memberId: 1,
-      });
+      const memberId = localStorage.getItem("memberId");
+      const params = {};
+      if (memberId) {
+        params.memberId = Number(memberId);
+      }
+      const data = await getPromptDetail(promptId, params);
 
       console.log("프롬프트 상세 응답 데이터:", data);
 
@@ -307,6 +336,10 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPromptId(null);
+  };
   // 카드 리스트 더보기 버튼 클릭 시 동작
   const handleMoreClick = (sectionName, prompts) => {
     setSelectedSection({ title: sectionName, prompts });
@@ -324,142 +357,172 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   // 상세 뷰 렌더링 (프롬프트 더보기 시)
   if (currentView === "detail" && selectedSection) {
     return (
-      <PromptSectionDetail
-        sectionTitle={selectedSection.title}
-        prompts={selectedSection.prompts}
-        onCardClick={handleCardClick}
-        onBack={handleBack}
-      />
+      <>
+        <PromptSectionDetail
+          sectionTitle={selectedSection.title}
+          prompts={selectedSection.prompts}
+          onCardClick={handleCardClick}
+          onBack={handleBack}
+        />
+        <PromptDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          promptId={selectedPromptId}
+        />
+      </>
     );
   }
 
   if (hasActiveSearch) {
     return (
-      <SearchWrapper>
-        <SearchHeader>
-          <BackButton onClick={onClearSearch}>
-            <img src={backButtonIcon} alt="뒤로" />
-          </BackButton>
-          <SearchTitle>{`"${searchKeyword}" 검색 결과`}</SearchTitle>
-        </SearchHeader>
-        <SearchContent>
-          {isSearchLoading ? (
-            <SearchStatusMessage>
-              프롬프트를 검색 중입니다...
-            </SearchStatusMessage>
-          ) : searchError ? (
-            <SearchStatusMessage>{searchError}</SearchStatusMessage>
-          ) : searchResults.length === 0 ? (
-            <SearchStatusMessage>검색 결과가 없습니다.</SearchStatusMessage>
-          ) : (
-            <SearchCardList>
-              {searchResults.map((prompt) => (
-                <PromptCard
-                  key={prompt.id}
-                  category={prompt.category}
-                  aiName={prompt.aiName}
-                  title={prompt.title}
-                  subtitle={prompt.introduction}
-                  backgroundImage={prompt.imageUrl}
-                  onClick={() => handleCardClick(prompt.id)}
-                />
-              ))}
-            </SearchCardList>
-          )}
-        </SearchContent>
-      </SearchWrapper>
+      <>
+        <SearchWrapper>
+          <SearchHeader>
+            <BackButton onClick={onClearSearch}>
+              <img src={backButtonIcon} alt="뒤로" />
+            </BackButton>
+            <SearchTitle>{`"${searchKeyword}" 검색 결과`}</SearchTitle>
+          </SearchHeader>
+          <SearchContent>
+            {isSearchLoading ? (
+              <SearchStatusMessage>
+                프롬프트를 검색 중입니다...
+              </SearchStatusMessage>
+            ) : searchError ? (
+              <SearchStatusMessage>{searchError}</SearchStatusMessage>
+            ) : searchResults.length === 0 ? (
+              <SearchStatusMessage>검색 결과가 없습니다.</SearchStatusMessage>
+            ) : (
+              <SearchCardList>
+                {searchResults.map((prompt) => (
+                  <PromptCard
+                    key={prompt.id}
+                    promptId={prompt.id}
+                    category={prompt.category}
+                    aiName={prompt.aiName}
+                    title={prompt.title}
+                    subtitle={prompt.introduction}
+                    backgroundImage={prompt.imageUrl}
+                    onClick={() => handleCardClick(prompt.id)}
+                  />
+                ))}
+              </SearchCardList>
+            )}
+          </SearchContent>
+        </SearchWrapper>
+        <PromptDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          promptId={selectedPromptId}
+        />
+      </>
     );
   }
 
   // 메인 뷰 렌더링
   return (
-    <Wrapper>
-      <ContentArea>
-        {/* 최근 본 섹션 */}
-        <Section>
-          <SectionHeader>
-            <SectionTitle>최근 본 프롬프트</SectionTitle>
-            {!isRecentLoading && recentPrompts.length > 0 && (
-              <ViewAllButton
-                onClick={() =>
-                  handleMoreClick("최근 본 프롬프트", recentPrompts)
-                }
-              >
-                더보기
-              </ViewAllButton>
+    <>
+      <Wrapper>
+        <ContentArea>
+          {/* 최근 본 섹션 */}
+          <Section>
+            <SectionHeader>
+              <SectionTitle>최근 본 프롬프트</SectionTitle>
+              {!isRecentLoading && recentPrompts.length > 0 && (
+                <ViewAllButton
+                  onClick={() =>
+                    handleMoreClick("최근 본 프롬프트", recentPrompts)
+                  }
+                >
+                  더보기
+                </ViewAllButton>
+              )}
+            </SectionHeader>
+            {isRecentLoading ? (
+              <StatusMessage>
+                최근 본 프롬프트를 불러오는 중입니다...
+              </StatusMessage>
+            ) : recentError ? (
+              <StatusMessage>{recentError}</StatusMessage>
+            ) : recentPrompts.length === 0 ? (
+              <StatusMessage>최근 본 프롬프트가 없습니다.</StatusMessage>
+            ) : (
+              <PromptCardList
+                prompts={recentPrompts}
+                onCardClick={handleCardClick}
+              />
             )}
-          </SectionHeader>
-          {isRecentLoading ? (
-            <StatusMessage>
-              최근 본 프롬프트를 불러오는 중입니다...
-            </StatusMessage>
-          ) : recentError ? (
-            <StatusMessage>{recentError}</StatusMessage>
-          ) : recentPrompts.length === 0 ? (
-            <StatusMessage>최근 본 프롬프트가 없습니다.</StatusMessage>
-          ) : (
-            <PromptCardList
-              prompts={recentPrompts.slice(0, 3)}
-              onCardClick={handleCardClick}
-            />
-          )}
-        </Section>
+          </Section>
 
-        {/* 인기 섹션 */}
-        <Section>
-          <SectionHeader>
-            <SectionTitle>인기 프롬프트</SectionTitle>
-            {!isPopularLoading && popularPrompts.length > 0 && (
-              <ViewAllButton
-                onClick={() => handleMoreClick("인기 프롬프트", popularPrompts)}
-              >
-                더보기
-              </ViewAllButton>
+          {/* 인기 섹션 */}
+          <Section>
+            <SectionHeader>
+              <SectionTitle>인기 프롬프트</SectionTitle>
+              {!isPopularLoading && popularPrompts.length > 0 && (
+                <ViewAllButton
+                  onClick={() =>
+                    handleMoreClick("인기 프롬프트", popularPrompts)
+                  }
+                >
+                  더보기
+                </ViewAllButton>
+              )}
+            </SectionHeader>
+            {isPopularLoading ? (
+              <StatusMessage>
+                인기 프롬프트를 불러오는 중입니다...
+              </StatusMessage>
+            ) : popularError ? (
+              <StatusMessage>{popularError}</StatusMessage>
+            ) : popularPrompts.length === 0 ? (
+              <StatusMessage>표시할 인기 프롬프트가 없습니다.</StatusMessage>
+            ) : (
+              <PromptCardList
+                prompts={popularPrompts}
+                onCardClick={handleCardClick}
+              />
             )}
-          </SectionHeader>
-          {isPopularLoading ? (
-            <StatusMessage>인기 프롬프트를 불러오는 중입니다...</StatusMessage>
-          ) : popularError ? (
-            <StatusMessage>{popularError}</StatusMessage>
-          ) : popularPrompts.length === 0 ? (
-            <StatusMessage>표시할 인기 프롬프트가 없습니다.</StatusMessage>
-          ) : (
-            <PromptCardList
-              prompts={popularPrompts.slice(0, 3)}
-              onCardClick={handleCardClick}
-            />
-          )}
-        </Section>
+          </Section>
 
-        {/* 추천 섹션 */}
-        <Section>
-          <SectionHeader>
-            <SectionTitle>추천 프롬프트</SectionTitle>
-            {!isAllLoading && recommendPrompts.length > 0 && (
-              <ViewAllButton
-                onClick={() =>
-                  handleMoreClick("추천 프롬프트", recommendPrompts)
-                }
-              >
-                더보기
-              </ViewAllButton>
+          {/* 최근 생성한 프롬프트 섹션 */}
+          <Section>
+            <SectionHeader>
+              <SectionTitle>최근 생성한 프롬프트</SectionTitle>
+              {!isAllLoading && generatedPrompts.length > 0 && (
+                <ViewAllButton
+                  onClick={() =>
+                    handleMoreClick("최근 생성한 프롬프트", generatedPrompts)
+                  }
+                >
+                  더보기
+                </ViewAllButton>
+              )}
+            </SectionHeader>
+            {isAllLoading ? (
+              <StatusMessage>
+                최근 생성한 프롬프트를 불러오는 중입니다...
+              </StatusMessage>
+            ) : allError ? (
+              <StatusMessage>{allError}</StatusMessage>
+            ) : generatedPrompts.length === 0 ? (
+              <StatusMessage>
+                표시할 최근 생성한 프롬프트가 없습니다.
+              </StatusMessage>
+            ) : (
+              <PromptCardList
+                prompts={generatedPrompts}
+                onCardClick={handleCardClick}
+              />
             )}
-          </SectionHeader>
-          {isAllLoading ? (
-            <StatusMessage>추천 프롬프트를 불러오는 중입니다...</StatusMessage>
-          ) : allError ? (
-            <StatusMessage>{allError}</StatusMessage>
-          ) : recommendPrompts.length === 0 ? (
-            <StatusMessage>표시할 추천 프롬프트가 없습니다.</StatusMessage>
-          ) : (
-            <PromptCardList
-              prompts={recommendPrompts.slice(0, 3)}
-              onCardClick={handleCardClick}
-            />
-          )}
-        </Section>
-      </ContentArea>
-    </Wrapper>
+          </Section>
+        </ContentArea>
+      </Wrapper>
+      <PromptDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        promptId={selectedPromptId}
+      />
+    </>
   );
 }
 
@@ -473,12 +536,12 @@ const Wrapper = styled.div`
 
 const ContentArea = styled.div`
   flex: 1;
-  padding: 2rem 0 2rem 1.77vw;
+  padding: 2rem 0 2rem 2.13rem;
   overflow-y: auto;
 `;
 
 const Section = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 3rem;
   &:last-child {
     margin-bottom: 0;
   }
@@ -503,7 +566,7 @@ const SectionTitle = styled.h3`
 const ViewAllButton = styled.button`
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1rem; /* 14px */
-  font-weight: 500;
+  font-weight: 600;
   color: #454545;
   background: none;
   border: none;
