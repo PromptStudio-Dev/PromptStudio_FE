@@ -20,6 +20,7 @@ export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
+  const [isResultPanelExpanded, setIsResultPanelExpanded] = useState(false);
   const [upgrades, setUpgrades] = useState([]);
   const [promptTitle, setPromptTitle] = useState(selectedPrompt?.title ?? "");
   const [promptContent, setPromptContent] = useState(
@@ -35,7 +36,7 @@ export default function MakerPage({ selectedPrompt = null }) {
     selectedPrompt?.resultText ?? null
   );
 
-  const [resultType, setResultType] = useState(
+  const [_resultType, setResultType] = useState(
     selectedPrompt?.resultType ?? null
   );
   const [resultFeedback, setResultFeedback] = useState(null);
@@ -585,11 +586,18 @@ export default function MakerPage({ selectedPrompt = null }) {
         }}
         onOpenResultPanel={() => setIsResultPanelOpen(true)}
         isResultPanelOpen={isResultPanelOpen}
+        isResultPanelExpanded={isResultPanelExpanded}
       />
 
       <ResultPanel
         isOpen={isResultPanelOpen}
-        onToggle={() => setIsResultPanelOpen(false)}
+        onToggle={() => {
+          setIsResultPanelOpen(false);
+          setIsResultPanelExpanded(false); // 패널 닫을 때 확장 상태도 초기화
+        }}
+        isSidebarOpen={isSidebarOpen}
+        isResultPanelExpanded={isResultPanelExpanded}
+        onExpandChange={setIsResultPanelExpanded}
         onRun={async () => {
           if (!currentMakerId || !promptContent.trim()) {
             alert("메이커 ID 또는 프롬프트 내용이 없습니다.");
