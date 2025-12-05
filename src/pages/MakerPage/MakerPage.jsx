@@ -580,11 +580,109 @@ export default function MakerPage({ selectedPrompt = null }) {
         onEditUpgrade={handleEditUpgrade}
         activeUpgradeId={latestUpgradeId}
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
-        onRunPrompt={() => {
-          // TODO: 프롬프트 실행 로직
-          setIsResultModalOpen(true);
+        historyItems={historyItems}
+        onRunPrompt={async () => {
+          // 확장되지 않은 상태에서 PROMPT RUN을 누르면 ResultModal 표시
+          if (!isResultPanelExpanded) {
+            // RUN 실행
+            if (!currentMakerId || !promptContent.trim()) {
+              alert("메이커 ID 또는 프롬프트 내용이 없습니다.");
+              return;
+            }
+
+            setIsResultLoading(true);
+            try {
+              // RUN 전에 한 번 더 강제 자동 저장을 실행
+              try {
+                const newImages = attachedImages.filter(
+                  (img) => img.file && !img.isServerImage
+                );
+
+                const serverImageUrls = attachedImages
+                  .filter((img) => img.imageUrl || img.url || img.isServerImage)
+                  .map((img) => img.imageUrl || img.url)
+                  .filter(Boolean);
+
+                const urlsToKeep = serverImageUrls;
+
+                const newImageFiles = newImages
+                  .map((img) => img.file)
+                  .filter(Boolean);
+
+                await autoSaveMaker(currentMakerId, {
+                  title: promptTitle,
+                  content: promptContent,
+                  existingImageUrls: urlsToKeep,
+                  newImages: newImageFiles,
+                });
+              } catch (e) {
+                console.error("RUN 직전 자동 저장 실패:", e);
+              }
+
+              const result = await runPrompt(currentMakerId, promptContent);
+
+              // 결과 저장
+              setResultType(result.resultType);
+              setResultImageUrl(result.resultImageUrl || null);
+              setResultText(result.resultText || null);
+              setCurrentHistoryId(result.historyId);
+
+              // 히스토리 목록 새로고침
+              const histories = await getRunHistory(currentMakerId);
+              const formattedHistories = histories.map((history) => ({
+                id: history.historyId,
+                title: history.title || `History ${history.historyId}`,
+              }));
+              setHistoryItems(formattedHistories);
+
+              // 가장 최신 히스토리 선택 (인덱스 1)
+              setCurrentHistoryIndex(1);
+
+              // 최신 프롬프트에 대한 피드백 조회
+              const cachedFeedback = historyFeedbackMap[result.historyId];
+              if (cachedFeedback !== undefined) {
+                setResultFeedback(cachedFeedback);
+              } else {
+                try {
+                  const feedbackResponse = await getPromptFeedback(
+                    currentMakerId
+                  );
+                  const feedbackText = feedbackResponse?.feedback ?? null;
+
+                  setResultFeedback(feedbackText);
+                  setHistoryFeedbackMap((prev) => {
+                    const next = { ...prev, [result.historyId]: feedbackText };
+                    try {
+                      localStorage.setItem(
+                        `makerFeedback:${currentMakerId}`,
+                        JSON.stringify(next)
+                      );
+                    } catch (error) {
+                      console.error("피드백 캐시 저장 실패:", error);
+                    }
+                    return next;
+                  });
+                } catch (e) {
+                  console.error("피드백 조회 실패:", e);
+                }
+              }
+
+              // ResultModal 표시
+              setIsResultModalOpen(true);
+            } catch (error) {
+              console.error("프롬프트 실행 실패:", error);
+              alert("프롬프트 실행에 실패했습니다.");
+            } finally {
+              setIsResultLoading(false);
+            }
+          }
         }}
-        onOpenResultPanel={() => setIsResultPanelOpen(true)}
+        onOpenResultPanel={() => {
+          // History가 있을 때만 ResultPanel 열기
+          if (historyItems.length > 0) {
+            setIsResultPanelOpen(true);
+          }
+        }}
         isResultPanelOpen={isResultPanelOpen}
         isResultPanelExpanded={isResultPanelExpanded}
       />
