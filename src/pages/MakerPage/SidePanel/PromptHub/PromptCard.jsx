@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import copyIcon from "../../assets/copyIcon.svg";
+import copyIconActive from "../../assets/copyIcon-active.svg";
+import apiClient from "../../../../api/client";
 
 export default function PromptCard({
-  // promptID = "",
+  promptId,
   category = "default",
   aiName = "default",
   title = "default 제목",
@@ -11,9 +13,35 @@ export default function PromptCard({
   backgroundImage = "",
   onClick,
 }) {
-  const handleCopyClick = (event) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    if (isCopied) {
+      const timer = setTimeout(() => {
+        setIsCopied(false);
+      }, 3000); // 3초 후 원래 상태로 복귀
+
+      return () => clearTimeout(timer);
+    }
+  }, [isCopied]);
+
+  const handleCopyClick = async (event) => {
     event.stopPropagation();
-    console.log("복사 버튼 클릭");
+    if (!promptId) return;
+
+    try {
+      const response = await apiClient.patch(`/api/prompts/${promptId}/copy`);
+
+      if (response.data && response.data.content) {
+        await navigator.clipboard.writeText(response.data.content);
+        setIsCopied(true);
+      } else {
+        alert("복사할 내용이 없습니다.");
+      }
+    } catch (error) {
+      console.error("프롬프트 복사 실패:", error);
+      alert("프롬프트 내용을 복사하는데 실패했습니다.");
+    }
   };
 
   const hasBackgroundImage = !!backgroundImage;
@@ -34,7 +62,11 @@ export default function PromptCard({
         {subtitle}
       </CardSubTitle>
       <ButtonSection>
-        <CopyIcon src={copyIcon} onClick={handleCopyClick} />
+        <CopyIcon
+          src={isCopied ? copyIconActive : copyIcon}
+          onClick={handleCopyClick}
+          alt="복사"
+        />
       </ButtonSection>
     </PromptCardContainer>
   );
