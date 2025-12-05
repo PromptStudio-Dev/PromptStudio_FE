@@ -5,7 +5,6 @@ import historyDownButton from "../assets/historybar-down-button.svg";
 
 export default function HistoryBar({
   currentIndex = 1,
-  totalCount = 10,
   historyItems = [],
   onItemClick,
 }) {
@@ -62,13 +61,6 @@ export default function HistoryBar({
 
   return (
     <HistoryContainer>
-      <HistoryHeader>
-        <HistoryTitle>History</HistoryTitle>
-        <HistoryCount>
-          ({currentIndex}/{totalCount})
-        </HistoryCount>
-      </HistoryHeader>
-
       {historyItems.length > 0 ? (
         <HistoryListWrapper>
           <ScrollableArea

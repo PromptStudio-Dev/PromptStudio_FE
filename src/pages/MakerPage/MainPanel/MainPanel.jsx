@@ -11,6 +11,8 @@ export default function MainPanel({
   onToggleSidebar,
   promptContent,
   onPromptContentChange,
+  attachedImages,
+  onAttachedImagesChange,
   onUpgradeRequest,
   onAcceptUpgrade,
   onCancelUpgrade,
@@ -64,7 +66,10 @@ export default function MainPanel({
             />
           </PromptInputWrapper>
         </TopSection>
-        <ImageUploader />
+        <ImageUploader
+          attachedImages={attachedImages}
+          onAttachedImagesChange={onAttachedImagesChange}
+        />
       </ContentArea>
     </MakerPanelWrapper>
   );
