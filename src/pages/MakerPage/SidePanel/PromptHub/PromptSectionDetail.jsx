@@ -8,18 +8,26 @@ export default function PromptSectionDetail({
   prompts = [],
   onCardClick,
   onBack,
+  isLoading = false,
+  error = null,
 }) {
   return (
     <Wrapper>
       <Header>
-        <BackButton onClick={onBack}>
-          <img src={backButtonIcon} alt="뒤로" />
-        </BackButton>
+        {onBack && (
+          <BackButton onClick={onBack}>
+            <img src={backButtonIcon} alt="뒤로" />
+          </BackButton>
+        )}
         <Title>{sectionTitle}</Title>
       </Header>
       <ContentArea>
         <CardList>
-          {prompts.length > 0 ? (
+          {isLoading ? (
+            <EmptyMessage>프롬프트를 불러오는 중입니다...</EmptyMessage>
+          ) : error ? (
+            <EmptyMessage>{error}</EmptyMessage>
+          ) : prompts.length > 0 ? (
             prompts.map((prompt) => (
               <PromptCard
                 key={prompt.promptId ?? prompt.id}
