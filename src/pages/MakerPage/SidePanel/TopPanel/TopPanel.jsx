@@ -9,6 +9,8 @@ export default function TopPanel({
   searchValue = "",
   onSearchChange,
   onSearchSubmit,
+  selectedHub = "모든 허브",
+  onHubChange,
 }) {
   return (
     <TopContainer>
@@ -24,7 +26,10 @@ export default function TopPanel({
           </CloseButton>
         )}
       </SearchRow>
-      <HubModalSelector />
+      <HubModalSelector
+        selectedModel={selectedHub}
+        onModelChange={onHubChange}
+      />
     </TopContainer>
   );
 }
