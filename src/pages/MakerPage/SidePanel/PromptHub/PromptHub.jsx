@@ -11,9 +11,15 @@ import {
   searchPrompts,
   getPromptDetail,
   getGeneratedPrompts,
+  getMyPrompts,
+  getLikedPrompts,
 } from "../../api";
 
-export default function PromptHub({ searchKeyword = "", onClearSearch }) {
+export default function PromptHub({
+  searchKeyword = "",
+  onClearSearch,
+  selectedHub = "모든 허브",
+}) {
   const [currentView, setCurrentView] = useState("main"); // "main" | "detail"
   const [selectedSection, setSelectedSection] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,12 +45,136 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
   const [generatedPrompts, setGeneratedPrompts] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
 
+  // 내가 작성한 글 상태
+  const [myPrompts, setMyPrompts] = useState([]);
+  const [isMyPromptsLoading, setIsMyPromptsLoading] = useState(false);
+  const [myPromptsError, setMyPromptsError] = useState(null);
+
+  // 좋아요한 프롬프트 상태
+  const [likedPrompts, setLikedPrompts] = useState([]);
+  const [isLikedPromptsLoading, setIsLikedPromptsLoading] = useState(false);
+  const [likedPromptsError, setLikedPromptsError] = useState(null);
+
   useEffect(() => {
     if (searchKeyword) {
       setCurrentView("main");
       setSelectedSection(null);
     }
   }, [searchKeyword]);
+
+  // 내가 작성한 글 조회
+  useEffect(() => {
+    if (selectedHub !== "내가 작성한 글") {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const fetchMyPrompts = async () => {
+      setIsMyPromptsLoading(true);
+      setMyPromptsError(null);
+
+      try {
+        const params = {
+          category: "전체",
+        };
+        const data = await getMyPrompts(params);
+
+        console.log("내가 작성한 글 응답 데이터:", data);
+
+        const formattedPrompts = Array.isArray(data) ? data : [];
+
+        setMyPrompts(formattedPrompts);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("내가 작성한 글을 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "내가 작성한 글을 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setMyPromptsError(errorMessage);
+        setMyPrompts([]);
+      } finally {
+        setIsMyPromptsLoading(false);
+      }
+    };
+
+    fetchMyPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedHub]);
+
+  // 좋아요한 프롬프트 조회
+  useEffect(() => {
+    if (selectedHub !== "좋아요") {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const fetchLikedPrompts = async () => {
+      setIsLikedPromptsLoading(true);
+      setLikedPromptsError(null);
+
+      try {
+        const params = {
+          category: "전체",
+        };
+        const data = await getLikedPrompts(params);
+
+        console.log("좋아요한 프롬프트 응답 데이터:", data);
+
+        const formattedPrompts = Array.isArray(data) ? data : [];
+
+        setLikedPrompts(formattedPrompts);
+      } catch (fetchError) {
+        if (fetchError?.code === "ERR_CANCELED") {
+          return;
+        }
+
+        console.error("좋아요한 프롬프트를 불러오지 못했습니다.", fetchError);
+
+        let errorMessage = "좋아요한 프롬프트를 불러오지 못했습니다.";
+        if (
+          fetchError?.code === "ERR_NAME_NOT_RESOLVED" ||
+          fetchError?.message?.includes("ERR_NAME_NOT_RESOLVED")
+        ) {
+          errorMessage =
+            "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
+        } else if (fetchError?.response) {
+          errorMessage = `서버 오류: ${fetchError.response.status}`;
+        } else if (fetchError?.request) {
+          errorMessage = "서버로부터 응답을 받지 못했습니다.";
+        }
+
+        setLikedPromptsError(errorMessage);
+        setLikedPrompts([]);
+      } finally {
+        setIsLikedPromptsLoading(false);
+      }
+    };
+
+    fetchLikedPrompts();
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedHub]);
 
   // 최근 조회한 프롬프트 조회
   useEffect(() => {
@@ -363,6 +493,46 @@ export default function PromptHub({ searchKeyword = "", onClearSearch }) {
           prompts={selectedSection.prompts}
           onCardClick={handleCardClick}
           onBack={handleBack}
+        />
+        <PromptDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          promptId={selectedPromptId}
+        />
+      </>
+    );
+  }
+
+  // "내가 작성한 글" 선택 시
+  if (selectedHub === "내가 작성한 글") {
+    return (
+      <>
+        <PromptSectionDetail
+          sectionTitle="내가 작성한 글"
+          prompts={myPrompts}
+          onCardClick={handleCardClick}
+          isLoading={isMyPromptsLoading}
+          error={myPromptsError}
+        />
+        <PromptDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          promptId={selectedPromptId}
+        />
+      </>
+    );
+  }
+
+  // "좋아요" 선택 시
+  if (selectedHub === "좋아요") {
+    return (
+      <>
+        <PromptSectionDetail
+          sectionTitle="좋아요"
+          prompts={likedPrompts}
+          onCardClick={handleCardClick}
+          isLoading={isLikedPromptsLoading}
+          error={likedPromptsError}
         />
         <PromptDetailModal
           isOpen={isModalOpen}
