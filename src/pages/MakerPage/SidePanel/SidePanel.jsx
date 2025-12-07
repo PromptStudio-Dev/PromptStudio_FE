@@ -17,6 +17,7 @@ export default function SidePanel({
   const hasUpgrades = Array.isArray(upgrades) && upgrades.length > 0;
   const [searchInput, setSearchInput] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [selectedHub, setSelectedHub] = useState("모든 허브");
 
   useEffect(() => {
     if (searchInput.trim() === "") {
@@ -45,6 +46,8 @@ export default function SidePanel({
         searchValue={searchInput}
         onSearchChange={handleSearchChange}
         onSearchSubmit={handleSearchSubmit}
+        selectedHub={selectedHub}
+        onHubChange={setSelectedHub}
       />
       <ContentWrapper>
         {hasUpgrades ? (
@@ -62,6 +65,7 @@ export default function SidePanel({
             <PromptHub
               searchKeyword={searchKeyword}
               onClearSearch={handleClearSearch}
+              selectedHub={selectedHub}
             />
           </PromptHubContainer>
         )}

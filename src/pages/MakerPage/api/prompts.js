@@ -71,3 +71,39 @@ export const getGeneratedPrompts = async (params = {}) => {
   const response = await apiClient.get("/api/prompts", { params: queryParams });
   return response.data;
 };
+
+/**
+ * 내가 작성한 프롬프트를 조회합니다.
+ * @param {Object} params - 쿼리 파라미터
+ * @param {string} params.category - 카테고리 (선택, default: "전체")
+ * @param {string} params.visibility - 공개 여부 (선택, default: "all")
+ * @returns {Promise<Array>} 내가 작성한 프롬프트 목록
+ */
+export const getMyPrompts = async (params = {}) => {
+  const queryParams = {
+    category: params.category || "전체",
+    visibility: params.visibility || "all",
+    ...params,
+  };
+  const response = await apiClient.get("/api/prompts/me", {
+    params: queryParams,
+  });
+  return response.data;
+};
+
+/**
+ * 좋아요한 프롬프트를 조회합니다.
+ * @param {Object} params - 쿼리 파라미터
+ * @param {string} params.category - 카테고리 (선택, default: "전체")
+ * @returns {Promise<Array>} 좋아요한 프롬프트 목록
+ */
+export const getLikedPrompts = async (params = {}) => {
+  const queryParams = {
+    category: params.category || "전체",
+    ...params,
+  };
+  const response = await apiClient.get("/api/prompts/likes", {
+    params: queryParams,
+  });
+  return response.data;
+};
