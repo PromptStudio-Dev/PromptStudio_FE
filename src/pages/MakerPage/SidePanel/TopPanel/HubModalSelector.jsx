@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../assets/hub-modal-dropdown.svg";
 
-export default function HubModalSelector() {
-  const [selectedModel, setSelectedModel] = useState("모든 허브");
+export default function HubModalSelector({ selectedModel, onModelChange }) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -50,7 +49,7 @@ export default function HubModalSelector() {
             <MenuItem
               key={model}
               onClick={() => {
-                setSelectedModel(model);
+                onModelChange?.(model);
                 setIsOpen(false);
               }}
               $isSelected={model === selectedModel}
