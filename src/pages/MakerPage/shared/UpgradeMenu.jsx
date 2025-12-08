@@ -33,35 +33,34 @@ const MenuWrapper = styled.div`
   left: -10;
   display: flex;
   flex-direction: column;
-  width: 145px;
-  background: #ffffff;
-  border: 0.5px solid #848484;
-  border-radius: 8px;
-  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  box-shadow: 0 0.25rem 0.25rem 0 rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  z-index: 10000; /* 최상위에 표시 */
-  margin-top: 4px;
+  z-index: 10000;
+  margin-top: 0.25rem;
+  border-radius: 0.5rem;
 `;
 
 const MenuItem = styled.button`
   display: flex;
   align-items: center;
-  gap: 11px;
-  height: 49px;
-  padding: 13px 20px;
+  gap: 0.6875rem;
+  height: 3.0625rem;
+  padding: 0.8125rem 1.25rem;
   background: #ffffff;
   border: none;
-  border-bottom: 0.5px solid #848484;
+  border-bottom: 0.03125rem solid #848484;
   cursor: pointer;
   transition: background-color 0.2s;
+  width: 100%;
 
   &:last-child {
     border-bottom: none;
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 0.5rem 0.5rem;
   }
 
   &:first-child {
-    border-radius: 8px 8px 0 0;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   &:hover {
@@ -72,22 +71,26 @@ const MenuItem = styled.button`
 const CheckIcon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
 `;
 
 const DeleteIcon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
 `;
 
 const EditIcon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0;
 `;
 
 const MenuText = styled.span`
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #000000;
-  letter-spacing: -0.28px;
+  letter-spacing: -0.0175rem;
+  white-space: nowrap;
 `;

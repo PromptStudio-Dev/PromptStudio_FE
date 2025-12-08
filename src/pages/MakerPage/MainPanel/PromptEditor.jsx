@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
 
@@ -15,8 +16,13 @@ export default function PromptEditor({
 }) {
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [initialModalPosition, setInitialModalPosition] = useState({
+    top: 0,
+    left: 0,
+  }); // 드래그 시 초기 모달 위치 저장
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState(null);
+  const [textareaScrollTop, setTextareaScrollTop] = useState(0);
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
   const modalRef = useRef(null);
@@ -27,63 +33,212 @@ export default function PromptEditor({
     setSelectedText("");
   };
 
-  const handleMouseUp = (event) => {
+  const handleMouseUp = () => {
     const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const draggedText = content.substring(start, end);
-    const trimmedText = draggedText.trim();
+    if (!textarea) return;
 
-    if (trimmedText.length >= 40) {
-      // 드래그한 텍스트 저장 (40자 이상일 때만)
-      setSelectedText(draggedText);
-      setSelectionRange({ start, end });
-      console.log("드래그된 텍스트:", draggedText);
+    // 즉시 selection 체크
+    const immediateStart = textarea.selectionStart;
+    const immediateEnd = textarea.selectionEnd;
 
-      const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-      const textareaRect = textarea.getBoundingClientRect();
-      const cursorX = event.clientX;
-      const cursorY = event.clientY;
+    if (immediateStart === immediateEnd) {
+      return; // 선택 없으면 바로 리턴
+    }
 
-      if (wrapperRect) {
-        const relativeTop = cursorY - wrapperRect.top + 12;
-        const estimatedModalWidth = Math.min(
-          wrapperRect.width,
-          window.innerWidth * 0.38
-        );
-        const maxLeft = Math.max(0, wrapperRect.width - estimatedModalWidth);
-        const relativeLeft =
-          cursorX - wrapperRect.left - estimatedModalWidth / 2;
-        const clampedLeft = Math.max(0, Math.min(relativeLeft, maxLeft));
+    // 브라우저가 selection을 확정할 시간을 줌
+    setTimeout(() => {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
 
-        setModalPosition({
-          top: Math.max(0, relativeTop),
-          left: clampedLeft,
+      // selection이 변경되었거나 사라졌으면 무시
+      if (start === end || start !== immediateStart || end !== immediateEnd) {
+        console.log("Selection lost or changed, ignoring");
+        return;
+      }
+
+      const draggedText = content.substring(start, end);
+      const trimmedText = draggedText.trim();
+
+      if (trimmedText.length >= 40) {
+        setSelectedText(draggedText);
+        setSelectionRange({ start, end });
+        console.log("드래그된 텍스트:", draggedText);
+
+        const calculateModalPosition = () => {
+          const textareaRect = textarea.getBoundingClientRect();
+          const textUpToEnd = content.substring(0, end);
+
+          const tempElement = document.createElement("div");
+          tempElement.style.position = "absolute";
+          tempElement.style.visibility = "hidden";
+          tempElement.style.width = `${textarea.offsetWidth}px`;
+          tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
+          tempElement.style.fontSize = "1.25rem";
+          tempElement.style.lineHeight = "1.625rem";
+          tempElement.style.padding = "1rem 0";
+          tempElement.style.whiteSpace = "pre-wrap";
+          tempElement.style.wordWrap = "break-word";
+          tempElement.textContent = textUpToEnd;
+
+          document.body.appendChild(tempElement);
+          const textEndHeight = tempElement.offsetHeight;
+          document.body.removeChild(tempElement);
+
+          const spacing = 0;
+          const textEndTop = textareaRect.top + textEndHeight;
+          const newTop = textEndTop + spacing;
+          const newLeft = textareaRect.left;
+
+          const estimatedModalWidth = Math.min(
+            window.innerWidth * 0.38,
+            49.1875 * 16
+          );
+          const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
+          const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+          const modalRect = modalRef.current?.getBoundingClientRect();
+          const modalHeight = modalRect?.height ?? 0;
+          const maxTop = Math.max(0, window.innerHeight - modalHeight);
+          const clampedTop = Math.min(newTop, maxTop);
+
+          const newPosition = {
+            top: Math.max(0, clampedTop),
+            left: clampedLeft,
+          };
+          setModalPosition(newPosition);
+          setInitialModalPosition(newPosition);
+        };
+
+        // 먼저 모달 표시
+        setShowModal(true);
+
+        // DOM 렌더링 후 위치 계산
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            calculateModalPosition();
+          });
         });
       } else {
-        // fallback: 텍스트 영역 기준
-        // 예외처리: wrapperRef.current가 없을 때
-        const relativeTop = cursorY - textareaRect.top + 12;
-        const relativeLeft =
-          cursorX - textareaRect.left - textareaRect.width * 0.19;
-
-        setModalPosition({
-          top: Math.max(0, relativeTop),
-          left: Math.max(0, relativeLeft),
-        });
+        resetSelectionState();
       }
-      setShowModal(true);
-    } else {
-      setShowModal(false);
-      setSelectionRange(null);
-      setSelectedText("");
-    }
+    }, 10);
   };
 
   const handleMouseDown = () => {
     // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
-    setShowModal(false);
+    if (showModal) {
+      // 기존에 활성화된 업그레이드가 있으면 취소
+      if (activeUpgradeId) {
+        onCancelUpgrade?.(activeUpgradeId);
+      }
+      setShowModal(false);
+    }
+    // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
+    else if (activeUpgradeId) {
+      onCancelUpgrade?.(activeUpgradeId);
+    }
   };
+
+  // 업그레이드 결과가 나왔을 때 모달 위치를 텍스트 높이에 맞춰 조정
+  useEffect(() => {
+    if (
+      activeUpgrade &&
+      activeUpgrade.content &&
+      selectionRange &&
+      textareaRef.current &&
+      selectedText
+    ) {
+      // selectionRange가 현재 content 범위 내에 유효한지 확인
+      const { start, end } = selectionRange;
+      if (
+        start < 0 ||
+        end < 0 ||
+        start > content.length ||
+        end > content.length ||
+        start > end
+      ) {
+        // 유효하지 않은 범위면 계산하지 않음
+        return;
+      }
+
+      // TextOverlay에 렌더링되는 텍스트의 실제 위치 계산
+      // DOM이 완전히 렌더링된 후 위치를 계산
+      const updateModalPosition = () => {
+        const selectedTextPart = content.substring(start, end);
+        const upgradedText = activeUpgrade.content;
+        const beforeText = content.substring(0, start);
+
+        // beforeText + selectedTextPart + "\n" + upgradedText까지의 전체 높이 계산
+        const textUpToUpgradeEnd = `${beforeText}${selectedTextPart}\n${upgradedText}`;
+
+        const textarea = textareaRef.current;
+        const textareaRect = textarea.getBoundingClientRect();
+
+        // textarea의 스크롤 위치 고려
+        const scrollTop = textarea.scrollTop || 0;
+
+        // 전체 텍스트 높이 계산 (업그레이드 결과 텍스트 끝까지)
+        const tempElement = document.createElement("div");
+        tempElement.style.position = "absolute";
+        tempElement.style.visibility = "hidden";
+        tempElement.style.width = `${textarea.offsetWidth}px`;
+        tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
+        tempElement.style.fontSize = "1.25rem";
+        tempElement.style.lineHeight = "1.625rem";
+        tempElement.style.padding = "1rem 0";
+        tempElement.style.whiteSpace = "pre-wrap";
+        tempElement.style.wordWrap = "break-word";
+        tempElement.textContent = textUpToUpgradeEnd;
+
+        document.body.appendChild(tempElement);
+        const textEndHeight = tempElement.offsetHeight;
+        document.body.removeChild(tempElement);
+
+        // Portal을 사용하므로 viewport 기준으로 위치 계산
+        // 텍스트 끝의 화면상 위치 = textarea의 상단 위치 + 텍스트 높이 - 스크롤
+        const spacing = 0; // 텍스트와 모달 사이 간격
+        const textEndTop = textareaRect.top + textEndHeight - scrollTop;
+        const newTop = textEndTop + spacing;
+
+        // left 위치는 드래그 시작 위치(start)의 실제 화면 위치
+        const newLeft = textareaRect.left;
+
+        // 모달이 화면 밖으로 나가지 않도록 제한
+        const estimatedModalWidth = Math.min(
+          window.innerWidth * 0.38,
+          49.1875 * 16 // 49.1875rem을 px로 변환
+        );
+        const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
+        const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+        // 모달이 화면 하단을 벗어나지 않도록 제한
+        const modalRect = modalRef.current?.getBoundingClientRect();
+        const modalHeight = modalRect?.height ?? 0;
+        const maxTop = Math.max(0, window.innerHeight - modalHeight);
+        const clampedTop = Math.min(newTop, maxTop);
+
+        setModalPosition({
+          top: Math.max(0, clampedTop),
+          left: clampedLeft,
+        });
+      };
+
+      // DOM이 완전히 렌더링된 후 위치 계산
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          updateModalPosition();
+        });
+      });
+    }
+  }, [
+    activeUpgrade,
+    selectionRange,
+    selectedText,
+    content,
+    isResultPanelOpen,
+    initialModalPosition,
+    modalPosition.left,
+  ]);
 
   const handleUpgradeSubmit = (upgradeRequest) => {
     // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
@@ -94,31 +249,6 @@ export default function PromptEditor({
         upgradeRequest,
         selectionRange,
         contentSnapshot: content,
-      });
-
-      // 한 번 더 호출해 offset만큼 아래로 내려줌
-      // ResultPanel이 열려있을 때는 offset을 더 크게 설정
-      setModalPosition((prev) => {
-        const offset = isResultPanelOpen ? 80 : 64;
-        const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-        const modalRect = modalRef.current?.getBoundingClientRect();
-        const modalHeight = modalRect?.height ?? 0;
-
-        if (!wrapperRect) {
-          return {
-            top: Math.max(0, prev.top + offset),
-            left: prev.left,
-          };
-        }
-
-        // maxTop 계산 시 offset을 빼지 않고, 모달이 wrapper 밖으로 나가지 않도록만 체크
-        const maxTop = Math.max(0, wrapperRect.height - modalHeight);
-        const newTop = prev.top + offset;
-
-        return {
-          top: Math.min(newTop, maxTop),
-          left: prev.left,
-        };
       });
     }
   };
@@ -183,9 +313,7 @@ export default function PromptEditor({
     selectionRange &&
     !(activeUpgradeId && activeUpgrade)
   );
-  const shouldHideTextareaText =
-    shouldShowSelectionOverlay ||
-    (activeUpgradeId && activeUpgrade && selectionRange);
+  const shouldHideTextareaText = showModal || activeUpgradeId;
 
   return (
     <EditorWrapper ref={wrapperRef}>
@@ -201,12 +329,16 @@ export default function PromptEditor({
 
       {/* 드래그 선택 오버레이 */}
       {shouldShowSelectionOverlay && (
-        <SelectionOverlay>{renderSelectionHighlight()}</SelectionOverlay>
+        <SelectionOverlay $scrollTop={textareaScrollTop}>
+          <div>{renderSelectionHighlight()}</div>
+        </SelectionOverlay>
       )}
 
       {/* 취소선 오버레이 */}
       {activeUpgradeId && activeUpgrade && selectionRange && (
-        <TextOverlay>{renderTextWithStrikethrough()}</TextOverlay>
+        <TextOverlay $scrollTop={textareaScrollTop}>
+          <div>{renderTextWithStrikethrough()}</div>
+        </TextOverlay>
       )}
 
       <EditorTextarea
@@ -215,20 +347,23 @@ export default function PromptEditor({
         onChange={(e) => onContentChange?.(e.target.value)}
         onMouseUp={handleMouseUp}
         onMouseDown={handleMouseDown}
+        onScroll={(e) => setTextareaScrollTop(e.target.scrollTop)}
         $shouldHideText={shouldHideTextareaText}
       />
 
-      {showModal && (
-        <AIUpgradeModal
-          position={modalPosition}
-          onSubmit={handleUpgradeSubmit}
-          onAcceptUpgrade={handleAcceptUpgrade}
-          onCancelUpgrade={handleCancelUpgrade}
-          onEditUpgrade={handleEditUpgrade}
-          activeUpgradeId={activeUpgradeId}
-          modalRef={modalRef}
-        />
-      )}
+      {showModal &&
+        createPortal(
+          <AIUpgradeModal
+            position={modalPosition}
+            onSubmit={handleUpgradeSubmit}
+            onAcceptUpgrade={handleAcceptUpgrade}
+            onCancelUpgrade={handleCancelUpgrade}
+            onEditUpgrade={handleEditUpgrade}
+            activeUpgradeId={activeUpgradeId}
+            modalRef={modalRef}
+          />,
+          document.body
+        )}
     </EditorWrapper>
   );
 }
@@ -317,6 +452,13 @@ const SelectionOverlay = styled.div`
   white-space: pre-wrap;
   word-wrap: break-word;
   z-index: 2;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* 오버레이 내용을 textarea의 스크롤 위치에 맞춰 조정 */
+  > div {
+    transform: translateY(-${(props) => props.$scrollTop || 0}px);
+  }
 `;
 
 const HighlightedText = styled.span`
@@ -328,7 +470,7 @@ const TextOverlay = styled.div`
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.25rem;
   font-weight: 400;
@@ -339,6 +481,12 @@ const TextOverlay = styled.div`
   white-space: pre-wrap;
   word-wrap: break-word;
   z-index: 3;
+  box-sizing: border-box;
+
+  /* 오버레이 내용을 textarea의 스크롤 위치에 맞춰 조정 */
+  > div {
+    transform: translateY(-${(props) => props.$scrollTop || 0}px);
+  }
 `;
 
 const StrikethroughText = styled.span`

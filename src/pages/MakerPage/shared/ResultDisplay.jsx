@@ -121,7 +121,7 @@ const ResultSection = styled.div`
   align-items: center;
   justify-content: center;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 `;
 
 const Placeholder = styled.div`
