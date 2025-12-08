@@ -22,6 +22,7 @@ export default function PromptEditor({
   }); // 드래그 시 초기 모달 위치 저장
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState(null);
+  const [textareaScrollTop, setTextareaScrollTop] = useState(0);
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
   const modalRef = useRef(null);
@@ -294,9 +295,7 @@ export default function PromptEditor({
     selectionRange &&
     !(activeUpgradeId && activeUpgrade)
   );
-  const shouldHideTextareaText =
-    shouldShowSelectionOverlay ||
-    (activeUpgradeId && activeUpgrade && selectionRange);
+  const shouldHideTextareaText = showModal || activeUpgradeId;
 
   return (
     <EditorWrapper ref={wrapperRef}>
@@ -312,12 +311,16 @@ export default function PromptEditor({
 
       {/* 드래그 선택 오버레이 */}
       {shouldShowSelectionOverlay && (
-        <SelectionOverlay>{renderSelectionHighlight()}</SelectionOverlay>
+        <SelectionOverlay $scrollTop={textareaScrollTop}>
+          <div>{renderSelectionHighlight()}</div>
+        </SelectionOverlay>
       )}
 
       {/* 취소선 오버레이 */}
       {activeUpgradeId && activeUpgrade && selectionRange && (
-        <TextOverlay>{renderTextWithStrikethrough()}</TextOverlay>
+        <TextOverlay $scrollTop={textareaScrollTop}>
+          <div>{renderTextWithStrikethrough()}</div>
+        </TextOverlay>
       )}
 
       <EditorTextarea
@@ -326,6 +329,7 @@ export default function PromptEditor({
         onChange={(e) => onContentChange?.(e.target.value)}
         onMouseUp={handleMouseUp}
         onMouseDown={handleMouseDown}
+        onScroll={(e) => setTextareaScrollTop(e.target.scrollTop)}
         $shouldHideText={shouldHideTextareaText}
       />
 
@@ -430,6 +434,13 @@ const SelectionOverlay = styled.div`
   white-space: pre-wrap;
   word-wrap: break-word;
   z-index: 2;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* 오버레이 내용을 textarea의 스크롤 위치에 맞춰 조정 */
+  > div {
+    transform: translateY(-${(props) => props.$scrollTop || 0}px);
+  }
 `;
 
 const HighlightedText = styled.span`
@@ -452,6 +463,13 @@ const TextOverlay = styled.div`
   white-space: pre-wrap;
   word-wrap: break-word;
   z-index: 3;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* 오버레이 내용을 textarea의 스크롤 위치에 맞춰 조정 */
+  > div {
+    transform: translateY(-${(props) => props.$scrollTop || 0}px);
+  }
 `;
 
 const StrikethroughText = styled.span`
