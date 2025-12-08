@@ -35,90 +35,100 @@ export default function PromptEditor({
 
   const handleMouseUp = () => {
     const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const draggedText = content.substring(start, end);
-    const trimmedText = draggedText.trim();
+    if (!textarea) return;
 
-    if (trimmedText.length >= 40) {
-      // 드래그한 텍스트 저장 (40자 이상일 때만)
-      setSelectedText(draggedText);
-      setSelectionRange({ start, end });
-      console.log("드래그된 텍스트:", draggedText);
+    // 즉시 selection 체크
+    const immediateStart = textarea.selectionStart;
+    const immediateEnd = textarea.selectionEnd;
 
-      // 드래그 시작 위치(start)의 실제 화면 위치를 계산하여 모달 배치
-      const calculateModalPosition = () => {
-        const textareaRect = textarea.getBoundingClientRect();
-
-        // 드래그한 텍스트까지의 전체 높이 계산
-        const textUpToEnd = content.substring(0, end);
-
-        // 텍스트 높이 계산
-        const tempElement = document.createElement("div");
-        tempElement.style.position = "absolute";
-        tempElement.style.visibility = "hidden";
-        tempElement.style.width = `${textarea.offsetWidth}px`;
-        tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
-        tempElement.style.fontSize = "1.25rem";
-        tempElement.style.lineHeight = "1.625rem";
-        tempElement.style.padding = "1rem 0";
-        tempElement.style.whiteSpace = "pre-wrap";
-        tempElement.style.wordWrap = "break-word";
-        tempElement.textContent = textUpToEnd;
-
-        document.body.appendChild(tempElement);
-        const textEndHeight = tempElement.offsetHeight;
-        document.body.removeChild(tempElement);
-
-        // Portal을 사용하므로 viewport 기준으로 위치 계산
-        // 텍스트 끝의 화면상 위치 = textarea의 상단 위치 + 텍스트 높이
-        const spacing = 0; // 텍스트와 모달 사이 간격
-        const textEndTop = textareaRect.top + textEndHeight;
-        const newTop = textEndTop + spacing;
-
-        // left 위치는 드래그 시작 위치(start)의 실제 화면 위치
-        const newLeft = textareaRect.left;
-
-        // 모달이 화면 밖으로 나가지 않도록 제한
-        const estimatedModalWidth = Math.min(
-          window.innerWidth * 0.38,
-          49.1875 * 16 // 49.1875rem을 px로 변환
-        );
-        const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
-        const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
-
-        // 모달이 화면 하단을 벗어나지 않도록 제한
-        const modalRect = modalRef.current?.getBoundingClientRect();
-        const modalHeight = modalRect?.height ?? 0;
-        const maxTop = Math.max(0, window.innerHeight - modalHeight);
-        const clampedTop = Math.min(newTop, maxTop);
-
-        const newPosition = {
-          top: Math.max(0, clampedTop),
-          left: clampedLeft,
-        };
-        setModalPosition(newPosition);
-        setInitialModalPosition(newPosition); // 초기 위치 저장
-      };
-
-      // DOM이 완전히 렌더링된 후 위치 계산
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          calculateModalPosition();
-        });
-      });
-
-      setShowModal(true);
-    } else {
-      setShowModal(false);
-      setSelectionRange(null);
-      setSelectedText("");
+    if (immediateStart === immediateEnd) {
+      return; // 선택 없으면 바로 리턴
     }
+
+    // 브라우저가 selection을 확정할 시간을 줌
+    setTimeout(() => {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      // selection이 변경되었거나 사라졌으면 무시
+      if (start === end || start !== immediateStart || end !== immediateEnd) {
+        console.log("Selection lost or changed, ignoring");
+        return;
+      }
+
+      const draggedText = content.substring(start, end);
+      const trimmedText = draggedText.trim();
+
+      if (trimmedText.length >= 40) {
+        setSelectedText(draggedText);
+        setSelectionRange({ start, end });
+        console.log("드래그된 텍스트:", draggedText);
+
+        const calculateModalPosition = () => {
+          const textareaRect = textarea.getBoundingClientRect();
+          const textUpToEnd = content.substring(0, end);
+
+          const tempElement = document.createElement("div");
+          tempElement.style.position = "absolute";
+          tempElement.style.visibility = "hidden";
+          tempElement.style.width = `${textarea.offsetWidth}px`;
+          tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
+          tempElement.style.fontSize = "1.25rem";
+          tempElement.style.lineHeight = "1.625rem";
+          tempElement.style.padding = "1rem 0";
+          tempElement.style.whiteSpace = "pre-wrap";
+          tempElement.style.wordWrap = "break-word";
+          tempElement.textContent = textUpToEnd;
+
+          document.body.appendChild(tempElement);
+          const textEndHeight = tempElement.offsetHeight;
+          document.body.removeChild(tempElement);
+
+          const spacing = 0;
+          const textEndTop = textareaRect.top + textEndHeight;
+          const newTop = textEndTop + spacing;
+          const newLeft = textareaRect.left;
+
+          const estimatedModalWidth = Math.min(
+            window.innerWidth * 0.38,
+            49.1875 * 16
+          );
+          const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
+          const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+          const modalRect = modalRef.current?.getBoundingClientRect();
+          const modalHeight = modalRect?.height ?? 0;
+          const maxTop = Math.max(0, window.innerHeight - modalHeight);
+          const clampedTop = Math.min(newTop, maxTop);
+
+          const newPosition = {
+            top: Math.max(0, clampedTop),
+            left: clampedLeft,
+          };
+          setModalPosition(newPosition);
+          setInitialModalPosition(newPosition);
+        };
+
+        // 먼저 모달 표시
+        setShowModal(true);
+
+        // DOM 렌더링 후 위치 계산
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            calculateModalPosition();
+          });
+        });
+      } else {
+        resetSelectionState();
+      }
+    }, 10);
   };
 
   const handleMouseDown = () => {
     // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
-    setShowModal(false);
+    if (showModal && !activeUpgradeId) {
+      setShowModal(false);
+    }
   };
 
   // 업그레이드 결과가 나왔을 때 모달 위치를 텍스트 높이에 맞춰 조정
