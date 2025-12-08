@@ -105,16 +105,17 @@ export default function AIUpgradeModal({
 // --- styled-components ---
 
 const SelectionModal = styled.div`
-  position: absolute;
+  position: fixed;
   display: flex;
-  width: 38vw;
-  min-height: 4.5vh;
-  border: 0.16vw solid #49d8ff;
-  border-radius: 0.42vw;
+  width: 49.1875rem;
+  min-height: 2.875rem;
+  border: 0.125rem solid #49d8ff;
+  border-radius: 0.5rem;
   background: #fff;
   overflow: visible; /* 드롭다운 메뉴가 보이도록 변경 */
   z-index: 1000;
   animation: fadeIn 0.2s ease;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.16);
 
   @keyframes fadeIn {
     from {
@@ -130,11 +131,11 @@ const SelectionModal = styled.div`
 
 const LeftSection = styled.div`
   width: 7.55vw; /* 145px @ 1920px */
-  min-height: 4.5vh;
+  min-height: 2.875rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: 0.16vw solid #49d8ff; /* 3px @ 1920px */
+  border-right: 0.1875rem solid #49d8ff; /* 3px @ 1920px */
   margin-right: 1rem;
   position: relative;
 `;
@@ -143,7 +144,7 @@ const LeftButton = styled.button`
   background: transparent;
   border: none;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 0.83vw; /* 16px @ 1920px */
+  font-size: 1rem;
   font-weight: 500;
   color: #454545;
   cursor: pointer;
