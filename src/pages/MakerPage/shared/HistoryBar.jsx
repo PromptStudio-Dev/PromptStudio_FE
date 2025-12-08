@@ -69,7 +69,7 @@ export default function HistoryBar({
           >
             {hasScrollableContent && <TopBlurOverlay />}
             <TimelineContainer>
-              <TimelineLine $itemCount={historyItems.length} />
+              <TimelineLine $itemCount={historyItems.length || 1} />
               {historyItems.map((item, index) => (
                 <TimelineDot
                   key={`dot-${item.id || index}`}
@@ -162,7 +162,12 @@ const ScrollableArea = styled.div`
   position: relative;
   overflow-y: ${(props) => (props.$hasScrollableContent ? "auto" : "visible")};
   overflow-x: hidden;
-  max-height: ${(props) => (props.$hasScrollableContent ? "15rem" : "none")};
+  min-height: 18rem; /* 항목 수와 무관하게 세로선이 영역 전체를 차지하도록 */
+  /* 4개부터 스크롤: 4개 높이(≈19.125rem)까지만 보여주고 넘치면 스크롤 */
+  max-height: ${(props) =>
+    props.$hasScrollableContent
+      ? "calc((3rem + 2.375rem) * 3 + 3rem)"
+      : "18rem"};
   margin-left: 0;
   width: 100%;
   scroll-behavior: smooth;
@@ -235,8 +240,8 @@ const TimelineContainer = styled.div`
   position: absolute;
   left: 0;
   top: 0;
+  bottom: 0;
   width: 1.625rem; /* 26px */
-  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -250,11 +255,12 @@ const TimelineLine = styled.div`
   transform: translateX(-50%);
   width: 0.125rem; /* 2px */
   height: ${(props) => {
-    // Calculate height using rem: (item height 3rem + gap 2.375rem) * (count - 1) + item height 3rem
     const itemHeight = 3; // 3rem
     const gap = 2.375; // 2.375rem
     const count = props.$itemCount || 1;
-    return `${(itemHeight + gap) * (count - 1) + itemHeight}rem`;
+    const calcHeight = (itemHeight + gap) * (count - 1) + itemHeight;
+    const minHeight = 18; // rem
+    return `max(${calcHeight}rem, ${minHeight}rem)`; // 아이템 높이 vs 최소 높이 중 큰 값
   }};
   background-color: #49d8ff;
   z-index: 0;
@@ -288,6 +294,7 @@ const HistoryList = styled.div`
   gap: 2.375rem;
   margin-left: 2.5rem;
   width: 22.125rem;
+  min-height: 18rem; /* 라인 높이와 기본 영역 맞추기 */
 `;
 
 const HistoryItem = styled.div`
