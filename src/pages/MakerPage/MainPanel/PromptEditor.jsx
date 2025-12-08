@@ -126,8 +126,16 @@ export default function PromptEditor({
 
   const handleMouseDown = () => {
     // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
-    if (showModal && !activeUpgradeId) {
+    if (showModal) {
+      // 기존에 활성화된 업그레이드가 있으면 취소
+      if (activeUpgradeId) {
+        onCancelUpgrade?.(activeUpgradeId);
+      }
       setShowModal(false);
+    }
+    // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
+    else if (activeUpgradeId) {
+      onCancelUpgrade?.(activeUpgradeId);
     }
   };
 
@@ -462,7 +470,7 @@ const TextOverlay = styled.div`
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.25rem;
   font-weight: 400;
@@ -473,7 +481,6 @@ const TextOverlay = styled.div`
   white-space: pre-wrap;
   word-wrap: break-word;
   z-index: 3;
-  overflow: hidden;
   box-sizing: border-box;
 
   /* 오버레이 내용을 textarea의 스크롤 위치에 맞춰 조정 */
