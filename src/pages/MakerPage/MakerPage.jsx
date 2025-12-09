@@ -204,6 +204,9 @@ export default function MakerPage({ selectedPrompt = null }) {
         return;
       }
 
+      const titleToSave = promptTitle;
+      const contentToSave = promptContent;
+
       // 전송해야 할 로컬 이미지 파일들
       const newImages = attachedImages.filter(
         (img) => img.file && !img.isServerImage
@@ -267,14 +270,10 @@ export default function MakerPage({ selectedPrompt = null }) {
           // 서버에서 반환된 제목으로 업데이트 (필요한 경우)
         }
 
-        // 새로 업로드된 이미지가 있으면, 서버에서 반환된 URL로 변환
-        // TODO: 서버 응답에 images 배열이 포함되어 있다면 사용
-        // 현재는 기존 로직 유지 (서버에서 이미지 URL을 반환하지 않을 수 있음)
-
         // 이전 값 업데이트 (저장 성공 후)
         prevValuesRef.current = {
-          title: promptTitle,
-          content: promptContent,
+          title: titleToSave,
+          content: contentToSave,
           imageUrls: urlsToKeep,
           newImageCount: newImages.length,
         };
@@ -678,8 +677,8 @@ export default function MakerPage({ selectedPrompt = null }) {
           }
         }}
         onOpenResultPanel={() => {
-          // History가 있을 때만 ResultPanel 열기
-          if (historyItems.length > 0) {
+          // 히스토리 목록이 있거나 선택된 historyId가 있으면 열기
+          if (historyItems.length > 0 || currentHistoryId) {
             setIsResultPanelOpen(true);
           }
         }}

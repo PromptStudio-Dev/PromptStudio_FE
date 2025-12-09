@@ -19,6 +19,7 @@ const FeedbackContainer = styled.section`
   background-color: #e0f5ff;
   padding: 1rem;
   box-sizing: border-box;
+  display: block; /* 텍스트 길이에 따라 높이 자동 확장 */
 `;
 
 const FeedbackText = styled.p`

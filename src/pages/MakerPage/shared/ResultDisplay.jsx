@@ -111,7 +111,7 @@ const DisplayContainer = styled.div`
   margin: ${(props) =>
     props.$isExpanded ? "0" : "0 auto"}; /* 확장 시 왼쪽 정렬, 기본은 가운데 */
   transition: width 0.3s ease, height 0.3s ease;
-  gap: 1rem;
+  gap: 2rem;
 `;
 
 const ResultSection = styled.div`
@@ -149,7 +149,7 @@ const TextContent = styled.div`
   letter-spacing: -0.0125rem; /* -0.475px */
   color: #000000;
   box-sizing: border-box;
-  padding: 1.75rem; /* 28px */
+  padding: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
 

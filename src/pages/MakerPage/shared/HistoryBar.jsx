@@ -69,7 +69,7 @@ export default function HistoryBar({
           >
             {hasScrollableContent && <TopBlurOverlay />}
             <TimelineContainer>
-              <TimelineLine $itemCount={historyItems.length} />
+              <TimelineLine $itemCount={historyItems.length || 1} />
               {historyItems.map((item, index) => (
                 <TimelineDot
                   key={`dot-${item.id || index}`}
@@ -126,32 +126,6 @@ const HistoryContainer = styled.div`
   position: relative;
 `;
 
-const HistoryHeader = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  margin-bottom: 0.625rem;
-  position: relative;
-`;
-
-const HistoryTitle = styled.h3`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.4375rem; /* 23px */
-  font-weight: 700;
-  color: #000000;
-  margin: 0;
-  line-height: 1.2;
-`;
-
-const HistoryCount = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1rem; /* 16px */
-  font-weight: 500;
-  color: #848484;
-  margin-left: 0.875rem; /* 14px to match 138px - 44px - 23px title width */
-  line-height: 1.2;
-`;
-
 const HistoryListWrapper = styled.div`
   display: flex;
   position: relative;
@@ -162,7 +136,12 @@ const ScrollableArea = styled.div`
   position: relative;
   overflow-y: ${(props) => (props.$hasScrollableContent ? "auto" : "visible")};
   overflow-x: hidden;
-  max-height: ${(props) => (props.$hasScrollableContent ? "15rem" : "none")};
+  min-height: 18rem; /* 항목 수와 무관하게 세로선이 영역 전체를 차지하도록 */
+  /* 4개부터 스크롤: 4개 높이(≈19.125rem)까지만 보여주고 넘치면 스크롤 */
+  max-height: ${(props) =>
+    props.$hasScrollableContent
+      ? "calc((3rem + 2.375rem) * 3 + 3rem)"
+      : "18rem"};
   margin-left: 0;
   width: 100%;
   scroll-behavior: smooth;
@@ -183,7 +162,7 @@ const TopBlurOverlay = styled.div`
   right: 0;
   height: 3.125rem;
   background-color: #ffffff;
-  filter: blur(20px);
+  filter: blur(2rem);
   z-index: 10;
   pointer-events: none;
   margin-bottom: -3.125rem;
@@ -235,8 +214,8 @@ const TimelineContainer = styled.div`
   position: absolute;
   left: 0;
   top: 0;
+  bottom: 0;
   width: 1.625rem; /* 26px */
-  height: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -250,11 +229,12 @@ const TimelineLine = styled.div`
   transform: translateX(-50%);
   width: 0.125rem; /* 2px */
   height: ${(props) => {
-    // Calculate height using rem: (item height 3rem + gap 2.375rem) * (count - 1) + item height 3rem
     const itemHeight = 3; // 3rem
     const gap = 2.375; // 2.375rem
     const count = props.$itemCount || 1;
-    return `${(itemHeight + gap) * (count - 1) + itemHeight}rem`;
+    const calcHeight = (itemHeight + gap) * (count - 1) + itemHeight;
+    const minHeight = 18; // rem
+    return `max(${calcHeight}rem, ${minHeight}rem)`; // 아이템 높이 vs 최소 높이 중 큰 값
   }};
   background-color: #49d8ff;
   z-index: 0;
@@ -287,7 +267,8 @@ const HistoryList = styled.div`
   flex-direction: column;
   gap: 2.375rem;
   margin-left: 2.5rem;
-  width: 22.125rem;
+  width: 27.375rem;
+  min-height: 18rem; /* 라인 높이와 기본 영역 맞추기 */
 `;
 
 const HistoryItem = styled.div`

@@ -79,16 +79,18 @@ export default function ResultPanel({
             </TabButton>
           </TabHeader>
 
-          {activeTab === "HISTORY" ? (
-            <HistoryBar
-              currentIndex={currentHistoryIndex}
-              totalCount={historyItems.length || 10}
-              historyItems={historyItems}
-              onItemClick={onHistoryItemClick}
-            />
-          ) : (
-            <ResultFeedback feedbackText={feedbackText} />
-          )}
+          <TabContentWrapper>
+            {activeTab === "HISTORY" ? (
+              <HistoryBar
+                currentIndex={currentHistoryIndex}
+                totalCount={historyItems.length || 10}
+                historyItems={historyItems}
+                onItemClick={onHistoryItemClick}
+              />
+            ) : (
+              <ResultFeedback feedbackText={feedbackText} />
+            )}
+          </TabContentWrapper>
         </BottomSection>
       </ResultContent>
     </ResultPanelWrapper>
@@ -129,11 +131,13 @@ const ResultPanelHeader = styled.div`
 const ResultContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: ${(props) => (props.$isExpanded ? "0" : "3rem")};
+  padding: ${(props) =>
+    props.$isExpanded ? "0" : "2.75rem 2.75rem 0 2.75rem"};
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 0;
   align-items: stretch;
+  justify-content: flex-end;
 `;
 
 const ResultDisplayWrapper = styled.div`
@@ -152,8 +156,19 @@ const BottomSection = styled.div`
   width: ${(props) => (props.$isExpanded ? "62rem" : "100%")};
   padding: ${(props) =>
     props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  padding-top: 3rem;
   box-sizing: border-box;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  align-items: flex-start;
+`;
+
+const TabContentWrapper = styled.div`
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 `;
 
 const TabHeader = styled.div`
