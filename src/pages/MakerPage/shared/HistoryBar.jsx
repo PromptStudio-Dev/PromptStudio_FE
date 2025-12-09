@@ -232,9 +232,10 @@ const TimelineLine = styled.div`
     const itemHeight = 3; // 3rem
     const gap = 2.375; // 2.375rem
     const count = props.$itemCount || 1;
-    const calcHeight = (itemHeight + gap) * (count - 1) + itemHeight;
+    // 아이템 총 높이 = (아이템 높이 × 개수) + (gap × (개수-1))
+    const calcHeight = itemHeight * count + gap * (count - 1);
     const minHeight = 18; // rem
-    return `max(${calcHeight}rem, ${minHeight}rem)`; // 아이템 높이 vs 최소 높이 중 큰 값
+    return `max(${calcHeight}rem, ${minHeight}rem)`;
   }};
   background-color: #49d8ff;
   z-index: 0;
