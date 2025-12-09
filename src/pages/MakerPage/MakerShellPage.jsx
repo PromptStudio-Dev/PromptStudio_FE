@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import MakerPage from "./MakerPage";
 import MakerPageCard from "./MakerPageCard";
 import SearchInput from "./SidePanel/TopPanel/SearchInput";
@@ -18,6 +18,7 @@ const MAKER_NOT_FOUND_MESSAGE = "선택한 Maker를 찾을 수 없습니다.";
 
 export default function MakerShellPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { makerId: makerIdParam } = useParams();
   const [makerView, setMakerView] = useState(RUN_STATE.RUN);
   const [makers, setMakers] = useState([]);
@@ -55,22 +56,26 @@ export default function MakerShellPage() {
       const normalized = makerList.map((maker) => {
         const isRun = makerView === RUN_STATE.RUN;
 
+        const safeContent = (maker.content || "").trim();
+        const safeResultText = (maker.resultText || "").trim();
+        const safeTitle = (maker.title || "").trim();
+
         // RUN일 때만 결과 이미지를 카드 썸네일로 사용
         const imageUrl =
           isRun && maker.resultType === "IMAGE" && maker.resultImageUrl
             ? maker.resultImageUrl
             : "";
 
-        // 리스트 카드에 보여줄 텍스트
+        // 리스트 카드에 보여줄 텍스트 (RUN에서 결과 텍스트가 비었으면 사용자가 작성한 content로 대체)
         const displayContent = isRun
-          ? maker.resultText || ""
-          : maker.content || "";
+          ? safeResultText || safeContent || ""
+          : safeContent || "";
 
         return {
           makerId: maker.makerId,
-          title: maker.title || "",
+          title: safeTitle || "새로운 프롬프트",
           // 상세 페이지의 PromptEditor에 들어갈 사용자가 작성한 원본 텍스트
-          content: maker.content || "",
+          content: safeContent,
           // 리스트(카드)에서만 사용하는 표시용 텍스트
           displayContent,
           imageUrl,
@@ -94,6 +99,13 @@ export default function MakerShellPage() {
   useEffect(() => {
     fetchMakers();
   }, [fetchMakers, makerView]);
+
+  // 동일 경로로 돌아왔을 때도 최신 자동저장 내용을 반영하도록 재조회
+  useEffect(() => {
+    if (location.pathname.includes("/maker")) {
+      fetchMakers();
+    }
+  }, [location.pathname, fetchMakers]);
 
   const findMakerById = useCallback(
     (id) => {
@@ -359,6 +371,21 @@ export default function MakerShellPage() {
     return filteredMakers.slice(startIndex, endIndex);
   }, [filteredMakers, currentPage]);
 
+  const filledMakers = useMemo(() => {
+    const list = paginatedMakers;
+    const missing = CARDS_PER_PAGE - list.length;
+
+    if (missing <= 0) return list;
+
+    // placeholder 5개, 3개 등 자동 생성
+    const placeholders = Array.from({ length: missing }, (_, i) => ({
+      placeholder: true,
+      id: `placeholder-${i}`,
+    }));
+
+    return [...list, ...placeholders];
+  }, [paginatedMakers]);
+
   const handleSearchChange = useCallback((valueOrEvent) => {
     if (typeof valueOrEvent === "string") {
       setSearchKeyword(valueOrEvent);
@@ -475,16 +502,20 @@ export default function MakerShellPage() {
               ) : filteredMakers.length === 0 ? (
                 <InlineStatus>검색 결과가 없습니다.</InlineStatus>
               ) : (
-                paginatedMakers.map((prompt) => (
-                  <MakerPageCard
-                    key={prompt?.makerId}
-                    title={prompt.title}
-                    description={prompt.displayContent ?? prompt.content}
-                    imageUrl={prompt.imageUrl}
-                    onClick={() => handleSelectMaker(prompt?.makerId)}
-                    onDelete={() => handleDeleteMaker(prompt?.makerId)}
-                  />
-                ))
+                filledMakers.map((prompt) =>
+                  prompt.placeholder ? (
+                    <EmptyCard key={prompt.id} />
+                  ) : (
+                    <MakerPageCard
+                      key={prompt.makerId}
+                      title={prompt.title}
+                      description={prompt.displayContent ?? prompt.content}
+                      imageUrl={prompt.imageUrl}
+                      onClick={() => handleSelectMaker(prompt?.makerId)}
+                      onDelete={() => handleDeleteMaker(prompt?.makerId)}
+                    />
+                  )
+                )
               )}
             </CardGrid>
             {filteredMakers.length > 0 && (
@@ -721,4 +752,14 @@ const PageSeparator = styled.span`
 
 const TotalPage = styled.span`
   color: #a0a0a0;
+`;
+
+const EmptyCard = styled.div`
+  width: 100%;
+  aspect-ratio: 358 / 202;
+  border-radius: 1.1rem;
+  min-width: 12.25rem;
+  max-width: 22.375rem;
+  aspect-ratio: 358 / 202;
+  visibility: hidden; /* 공간은 유지, 보이진 않음 */
 `;
