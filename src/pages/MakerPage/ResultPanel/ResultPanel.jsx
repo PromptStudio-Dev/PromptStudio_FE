@@ -181,9 +181,10 @@ const BottomSection = styled.div`
 `;
 
 const TabContentWrapper = styled.div`
-  flex: 1 1 auto; /* 내용에 맞게 높이 조정 */
+  flex: 0 0 auto; /* 고정 높이 */
   width: 100%;
-  min-height: 0;
+  min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
+  height: 19rem; /* 고정 높이 */
   display: flex;
   flex-direction: column;
   align-items: stretch;
