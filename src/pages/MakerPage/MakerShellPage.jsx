@@ -68,8 +68,8 @@ export default function MakerShellPage() {
 
         // 리스트 카드에 보여줄 텍스트 (RUN에서 결과 텍스트가 비었으면 사용자가 작성한 content로 대체)
         const displayContent = isRun
-          ? safeResultText || safeContent || "내용이 없습니다."
-          : safeContent || "내용이 없습니다.";
+          ? safeResultText || safeContent || ""
+          : safeContent || "";
 
         return {
           makerId: maker.makerId,
