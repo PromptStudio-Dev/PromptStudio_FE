@@ -371,6 +371,21 @@ export default function MakerShellPage() {
     return filteredMakers.slice(startIndex, endIndex);
   }, [filteredMakers, currentPage]);
 
+  const filledMakers = useMemo(() => {
+    const list = paginatedMakers;
+    const missing = CARDS_PER_PAGE - list.length;
+
+    if (missing <= 0) return list;
+
+    // placeholder 5개, 3개 등 자동 생성
+    const placeholders = Array.from({ length: missing }, (_, i) => ({
+      placeholder: true,
+      id: `placeholder-${i}`,
+    }));
+
+    return [...list, ...placeholders];
+  }, [paginatedMakers]);
+
   const handleSearchChange = useCallback((valueOrEvent) => {
     if (typeof valueOrEvent === "string") {
       setSearchKeyword(valueOrEvent);
@@ -487,16 +502,20 @@ export default function MakerShellPage() {
               ) : filteredMakers.length === 0 ? (
                 <InlineStatus>검색 결과가 없습니다.</InlineStatus>
               ) : (
-                paginatedMakers.map((prompt) => (
-                  <MakerPageCard
-                    key={prompt?.makerId}
-                    title={prompt.title}
-                    description={prompt.displayContent ?? prompt.content}
-                    imageUrl={prompt.imageUrl}
-                    onClick={() => handleSelectMaker(prompt?.makerId)}
-                    onDelete={() => handleDeleteMaker(prompt?.makerId)}
-                  />
-                ))
+                filledMakers.map((prompt) =>
+                  prompt.placeholder ? (
+                    <EmptyCard key={prompt.id} />
+                  ) : (
+                    <MakerPageCard
+                      key={prompt.makerId}
+                      title={prompt.title}
+                      description={prompt.displayContent ?? prompt.content}
+                      imageUrl={prompt.imageUrl}
+                      onClick={() => handleSelectMaker(prompt?.makerId)}
+                      onDelete={() => handleDeleteMaker(prompt?.makerId)}
+                    />
+                  )
+                )
               )}
             </CardGrid>
             {filteredMakers.length > 0 && (
@@ -733,4 +752,14 @@ const PageSeparator = styled.span`
 
 const TotalPage = styled.span`
   color: #a0a0a0;
+`;
+
+const EmptyCard = styled.div`
+  width: 100%;
+  aspect-ratio: 358 / 202;
+  border-radius: 1.1rem;
+  min-width: 12.25rem;
+  max-width: 22.375rem;
+  aspect-ratio: 358 / 202;
+  visibility: hidden; /* 공간은 유지, 보이진 않음 */
 `;
