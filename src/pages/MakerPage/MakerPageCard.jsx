@@ -127,7 +127,7 @@ const BackgroundOverlay = styled.div`
     rgba(9, 23, 43, 0.45) 100%
   );
   pointer-events: none;
-  z-index: 0;
+  z-index: 2;
 `;
 
 const HoverBackgroundOverlay = styled.div`
@@ -135,7 +135,7 @@ const HoverBackgroundOverlay = styled.div`
   inset: 0;
   background-color: rgba(0, 0, 0, 0.16); /* #00000029 16% 투명도 */
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
   transition: opacity 0.15s ease;
 `;
 
@@ -144,11 +144,6 @@ const ImageCard = styled(BaseCard)`
   background: ${({ $backgroundImage }) =>
     `url(${$backgroundImage}) center/cover no-repeat`};
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-  & > *:not(${BackgroundOverlay}) {
-    position: relative;
-    z-index: 1;
-  }
 `;
 
 const DefaultCard = styled(BaseCard)`
@@ -187,6 +182,7 @@ const Description = styled.p`
   text-overflow: ellipsis;
   width: 100%;
   text-align: left;
+  z-index: 10;
 `;
 
 const FooterBase = styled.div`
@@ -212,6 +208,7 @@ const Title = styled.p`
   white-space: nowrap;
   width: 100%;
   text-align: left;
+  z-index: 10;
 `;
 
 const DeleteButton = styled.button`
@@ -225,7 +222,7 @@ const DeleteButton = styled.button`
   background-color: rgba(255, 255, 255, 0.9);
   color: #ffffff;
   cursor: pointer;
-  z-index: 15;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -258,7 +255,7 @@ const HoverOverlay = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 15;
   background-color: aquamarine;
   pointer-events: none;
 `;
