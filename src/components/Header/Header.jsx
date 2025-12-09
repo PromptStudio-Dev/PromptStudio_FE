@@ -1,11 +1,13 @@
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import GNB from "./GNB";
 import UserMenu from "./UserMenu";
 import UploadIcon from "./uploadIcon.svg";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMakerRoute = location.pathname.startsWith("/maker");
 
   const handleUploadClick = () => {
     navigate("/upload");
@@ -16,10 +18,12 @@ export default function Header() {
       <HeaderInner>
         <GNB />
         <RightGroup>
-          <UploadButton onClick={handleUploadClick}>
-            <UploadText>프롬프트 올리기</UploadText>
-            <UploadIconImg src={UploadIcon} alt="Upload" />
-          </UploadButton>
+          {!isMakerRoute && (
+            <UploadButton onClick={handleUploadClick}>
+              <UploadText>프롬프트 올리기</UploadText>
+              <UploadIconImg src={UploadIcon} alt="Upload" />
+            </UploadButton>
+          )}
           <UserMenu />
         </RightGroup>
       </HeaderInner>
