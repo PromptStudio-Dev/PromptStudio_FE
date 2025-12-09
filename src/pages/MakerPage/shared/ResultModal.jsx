@@ -151,16 +151,22 @@ export default function ResultModal({
               </TabButton>
             </TabHeader>
 
-            {activeTab === "HISTORY" ? (
-              <HistoryBar
-                currentIndex={currentHistoryIndex}
-                totalCount={historyItems.length || 10}
-                historyItems={historyItems}
-                onItemClick={onHistoryItemClick}
-              />
-            ) : (
-              <ResultFeedback />
-            )}
+            <TabContentWrapper>
+              {activeTab === "HISTORY" ? (
+                <TabInnerHistory>
+                  <HistoryBar
+                    currentIndex={currentHistoryIndex}
+                    totalCount={historyItems.length || 10}
+                    historyItems={historyItems}
+                    onItemClick={onHistoryItemClick}
+                  />
+                </TabInnerHistory>
+              ) : (
+                <TabInnerFeedback>
+                  <ResultFeedback />
+                </TabInnerFeedback>
+              )}
+            </TabContentWrapper>
           </BottomSection>
         </ModalBody>
       </ModalContent>
@@ -254,6 +260,30 @@ const BottomSection = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+`;
+
+const TabContentWrapper = styled.div`
+  flex: 0 0 auto; /* 고정 높이 */
+  width: 100%;
+  min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
+  height: 19rem; /* 고정 높이 */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+`;
+
+const TabInnerHistory = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+`;
+
+const TabInnerFeedback = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 `;
 
 const TabHeader = styled.div`
