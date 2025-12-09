@@ -162,7 +162,7 @@ const TopBlurOverlay = styled.div`
   right: 0;
   height: 3.125rem;
   background-color: #ffffff;
-  filter: blur(20px);
+  filter: blur(2rem);
   z-index: 10;
   pointer-events: none;
   margin-bottom: -3.125rem;
