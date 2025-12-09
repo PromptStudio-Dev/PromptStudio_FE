@@ -26,6 +26,7 @@ export default function MainPanel({
   onOpenResultPanel,
   isResultPanelOpen = false,
   isResultPanelExpanded = false,
+  isResultModalOpen = false,
 }) {
   return (
     <MakerPanelWrapper
@@ -55,6 +56,7 @@ export default function MainPanel({
                 onRun={onRunPrompt}
                 onOpenResultPanel={onOpenResultPanel}
                 hasHistory={historyItems.length > 0}
+                isResultModalOpen={isResultModalOpen}
               />
             )}
           </TitleAndControlRow>

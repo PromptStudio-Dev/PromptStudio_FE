@@ -8,10 +8,14 @@ export default function ControlBar({
   onRun,
   onOpenResultPanel,
   hasHistory = false,
+  isResultModalOpen = false,
 }) {
+  // History가 있고 ResultModal이 열려있지 않을 때만 버튼 활성화
+  const isButtonEnabled = hasHistory && !isResultModalOpen;
+
   const handleOpenResultPanel = () => {
-    // History가 있을 때만 ResultPanel 열기
-    if (hasHistory && onOpenResultPanel) {
+    // 버튼이 활성화되어 있을 때만 ResultPanel 열기
+    if (isButtonEnabled && onOpenResultPanel) {
       onOpenResultPanel();
     }
   };
@@ -26,11 +30,13 @@ export default function ControlBar({
         </RunButton>
         <OpenResultPanelButton
           src={
-            hasHistory ? ResultPanelOpenEnabledImg : ResultPanelOpenDisabledImg
+            isButtonEnabled
+              ? ResultPanelOpenEnabledImg
+              : ResultPanelOpenDisabledImg
           }
           onClick={handleOpenResultPanel}
           alt="결과 패널 열기"
-          $isEnabled={hasHistory}
+          $isEnabled={isButtonEnabled}
         />
       </SecondWrapper>
     </ControlBarWrapper>
