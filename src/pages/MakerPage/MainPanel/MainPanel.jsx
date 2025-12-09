@@ -85,6 +85,24 @@ export default function MainPanel({
   );
 }
 
+const MakerPanelWrapper = styled.div`
+  flex: 1;
+  background-color: #ffffff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+
+  /* 사이드바 상태에 따른 왼쪽 여백 */
+  padding-left: ${(props) => (props.$isSidebarOpen ? "0" : "3vw")};
+
+  /* ResultPanel이 확장되었을 때는 MainPanel 숨기기 */
+  display: ${(props) => (props.$isResultPanelExpanded ? "none" : "flex")};
+
+  /* ResultPanel이 열려있을 때 오른쪽 여백 추가 (ResultPanel 너비만큼) */
+  margin-right: ${(props) => (props.$isResultPanelOpen ? "36.0625rem" : "0")};
+`;
+
 const TipTooltip = styled.div`
   position: absolute;
   top: 50%;
@@ -132,24 +150,6 @@ const MakerTipText = styled.p`
   font-size: 1rem;
   color: #000000;
   font-weight: 600;
-`;
-
-const MakerPanelWrapper = styled.div`
-  flex: 1;
-  background-color: #ffffff;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-
-  /* 사이드바 상태에 따른 왼쪽 여백 */
-  padding-left: ${(props) => (props.$isSidebarOpen ? "0" : "3vw")};
-
-  /* ResultPanel이 확장되었을 때는 MainPanel 숨기기 */
-  display: ${(props) => (props.$isResultPanelExpanded ? "none" : "flex")};
-
-  /* ResultPanel이 열려있을 때 오른쪽 여백 추가 (ResultPanel 너비만큼) */
-  margin-right: ${(props) => (props.$isResultPanelOpen ? "36.0625rem" : "0")};
 `;
 
 const SidebarOpenButton = styled.button`
