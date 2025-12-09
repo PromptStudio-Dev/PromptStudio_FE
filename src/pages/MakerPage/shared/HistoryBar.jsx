@@ -126,32 +126,6 @@ const HistoryContainer = styled.div`
   position: relative;
 `;
 
-const HistoryHeader = styled.div`
-  display: flex;
-  align-items: baseline;
-  gap: 0;
-  margin-bottom: 0.625rem;
-  position: relative;
-`;
-
-const HistoryTitle = styled.h3`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.4375rem; /* 23px */
-  font-weight: 700;
-  color: #000000;
-  margin: 0;
-  line-height: 1.2;
-`;
-
-const HistoryCount = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1rem; /* 16px */
-  font-weight: 500;
-  color: #848484;
-  margin-left: 0.875rem; /* 14px to match 138px - 44px - 23px title width */
-  line-height: 1.2;
-`;
-
 const HistoryListWrapper = styled.div`
   display: flex;
   position: relative;
@@ -293,7 +267,7 @@ const HistoryList = styled.div`
   flex-direction: column;
   gap: 2.375rem;
   margin-left: 2.5rem;
-  width: 22.125rem;
+  width: 27.375rem;
   min-height: 18rem; /* 라인 높이와 기본 영역 맞추기 */
 `;
 
