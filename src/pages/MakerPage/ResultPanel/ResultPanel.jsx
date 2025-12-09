@@ -44,7 +44,7 @@ export default function ResultPanel({
         </SecondWrapper>
       </ResultPanelHeader>
       <ResultContent $isExpanded={isResultPanelExpanded}>
-        <ContentWrapper>
+        <ContentWrapper $isExpanded={isResultPanelExpanded}>
           <ResultDisplayWrapper $isExpanded={isResultPanelExpanded}>
             <ResultDisplay
               isLoading={isResultLoading}
@@ -149,9 +149,12 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0;
-  flex-shrink: 0; /* 줄어들지 않도록 */
-  min-height: min-content;
+  flex-shrink: ${(props) =>
+    props.$isExpanded ? 1 : 0}; /* 확장 시에는 줄어들 수 있도록 */
+  min-height: ${(props) => (props.$isExpanded ? "0" : "min-content")};
   margin-top: auto; /* 아래로 밀어서 여백 없애기 */
+  height: ${(props) =>
+    props.$isExpanded ? "100%" : "auto"}; /* 확장 시 전체 높이 */
 `;
 
 const ResultDisplayWrapper = styled.div`
