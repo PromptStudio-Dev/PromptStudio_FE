@@ -373,9 +373,9 @@ export default function PromptEditor({
 const EditorWrapper = styled.div`
   width: 100%;
   flex: 1;
+  height: 100%;
   position: relative; /* 자식 요소를 겹치기 위해 position: relative 추가 */
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   min-height: 0; /* flex 컨테이너 내에서 스크롤이 작동하도록 */
 
   /* 스크롤바 숨기기 */
