@@ -11,6 +11,8 @@ export default function MainPanel({
   onToggleSidebar,
   promptContent,
   onPromptContentChange,
+  promptTitle,
+  onPromptTitleChange,
   attachedImages,
   onAttachedImagesChange,
   onUpgradeRequest,
@@ -43,7 +45,10 @@ export default function MainPanel({
       <ContentArea>
         <TopSection>
           <TitleAndControlRow>
-            <PromptTitleInput />
+            <PromptTitleInput
+              value={promptTitle}
+              onChange={onPromptTitleChange}
+            />
             {/* ResultPanel이 열려있거나 확장되었을 때 ControlBar 숨기기 */}
             {!isResultPanelOpen && !isResultPanelExpanded && (
               <ControlBar

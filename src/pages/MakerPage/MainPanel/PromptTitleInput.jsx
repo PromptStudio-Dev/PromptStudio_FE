@@ -1,8 +1,7 @@
 import React, { useState, useRef, useLayoutEffect } from "react";
 import styled from "styled-components";
 
-export default function PromptTitleInput() {
-  const [title, setTitle] = useState("");
+export default function PromptTitleInput({ value = "", onChange }) {
   const [underlineWidth, setUnderlineWidth] = useState(0);
   const measureRef = useRef(null);
 
@@ -27,18 +26,18 @@ export default function PromptTitleInput() {
         window.removeEventListener("resize", updateWidth);
       }
     };
-  }, [title]);
+  }, [value]);
 
   return (
     <TitleInputWrapper>
       <MeasureText ref={measureRef}>
-        {title || "프롬프트 제목을 입력하세요."}
+        {value || "프롬프트 제목을 입력하세요."}
       </MeasureText>
       <TitleInput
         type="text"
         placeholder="프롬프트 제목을 입력하세요."
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
       />
       <Underline $width={underlineWidth} />
     </TitleInputWrapper>
