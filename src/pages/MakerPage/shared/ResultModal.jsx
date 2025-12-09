@@ -16,6 +16,7 @@ export default function ResultModal({
   resultImageUrl = null,
   resultText = null,
   isResultLoading = false,
+  feedbackText = null,
 }) {
   const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
   // 모달 크기는 CSS에서 관리하고, JavaScript에서는 실제 렌더링된 크기를 사용
@@ -163,7 +164,7 @@ export default function ResultModal({
                 </TabInnerHistory>
               ) : (
                 <TabInnerFeedback>
-                  <ResultFeedback />
+                  <ResultFeedback feedbackText={feedbackText} />
                 </TabInnerFeedback>
               )}
             </TabContentWrapper>
@@ -265,8 +266,8 @@ const BottomSection = styled.div`
 const TabContentWrapper = styled.div`
   flex: 0 0 auto; /* 고정 높이 */
   width: 100%;
-  min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
-  height: 19rem; /* 고정 높이 */
+  min-height: 8rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
+  height: 8rem; /* 고정 높이 */
   display: flex;
   flex-direction: column;
   align-items: stretch;
