@@ -54,9 +54,15 @@ export default function MainPanel({
             )}
           </TitleAndControlRow>
           <PromptInputWrapper $isResultPanelOpen={isResultPanelOpen}>
-            <MakerTipButton>
-              <MakerTipText>Tip</MakerTipText>
-            </MakerTipButton>
+            <TipWrapper>
+              <MakerTipButton>
+                <MakerTipText>Tip</MakerTipText>
+              </MakerTipButton>
+              <TipTooltip>
+                40자 이상 드래그하면 쉽고 간편한 AI 업그레이드 기능을 사용할 수
+                있습니다!
+              </TipTooltip>
+            </TipWrapper>
             <PromptEditor
               content={promptContent}
               onContentChange={onPromptContentChange}
@@ -78,6 +84,36 @@ export default function MainPanel({
     </MakerPanelWrapper>
   );
 }
+
+const TipTooltip = styled.div`
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 0.69rem);
+  transform: translateY(-50%) translateX(-0.25rem);
+  background: #f2f2f2;
+  color: #000000;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 100%;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 5;
+`;
+
+const TipWrapper = styled.div`
+  position: relative;
+  width: fit-content;
+
+  &:hover ${TipTooltip} {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+  }
+`;
 
 const MakerTipButton = styled.button`
   background-color: #f2f2f2;
