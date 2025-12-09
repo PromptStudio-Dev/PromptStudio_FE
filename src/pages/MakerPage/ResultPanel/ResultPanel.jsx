@@ -44,54 +44,59 @@ export default function ResultPanel({
         </SecondWrapper>
       </ResultPanelHeader>
       <ResultContent $isExpanded={isResultPanelExpanded}>
-        <ResultDisplayWrapper $isExpanded={isResultPanelExpanded}>
-          <ResultDisplay
-            isLoading={isResultLoading}
-            imageUrl={resultImageUrl}
-            textContent={resultText}
-            onExpand={() => {
-              if (onExpandChange) {
-                onExpandChange(!isResultPanelExpanded);
-              }
-            }}
-            isExpanded={isResultPanelExpanded}
-          />
-        </ResultDisplayWrapper>
+        <ContentWrapper>
+          <ResultDisplayWrapper $isExpanded={isResultPanelExpanded}>
+            <ResultDisplay
+              isLoading={isResultLoading}
+              imageUrl={resultImageUrl}
+              textContent={resultText}
+              onExpand={() => {
+                if (onExpandChange) {
+                  onExpandChange(!isResultPanelExpanded);
+                }
+              }}
+              isExpanded={isResultPanelExpanded}
+            />
+          </ResultDisplayWrapper>
 
-        <BottomSection $isExpanded={isResultPanelExpanded}>
-          <TabHeader>
-            <TabButton
-              type="button"
-              data-active={activeTab === "HISTORY"}
-              onClick={() => setActiveTab("HISTORY")}
-            >
-              <TabTitle>History</TabTitle>
-              <TabCount>
-                ({currentHistoryIndex}/{historyItems.length || 0})
-              </TabCount>
-            </TabButton>
-            <TabButton
-              type="button"
-              data-active={activeTab === "FEEDBACK"}
-              onClick={() => setActiveTab("FEEDBACK")}
-            >
-              <TabTitle>Feedback</TabTitle>
-            </TabButton>
-          </TabHeader>
-
-          <TabContentWrapper>
-            {activeTab === "HISTORY" ? (
-              <HistoryBar
-                currentIndex={currentHistoryIndex}
-                totalCount={historyItems.length || 10}
-                historyItems={historyItems}
-                onItemClick={onHistoryItemClick}
-              />
-            ) : (
-              <ResultFeedback feedbackText={feedbackText} />
-            )}
-          </TabContentWrapper>
-        </BottomSection>
+          <BottomSection $isExpanded={isResultPanelExpanded}>
+            <TabHeader>
+              <TabButton
+                type="button"
+                data-active={activeTab === "HISTORY"}
+                onClick={() => setActiveTab("HISTORY")}
+              >
+                <TabTitle>History</TabTitle>
+                <TabCount>
+                  ({currentHistoryIndex}/{historyItems.length || 0})
+                </TabCount>
+              </TabButton>
+              <TabButton
+                type="button"
+                data-active={activeTab === "FEEDBACK"}
+                onClick={() => setActiveTab("FEEDBACK")}
+              >
+                <TabTitle>Feedback</TabTitle>
+              </TabButton>
+            </TabHeader>
+            <TabContentWrapper>
+              {activeTab === "HISTORY" ? (
+                <TabInnerHistory>
+                  <HistoryBar
+                    currentIndex={currentHistoryIndex}
+                    totalCount={historyItems.length || 10}
+                    historyItems={historyItems}
+                    onItemClick={onHistoryItemClick}
+                  />
+                </TabInnerHistory>
+              ) : (
+                <TabInnerFeedback>
+                  <ResultFeedback feedbackText={feedbackText} />
+                </TabInnerFeedback>
+              )}
+            </TabContentWrapper>
+          </BottomSection>
+        </ContentWrapper>
       </ResultContent>
     </ResultPanelWrapper>
   );
@@ -131,13 +136,22 @@ const ResultPanelHeader = styled.div`
 const ResultContent = styled.div`
   flex: 1;
   overflow-y: auto;
-  padding: ${(props) =>
-    props.$isExpanded ? "0" : "2.75rem 2.75rem 0 2.75rem"};
+  overflow-x: hidden;
+  padding: ${(props) => (props.$isExpanded ? "0" : "3rem 2.75rem 0 2.75rem")};
+  display: flex;
+  flex-direction: column;
+  gap: 0; /* 세로선이 전체를 채우도록 간격 없음 */
+  align-items: stretch;
+  min-height: 0; /* flex 자식이 overflow를 올바르게 처리하도록 */
+`;
+
+const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0;
-  align-items: stretch;
-  justify-content: flex-end;
+  flex-shrink: 0; /* 줄어들지 않도록 */
+  min-height: min-content;
+  margin-top: auto; /* 아래로 밀어서 여백 없애기 */
 `;
 
 const ResultDisplayWrapper = styled.div`
@@ -146,7 +160,7 @@ const ResultDisplayWrapper = styled.div`
   align-items: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
   padding: ${(props) =>
     props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
-  flex-shrink: 0;
+  flex-shrink: 0; /* 크기 고정, 줄어들지 않도록 */
 `;
 
 const BottomSection = styled.div`
@@ -156,19 +170,37 @@ const BottomSection = styled.div`
   width: ${(props) => (props.$isExpanded ? "62rem" : "100%")};
   padding: ${(props) =>
     props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
-  padding-top: 3rem;
+  padding-top: ${(props) => (props.$isExpanded ? "1.75rem" : "3rem")};
   box-sizing: border-box;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-shrink: 1;
+  height: 100%;
   align-items: flex-start;
+  justify-content: flex-end;
 `;
 
 const TabContentWrapper = styled.div`
-  flex: 1 1 auto;
+  flex: 1 1 auto; /* 내용에 맞게 높이 조정 */
   width: 100%;
-  min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+`;
+
+const TabInnerHistory = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+`;
+
+const TabInnerFeedback = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 `;
 
 const TabHeader = styled.div`
