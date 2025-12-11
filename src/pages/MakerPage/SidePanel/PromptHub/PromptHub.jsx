@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import PromptCardList from "./PromptCardList";
 import PromptSectionDetail from "./PromptSectionDetail";
@@ -24,6 +24,7 @@ export default function PromptHub({
   const [selectedSection, setSelectedSection] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPromptId, setSelectedPromptId] = useState(null);
+  const prevSelectedHubRef = useRef(selectedHub);
 
   // 로딩 및 에러
   const [isAllLoading, setIsAllLoading] = useState(false);
@@ -61,6 +62,19 @@ export default function PromptHub({
       setSelectedSection(null);
     }
   }, [searchKeyword]);
+
+  // selectedHub 변경 시 상세 페이지 닫기
+  useEffect(() => {
+    // selectedHub가 실제로 변경되었고, 상세 페이지가 열려있을 때만 닫기
+    if (
+      prevSelectedHubRef.current !== selectedHub &&
+      currentView === "detail"
+    ) {
+      setCurrentView("main");
+      setSelectedSection(null);
+    }
+    prevSelectedHubRef.current = selectedHub;
+  }, [selectedHub, currentView]);
 
   // 내가 작성한 글 조회
   useEffect(() => {

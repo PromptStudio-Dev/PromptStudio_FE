@@ -84,10 +84,6 @@ const SelectorButton = styled.button`
   justify-content: space-between;
   cursor: pointer;
   transition: all 0.2s;
-
-  &:hover {
-    background-color: #f6fcff;
-  }
 `;
 
 const ModelInfo = styled.div`
@@ -125,17 +121,13 @@ const DropdownMenu = styled.div`
 const MenuItem = styled.button`
   width: 100%;
   padding: 0.75rem 1rem;
-  background: ${(props) => (props.$isSelected ? "#f4f4f4" : "white")};
+  background: ${(props) => (props.$isSelected ? "#e0f5ff" : "white")};
   border: none;
   text-align: left;
   cursor: pointer;
   font-family: "Pretendard Variable", sans-serif;
-  font-size: 1rem;
+  font-size: 1.1875rem;
   color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
-
-  &:hover {
-    background: #f4f4f4;
-  }
 
   &:first-child {
     border-radius: 8px 8px 0 0;

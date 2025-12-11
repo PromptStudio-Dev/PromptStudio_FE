@@ -41,7 +41,7 @@ const TopContainer = styled.div`
   justify-content: center;
   align-items: flex-start;
   gap: 1rem;
-  padding: 2.7vh 1.93vw;
+  padding: 1.62rem 2.31rem;
   width: 100%;
   background-color: #f6fcff;
 `;

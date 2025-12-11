@@ -16,7 +16,7 @@ export default function PromptSectionDetail({
       <Header>
         {onBack && (
           <BackButton onClick={onBack}>
-            <img src={backButtonIcon} alt="뒤로" />
+            <BackButtonImg src={backButtonIcon} alt="뒤로" />
           </BackButton>
         )}
         <Title>{sectionTitle}</Title>
@@ -53,19 +53,30 @@ export default function PromptSectionDetail({
 
 const Wrapper = styled.div`
   width: 100%;
+  height: 100%;
   background-color: #ffffff;
-  flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
 `;
 
 const Header = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 2rem 1.77vw 1rem 1.77vw;
+  padding: 1rem 1.5rem;
+  background-color: #ffffff;
+  z-index: 10;
 `;
 
+const BackButtonImg = styled.img`
+  width: 1.625rem;
+  height: 1.625rem;
+`;
 const BackButton = styled.button`
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1rem;
@@ -93,6 +104,8 @@ const Title = styled.h2`
 const ContentArea = styled.div`
   flex: 1;
   padding: 1.5rem;
+  padding-top: calc(2rem + 1.1875rem + 1rem + 1.5rem);
+  margin-top: 1rem;
   overflow-y: auto;
 `;
 
@@ -102,7 +115,6 @@ const CardList = styled.div`
   align-items: center;
   gap: 1.88rem;
   width: 100%;
-  overflow-y: auto;
 `;
 
 const EmptyMessage = styled.div`
