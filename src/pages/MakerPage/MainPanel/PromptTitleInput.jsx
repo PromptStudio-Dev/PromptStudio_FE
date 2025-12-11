@@ -1,9 +1,34 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
 import styled from "styled-components";
 
 export default function PromptTitleInput({ value = "", onChange }) {
   const [underlineWidth, setUnderlineWidth] = useState(0);
   const measureRef = useRef(null);
+
+  // "새로운 프롬프트"인지 확인
+  const isDefaultTitle = value === "새로운 프롬프트";
+
+  // 내부 input 값: "새로운 프롬프트"면 빈 문자열, 아니면 실제 값
+  const [inputValue, setInputValue] = useState(isDefaultTitle ? "" : value);
+  const prevValueRef = useRef(value);
+  const isUserTypingRef = useRef(false);
+
+  // value prop이 외부에서 변경될 때만 inputValue 동기화
+  useEffect(() => {
+    // value가 실제로 변경되었고, 사용자가 입력 중이 아닐 때만 동기화
+    if (prevValueRef.current !== value && !isUserTypingRef.current) {
+      if (isDefaultTitle) {
+        // "새로운 프롬프트"로 변경되면 빈 문자열로
+        setInputValue("");
+      } else {
+        // "새로운 프롬프트"가 아니면 value로 동기화
+        setInputValue(value);
+      }
+      prevValueRef.current = value;
+    }
+    // 동기화 후 사용자 입력 플래그 리셋
+    isUserTypingRef.current = false;
+  }, [value, isDefaultTitle]);
 
   useLayoutEffect(() => {
     const updateWidth = () => {
@@ -26,18 +51,27 @@ export default function PromptTitleInput({ value = "", onChange }) {
         window.removeEventListener("resize", updateWidth);
       }
     };
-  }, [value]);
+  }, [inputValue, isDefaultTitle]);
+
+  const handleChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    // 사용자가 입력하는 순간 바로 onChange 호출
+    isUserTypingRef.current = true;
+    onChange?.(newValue);
+  };
+
+  // MeasureText에 표시할 텍스트: inputValue가 있으면 inputValue, 없으면 placeholder
+  const displayText = inputValue || "프롬프트 제목을 입력하세요.";
 
   return (
     <TitleInputWrapper>
-      <MeasureText ref={measureRef}>
-        {value || "프롬프트 제목을 입력하세요."}
-      </MeasureText>
+      <MeasureText ref={measureRef}>{displayText}</MeasureText>
       <TitleInput
         type="text"
         placeholder="프롬프트 제목을 입력하세요."
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
+        value={inputValue}
+        onChange={handleChange}
       />
       <Underline $width={underlineWidth} />
     </TitleInputWrapper>
