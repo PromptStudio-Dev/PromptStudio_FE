@@ -161,8 +161,7 @@ const ResultDisplayWrapper = styled.div`
   display: flex;
   justify-content: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
   align-items: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
-  padding: ${(props) =>
-    props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  padding: ${(props) => (props.$isExpanded ? "1.75rem 0 0 5.625rem" : "0")};
   flex-shrink: 0; /* 크기 고정, 줄어들지 않도록 */
 `;
 
@@ -171,26 +170,27 @@ const BottomSection = styled.div`
   flex-direction: column;
   gap: 1.5rem;
   width: ${(props) => (props.$isExpanded ? "62rem" : "100%")};
-  padding: ${(props) =>
-    props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  padding: ${(props) => (props.$isExpanded ? "1.75rem 0 0rem 5.625rem" : "0")};
   padding-top: ${(props) => (props.$isExpanded ? "1.75rem" : "3rem")};
   box-sizing: border-box;
-  flex: 1 1 auto;
-  min-height: 0;
-  flex-shrink: 1;
-  height: 100%;
+  flex: ${(props) => (props.$isExpanded ? "1" : "0 0 auto")};
+  min-height: ${(props) => (props.$isExpanded ? "0" : "auto")};
   align-items: flex-start;
-  justify-content: flex-end;
+  justify-content: ${(props) =>
+    props.$isExpanded
+      ? "flex-start"
+      : "flex-end"}; /* 확장 시에는 위에서부터 배치 */
 `;
 
 const TabContentWrapper = styled.div`
-  flex: 0 0 auto; /* 고정 높이 */
+  flex: 1 1 auto; /* 남은 공간을 채우되, 필요시 줄어들 수 있도록 */
   width: 100%;
   min-height: 19rem; /* HISTORY와 FEEDBACK 높이를 동일하게 맞춤 */
-  height: 19rem; /* 고정 높이 */
+  max-height: 19rem; /* 최대 높이 제한 */
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  overflow-y: auto; /* 내용이 많으면 스크롤 */
 `;
 
 const TabInnerHistory = styled.div`
@@ -211,6 +211,7 @@ const TabHeader = styled.div`
   display: flex;
   align-items: flex-end;
   gap: 2rem;
+  flex-shrink: 0; /* TabHeader가 줄어들지 않도록 고정 */
 `;
 
 const TabButton = styled.button`

@@ -500,7 +500,9 @@ export default function MakerShellPage() {
               ) : makerListError ? (
                 <InlineError>{makerListError}</InlineError>
               ) : filteredMakers.length === 0 ? (
-                <InlineStatus>검색 결과가 없습니다.</InlineStatus>
+                <InlineStatus>
+                  메이커로 나만의 프롬프트를 만들어 보세요
+                </InlineStatus>
               ) : (
                 filledMakers.map((prompt) =>
                   prompt.placeholder ? (
@@ -676,7 +678,7 @@ const InlineError = styled.div`
 `;
 
 const InlineStatus = styled.div`
-  color: #4f7098;
+  color: #929292;
   font-size: 0.95rem;
 `;
 

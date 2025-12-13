@@ -70,7 +70,7 @@ export default function ResultDisplay({
         ) : (
           <Placeholder />
         )}
-        {isLoading && <LoadingText>이미지 생성중...</LoadingText>}
+        {isLoading && <LoadingText>결과 생성중...</LoadingText>}
       </ResultSection>
       {showActions && (textContent || imageUrl) && (
         <ActionButtons>
