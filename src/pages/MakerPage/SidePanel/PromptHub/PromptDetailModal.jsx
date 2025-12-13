@@ -119,14 +119,20 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
                 <InfoSection>
                   <WriterName>{promptData?.name}</WriterName>
                   <InfoBottomSection>
-                    <InfoItem>
-                      <InfoIcon src={detailViewIcon} alt="조회수" />
-                      <InfoText>{promptData?.viewCount || 0}</InfoText>
-                      <InfoIcon src={detailHeartIcon} alt="좋아요" />
-                      <InfoText>{promptData?.likeCount || 0}</InfoText>
-                      <InfoIcon src={detailCopyIcon} alt="복사" />
-                      <InfoText>{promptData?.copyCount || 0}</InfoText>
-                    </InfoItem>
+                    <InfoItemSection>
+                      <InfoItem>
+                        <InfoIcon src={detailViewIcon} alt="조회수" />
+                        <InfoText>{promptData?.viewCount || 0}</InfoText>
+                      </InfoItem>
+                      <InfoItem>
+                        <InfoIconHeart src={detailHeartIcon} alt="좋아요" />
+                        <InfoText>{promptData?.likeCount || 0}</InfoText>
+                      </InfoItem>
+                      <InfoItem>
+                        <InfoIcon src={detailCopyIcon} alt="복사" />
+                        <InfoText>{promptData?.copyCount || 0}</InfoText>
+                      </InfoItem>
+                    </InfoItemSection>
                   </InfoBottomSection>
                 </InfoSection>
               </WriterInfo>
@@ -303,6 +309,7 @@ const ModalBody = styled.div`
   padding: 4.31rem 3rem;
   display: flex;
   flex-direction: column;
+  overflow: auto;
 `;
 
 const LoadingMessage = styled.div`
@@ -393,13 +400,26 @@ const InfoBottomSection = styled.div`
 
 const InfoItem = styled.div`
   display: flex;
-  gap: 0.38rem;
+  gap: 0.08rem;
   align-items: center;
+  justify-content: center;
+`;
+
+const InfoItemSection = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
 `;
 
 const InfoIcon = styled.img`
   width: 1.5rem;
   height: 1.5rem;
+`;
+
+const InfoIconHeart = styled.img`
+  width: 1.3393rem;
+  height: 1.3393rem;
 `;
 
 const InfoText = styled.div`
