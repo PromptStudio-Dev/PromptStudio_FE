@@ -161,8 +161,7 @@ const ResultDisplayWrapper = styled.div`
   display: flex;
   justify-content: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
   align-items: ${(props) => (props.$isExpanded ? "flex-start" : "stretch")};
-  padding: ${(props) =>
-    props.$isExpanded ? "1.75rem 0 1.75rem 5.625rem" : "0"};
+  padding: ${(props) => (props.$isExpanded ? "1.75rem 0 0 5.625rem" : "0")};
   flex-shrink: 0; /* 크기 고정, 줄어들지 않도록 */
 `;
 
@@ -174,12 +173,8 @@ const BottomSection = styled.div`
   padding: ${(props) => (props.$isExpanded ? "1.75rem 0 0rem 5.625rem" : "0")};
   padding-top: ${(props) => (props.$isExpanded ? "1.75rem" : "3rem")};
   box-sizing: border-box;
-  flex: 1 1 auto;
-  min-height: ${(props) =>
-    props.$isExpanded
-      ? "calc(19rem + 1.75rem + 1.5rem + 3rem)"
-      : "auto"}; /* TabContentWrapper(19rem) + padding-top(1.75rem) + gap(1.5rem) + TabHeader(약 3rem) */
-  flex-shrink: 1;
+  flex: ${(props) => (props.$isExpanded ? "1" : "0 0 auto")};
+  min-height: ${(props) => (props.$isExpanded ? "0" : "auto")};
   align-items: flex-start;
   justify-content: ${(props) =>
     props.$isExpanded
