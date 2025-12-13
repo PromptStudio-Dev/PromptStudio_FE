@@ -9,6 +9,7 @@ import detailImageRequiredIcon from "../../../PromptDetailPage/assets/detailImag
 import detailResultIcon from "../../../PromptDetailPage/assets/detailResultIcon.svg";
 import detailPromptIcon from "../../../PromptDetailPage/assets/detailPromptIcon.svg";
 import apiClient from "../../../../api/client";
+import { useCopyModal } from "../../../../contexts/CopyModalContext";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -29,6 +30,7 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
   const [promptData, setPromptData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { showCopyModal } = useCopyModal();
 
   const fetchPromptDetail = async () => {
     setIsLoading(true);
@@ -55,7 +57,7 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
       const response = await apiClient.patch(`/api/prompts/${promptId}/copy`);
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
-        alert("프롬프트가 복사되었습니다.");
+        showCopyModal();
       } else {
         alert("복사할 내용이 없습니다.");
       }

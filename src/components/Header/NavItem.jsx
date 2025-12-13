@@ -1,18 +1,26 @@
 import styled from "styled-components";
 import { useNavigate, useLocation } from "react-router-dom";
+import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 
-export default function NavItem({ to, end, disabled, children }) {
+export default function NavItem({ to, end, disabled, requireAuth, children }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openLoginModal } = useLoginModal();
 
   const isActive = end
     ? location.pathname === to
     : location.pathname.startsWith(to);
 
   const handleClick = () => {
-    if (!disabled) {
-      navigate(to);
+    if (disabled) return;
+
+    if (requireAuth && !isLoggedIn()) {
+      openLoginModal();
+      return;
     }
+
+    navigate(to);
   };
 
   return (

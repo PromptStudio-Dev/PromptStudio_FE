@@ -3,13 +3,21 @@ import { useNavigate, useLocation } from "react-router-dom";
 import GNB from "./GNB";
 import UserMenu from "./UserMenu";
 import UploadIcon from "./uploadIcon.svg";
+import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMakerRoute = location.pathname.startsWith("/maker");
+  const { openLoginModal } = useLoginModal();
+
 
   const handleUploadClick = () => {
+    if (!isLoggedIn()) {
+      openLoginModal();
+      return;
+    }
     navigate("/upload");
   };
 

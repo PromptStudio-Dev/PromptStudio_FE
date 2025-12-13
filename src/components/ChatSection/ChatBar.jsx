@@ -17,6 +17,7 @@ import ChatMessage from "./components/ChatMessage";
 import PromptDropModal from "./components/PromptDropModal";
 import promptDragIcon from "./assets/promptDragIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 
 export default function ChatBar() {
   const [droppedPrompt, setDroppedPrompt] = useState(null);
@@ -30,6 +31,7 @@ export default function ChatBar() {
   const [isLoading, setIsLoading] = useState(false);
   const isAutoScrollEnabledRef = useRef(true);
   const chatViewSectionRef = useRef(null);
+  const { openLoginModal } = useLoginModal();
 
   // 커스텀 훅들 사용
   const { isHighlighted, handleDragOver } = useDragDrop();
@@ -53,8 +55,7 @@ export default function ChatBar() {
 
   const ensureLoggedIn = () => {
     if (isLoggedIn()) return true;
-    alert("로그인이 필요합니다!");
-    window.location.href = "/";
+    openLoginModal();
     return false;
   };
   const {
@@ -374,7 +375,7 @@ export default function ChatBar() {
       const data = event.detail;
       if (!data) return;
        if (!isLoggedIn()) {
-        alert("로그인이 필요합니다!");
+        openLoginModal();
         return;
       }
       loadPromptData(data);
@@ -384,7 +385,7 @@ export default function ChatBar() {
     return () => {
       window.removeEventListener("use-prompt", handleUsePrompt);
     };
-  }, []);
+  }, [openLoginModal]);
 
   // 메시지 영역 DOM 변경(타이핑, 애니메이션 등) 시 하단으로 스크롤
   useEffect(() => {

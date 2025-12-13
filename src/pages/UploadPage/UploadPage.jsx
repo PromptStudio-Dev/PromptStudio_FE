@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import promptTemplate from "./assets/promptTemplate.svg";
 import infoIcon from "./assets/infoIcon.svg";
 import otherIcon from "./assets/otherIcon.svg";
@@ -9,9 +9,12 @@ import UploadTemplate from "./UploadTemplatePage";
 import TitleInputPage from "./TitleInputPage";
 import OtherInputPage from "./OtherInputPage";
 import apiClient from "../../api/client";
+import { useCopyModal } from "../../contexts/CopyModalContext";
 
 export default function UploadPage() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { showCopyModal } = useCopyModal();
   const editMode = Boolean(location.state?.editMode);
   const editPromptData = location.state?.promptData;
   const editPromptId = editPromptData?.promptId;
@@ -155,13 +158,15 @@ export default function UploadPage() {
           `/api/prompts/${editPromptId}`,
           formDataToSend
         );
-        alert("프롬프트가 성공적으로 수정되었습니다.");
+        console.log("프롬프트 수정 성공:", response.data);
+        navigate("/");
+        showCopyModal("수정이 완료되었습니다");
       } else {
         response = await apiClient.post(`/api/prompts`, formDataToSend);
-        alert("프롬프트가 성공적으로 등록되었습니다.");
+        console.log("프롬프트 등록 성공:", response.data);
+        navigate("/");
+        showCopyModal("업로드가 완료되었습니다");
       }
-
-      console.log("프롬프트 등록/수정 성공:", response.data);
     } catch (error) {
       console.error("프롬프트 등록/수정 실패:", error);
       alert("프롬프트 처리에 실패했습니다. 다시 시도해주세요.");
