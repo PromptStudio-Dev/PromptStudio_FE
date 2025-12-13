@@ -578,18 +578,21 @@ export default function PromptHub({
               <SearchStatusMessage>검색 결과가 없습니다.</SearchStatusMessage>
             ) : (
               <SearchCardList>
-                {searchResults.map((prompt) => (
-                  <PromptCard
-                    key={prompt.id}
-                    promptId={prompt.id}
-                    category={prompt.category}
-                    aiName={prompt.aiName}
-                    title={prompt.title}
-                    subtitle={prompt.introduction}
-                    backgroundImage={prompt.imageUrl}
-                    onClick={() => handleCardClick(prompt.id)}
-                  />
-                ))}
+                {searchResults.map((prompt) => {
+                  const id = prompt.promptId || prompt.id;
+                  return (
+                    <PromptCard
+                      key={id}
+                      promptId={id}
+                      category={prompt.category}
+                      aiName={prompt.aiName}
+                      title={prompt.title}
+                      subtitle={prompt.introduction}
+                      backgroundImage={prompt.imageUrl}
+                      onClick={() => handleCardClick(id)}
+                    />
+                  );
+                })}
               </SearchCardList>
             )}
           </SearchContent>
