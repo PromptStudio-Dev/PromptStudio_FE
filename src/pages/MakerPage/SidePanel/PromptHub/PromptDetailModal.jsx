@@ -138,79 +138,85 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
                   </InfoBottomSection>
                 </InfoSection>
               </WriterInfo>
-              <IntroductionSection>
-                <IntroductionText>{promptData?.introduction}</IntroductionText>
-              </IntroductionSection>
-              <LeftBottomSection>
-                <BottomFirstSection>
-                  <PromptInfoWrapper>
-                    <PromptInfoSection>
-                      <TemplateSection>
-                        <PromptInfoSectionIcon src={detailRecommendIcon} />
-                        <PromptInfoSectionText>추천 AI</PromptInfoSectionText>
-                      </TemplateSection>
-                      <AiEnvironmentText>
-                        {promptData?.aiEnvironment}
-                      </AiEnvironmentText>
-                    </PromptInfoSection>
-                    <PromptInfoSection>
-                      <TemplateSection>
-                        <PromptInfoSectionIcon src={detailImageRequiredIcon} />
-                        <PromptInfoSectionText>
-                          이미지 필요 여부
-                        </PromptInfoSectionText>
-                      </TemplateSection>
-                      <AiEnvironmentText>
-                        {promptData?.imageRequired ? "예" : "아니요"}
-                      </AiEnvironmentText>
-                    </PromptInfoSection>
-                  </PromptInfoWrapper>
-                  <PromptIconWrapper>
-                    <PromptIconContainer>
-                      <PromptIconImg src={detailPromptIcon} alt="프롬프트" />
-                      <PromptIconText>프롬프트</PromptIconText>
-                      <PromptIconDetail>
-                        [대괄호]안에 내용은 사용자가 직접 입력해야합니다.
-                      </PromptIconDetail>
-                    </PromptIconContainer>
-                  </PromptIconWrapper>
-                  <PromptContent>{promptData?.content}</PromptContent>
-                  <ButtonContainer>
-                    <RightButtonGroup>
-                      <DetailButton onClick={handleCopyPrompt}>
-                        <DetailButtonText>복사하기</DetailButtonText>
-                      </DetailButton>
-                    </RightButtonGroup>
-                  </ButtonContainer>
-                </BottomFirstSection>
-                <BottomSecondSection>
-                  <PromptResultWrapper>
-                    <PromptResultIconContainer>
-                      <PromptResultIconImg
-                        src={detailResultIcon}
-                        alt="프롬프트 실행 결과"
-                      />
-                      <PromptResultIconText>
-                        프롬프트 실행 결과
-                      </PromptResultIconText>
-                    </PromptResultIconContainer>
-                  </PromptResultWrapper>
-                  <PromptResultContent>
-                    {promptData?.imageUrl ? (
-                      <ResultImage
-                        src={promptData.imageUrl}
-                        alt="프롬프트 실행 결과"
-                      />
-                    ) : promptData?.result ? (
-                      <ResultText>{promptData?.result}</ResultText>
-                    ) : (
-                      <ResultTextEmpty>
-                        실행 결과 예시가 없습니다.
-                      </ResultTextEmpty>
-                    )}
-                  </PromptResultContent>
-                </BottomSecondSection>
-              </LeftBottomSection>
+              <IntroductionLeftBottomSection>
+                <IntroductionSection>
+                  <IntroductionText>
+                    {promptData?.introduction}
+                  </IntroductionText>
+                </IntroductionSection>
+                <LeftBottomSection>
+                  <BottomFirstSection>
+                    <PromptInfoWrapper>
+                      <PromptInfoSection>
+                        <TemplateSection>
+                          <PromptInfoSectionIcon src={detailRecommendIcon} />
+                          <PromptInfoSectionText>추천 AI</PromptInfoSectionText>
+                        </TemplateSection>
+                        <AiEnvironmentText>
+                          {promptData?.aiEnvironment}
+                        </AiEnvironmentText>
+                      </PromptInfoSection>
+                      <PromptInfoSection>
+                        <TemplateSection>
+                          <PromptInfoSectionIcon
+                            src={detailImageRequiredIcon}
+                          />
+                          <PromptInfoSectionText>
+                            이미지 필요 여부
+                          </PromptInfoSectionText>
+                        </TemplateSection>
+                        <AiEnvironmentText>
+                          {promptData?.imageRequired ? "예" : "아니요"}
+                        </AiEnvironmentText>
+                      </PromptInfoSection>
+                    </PromptInfoWrapper>
+                    <PromptIconWrapper>
+                      <PromptIconContainer>
+                        <PromptIconImg src={detailPromptIcon} alt="프롬프트" />
+                        <PromptIconText>프롬프트</PromptIconText>
+                        <PromptIconDetail>
+                          [대괄호]안에 내용은 사용자가 직접 입력해야합니다.
+                        </PromptIconDetail>
+                      </PromptIconContainer>
+                    </PromptIconWrapper>
+                    <PromptContent>{promptData?.content}</PromptContent>
+                    <ButtonContainer>
+                      <RightButtonGroup>
+                        <DetailButton onClick={handleCopyPrompt}>
+                          <DetailButtonText>복사하기</DetailButtonText>
+                        </DetailButton>
+                      </RightButtonGroup>
+                    </ButtonContainer>
+                  </BottomFirstSection>
+                  <BottomSecondSection>
+                    <PromptResultWrapper>
+                      <PromptResultIconContainer>
+                        <PromptResultIconImg
+                          src={detailResultIcon}
+                          alt="프롬프트 실행 결과"
+                        />
+                        <PromptResultIconText>
+                          프롬프트 실행 결과
+                        </PromptResultIconText>
+                      </PromptResultIconContainer>
+                    </PromptResultWrapper>
+                    <PromptResultContent>
+                      {promptData?.imageUrl ? (
+                        <ResultImage
+                          src={promptData.imageUrl}
+                          alt="프롬프트 실행 결과"
+                        />
+                      ) : promptData?.result ? (
+                        <ResultText>{promptData?.result}</ResultText>
+                      ) : (
+                        <ResultTextEmpty>
+                          실행 결과 예시가 없습니다.
+                        </ResultTextEmpty>
+                      )}
+                    </PromptResultContent>
+                  </BottomSecondSection>
+                </LeftBottomSection>
+              </IntroductionLeftBottomSection>
             </>
           ) : null}
         </ModalBody>
@@ -237,7 +243,7 @@ const PromptInfoWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.69rem;
-  margin-top: 1.19rem;
+  margin-top: 0;
   margin-bottom: 1rem;
 `;
 
@@ -308,7 +314,7 @@ const ModalContent = styled.div`
 const ModalBody = styled.div`
   flex: 1;
   min-height: 0;
-  padding: 4.31rem 3rem;
+  padding: 1.5rem 3rem;
   display: flex;
   flex-direction: column;
   overflow: auto;
@@ -367,6 +373,12 @@ const WriterInfo = styled.div`
   margin-top: 1.31rem;
   justify-content: flex-start;
   align-items: center;
+`;
+
+const IntroductionLeftBottomSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 const WriterImg = styled.img`
@@ -446,7 +458,7 @@ const InfoTime = styled.div`
 `;
 
 const IntroductionSection = styled.div`
-  width: 60%;
+  width: 100%;
   padding: 1.06rem 1.62rem;
   background: #f5fcff;
   text-align: left;
