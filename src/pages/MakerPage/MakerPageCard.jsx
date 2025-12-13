@@ -121,11 +121,6 @@ const BaseCard = styled.button`
 const BackgroundOverlay = styled.div`
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(9, 23, 43, 0.1) 0%,
-    rgba(9, 23, 43, 0.45) 100%
-  );
   pointer-events: none;
   z-index: 2;
 `;
