@@ -5,7 +5,8 @@ import PromptCard from "../HubPage/PromptCard";
 import ArchiveCategoryTag from "./ArchiveCategoryTag";
 import apiClient from "../../api/client";
 import { useNavigate } from "react-router-dom";
-import tempoProfileImage from "./assets/imageAttachIcon.svg";
+import defaultProfileImage from "./assets/imageAttachIcon.svg";
+import { useCopyModal } from "../../contexts/CopyModalContext";
 import archiveNotSelectedHeartIcon from "./assets/archiveNotSelectedHeartIcon.svg";
 import colorHeartIcon from "../HubPage/assets/colorHeartIcon.svg";
 import heartIcon from "./assets/heartIcon.svg";
@@ -18,7 +19,6 @@ import studyIcon from "../HubPage/assets/studyIcon.svg";
 import SearchIconImg from "./assets/searchIcon.svg";
 import archivePublicIcon from "./assets/archivePublicIcon.svg";
 import archivePrivateIcon from "./assets/archivePrivateIcon.svg";
-import { isLoggedIn } from "../../utils/authStorage";
 import myCategorySelectedIcon from "./assets/myCategorySelectedIcon.svg";
 import myCategoryIcon from "./assets/myCategoryIcon.svg";
 
@@ -93,7 +93,14 @@ export default function ArchivePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedVisibility, setSelectedVisibility] = useState("모두");
+  const [profile, setProfile] = useState({
+    name: "",
+    profileImageUrl: "",
+    introduction: "",
+  });
+  const [introductionInput, setIntroductionInput] = useState("");
   const navigate = useNavigate();
+  const { showCopyModal } = useCopyModal();
 
   const visibilityOptions = [
     { name: "모두", icon: null },
@@ -166,12 +173,37 @@ export default function ArchivePage() {
     fetchPrompts();
   }, [activeTab, selectedCategory, selectedVisibility, searchQuery]);
 
+  // 프로필 데이터 가져오기
   useEffect(() => {
-    if (!isLoggedIn()) {
-      alert("로그인이 필요합니다!");
-      navigate("/");
+    const fetchProfile = async () => {
+      try {
+        const { data } = await apiClient.get("/api/members/me");
+        setProfile(data);
+        setIntroductionInput(data.introduction || "");
+      } catch (err) {
+        console.error("프로필 정보를 불러오지 못했습니다.", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // 자기소개 수정 (Enter 키)
+  const handleIntroductionKeyDown = async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      try {
+        await apiClient.patch("/api/members/me", {
+          introduction: introductionInput,
+        });
+        setProfile((prev) => ({ ...prev, introduction: introductionInput }));
+        showCopyModal("자기 소개 수정이 완료되었습니다");
+      } catch (err) {
+        console.error("자기소개 수정 실패:", err);
+        alert("자기소개 수정에 실패했습니다.");
+      }
     }
-  }, [navigate]);
+  };
 
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
@@ -232,12 +264,17 @@ export default function ArchivePage() {
       <LeftSection>
         <ProfileSection>
           <ProfileHeader>
-            <ProfileImage src={tempoProfileImage} />
+            <ProfileImage
+              src={profile.profileImageUrl || defaultProfileImage}
+            />
             <ProfileDetail>
-              <ProfileName>
-                연동이 안돼서 안떠요 옆에 이미지도 더미데이터
-              </ProfileName>
-              <ProfileInput placeholder="자기소개를 입력해주세요" />
+              <ProfileName>{profile.name || "사용자"}</ProfileName>
+              <ProfileInput
+                placeholder="자기소개를 입력해주세요"
+                value={introductionInput}
+                onChange={(e) => setIntroductionInput(e.target.value)}
+                onKeyDown={handleIntroductionKeyDown}
+              />
             </ProfileDetail>
           </ProfileHeader>
           <MenuSection>
@@ -502,13 +539,12 @@ const MenuSection = styled.section`
 
 const MenuItem = styled.div`
   width: 2.875rem;
-  border-bottom: 3px solid
-    ${({ $isActive }) => ($isActive ? "#00AEFF" : "#454545")};
+  border-bottom: ${({ $isActive }) =>
+    $isActive ? "3px solid #00AEFF" : "none"};
   display: flex;
   justify-content: center;
   margin-bottom: -1px;
   cursor: pointer;
-  transition: border-color 0.2s;
 `;
 
 const IconWrapper = styled.div`

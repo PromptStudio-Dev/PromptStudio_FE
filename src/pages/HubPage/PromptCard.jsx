@@ -3,9 +3,12 @@ import styled from "styled-components";
 import heartIcon from "./assets/heartIcon.svg";
 import colorHeartIcon from "./assets/colorHeartIcon.svg";
 import copyIcon from "./assets/copyIcon.svg";
+import copyCompleteIcon from "./assets/copyCompleteIcon.svg";
 
 import apiClient from "../../api/client";
 import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
+import { useCopyModal } from "../../contexts/CopyModalContext";
 
 export default function PromptCard({
   promptId = "", // promptID가 필요하므로 기본값 설정
@@ -25,6 +28,9 @@ export default function PromptCard({
 }) {
   const [isHeartClicked, setIsHeartClicked] = useState(initialLiked);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const { openLoginModal } = useLoginModal();
+  const { showCopyModal } = useCopyModal();
 
   useEffect(() => {
     setIsHeartClicked(initialLiked);
@@ -52,8 +58,7 @@ export default function PromptCard({
     e.stopPropagation(); // 상위로 클릭 이벤트 전파 방지
     if (!promptId) return;
     if (!isLoggedIn()) {
-      alert("로그인이 필요합니다!");
-      window.location.href = "/";
+      openLoginModal();
       return;
     }
 
@@ -82,7 +87,11 @@ export default function PromptCard({
 
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
-        // alert("프롬프트 내용이 복사되었습니다!"); // alert 제거
+        showCopyModal();
+        setIsCopied(true);
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 2000);
       } else {
         alert("복사할 내용이 없습니다.");
       }
@@ -110,16 +119,19 @@ export default function PromptCard({
       </CardHeader>
       <CardTitle $hasBackgroundImage={!!backgroundImage}>{title}</CardTitle>
       <CardSubTitle $hasBackgroundImage={!!backgroundImage}>
-      {subtitle}
-    </CardSubTitle>
-    <ButtonSection>
-      <HeartIcon
-        src={isHeartClicked ? heartSelectedIconSrc : heartIconSrc}
-        onClick={handleHeartClick}
-      />
-      <CopyIcon src={copyIcon} onClick={handleCopyClick} />
-    </ButtonSection>
-  </PromptCardContainer>
+        {subtitle}
+      </CardSubTitle>
+      <ButtonSection>
+        <HeartIcon
+          src={isHeartClicked ? heartSelectedIconSrc : heartIconSrc}
+          onClick={handleHeartClick}
+        />
+        <CopyIcon
+          src={isCopied ? copyCompleteIcon : copyIcon}
+          onClick={handleCopyClick}
+        />
+      </ButtonSection>
+    </PromptCardContainer>
   );
 }
 
@@ -197,7 +209,7 @@ const PromptCardContainer = styled.div`
   aspect-ratio: 2/1;
   background-color: pink;
   border-radius: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  // border: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
   background: ${({ backgroundImage }) =>
     backgroundImage

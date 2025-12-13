@@ -3,7 +3,7 @@ import NavItem from "./NavItem";
 
 const items = [
   { to: "/", label: "Hub", end: true },
-  { to: "/archive", label: "Archive" },
+  { to: "/archive", label: "Archive", requireAuth: true },
   { to: "/maker", label: "Maker" },
 ];
 
@@ -11,7 +11,7 @@ export default function GNB() {
   return (
     <Nav>
       {items.map((it) => (
-        <NavItem key={it.to} to={it.to} end={it.end}>
+        <NavItem key={it.to} to={it.to} end={it.end} requireAuth={it.requireAuth}>
           {it.label}
         </NavItem>
       ))}

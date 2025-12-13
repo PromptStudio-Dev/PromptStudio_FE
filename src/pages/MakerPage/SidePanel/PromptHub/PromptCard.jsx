@@ -3,6 +3,7 @@ import styled from "styled-components";
 import copyIcon from "../../assets/copyIcon.svg";
 import copyIconActive from "../../assets/copyIcon-active.svg";
 import apiClient from "../../../../api/client";
+import { useCopyModal } from "../../../../contexts/CopyModalContext";
 
 export default function PromptCard({
   promptId,
@@ -14,6 +15,7 @@ export default function PromptCard({
   onClick,
 }) {
   const [isCopied, setIsCopied] = useState(false);
+  const { showCopyModal } = useCopyModal();
 
   useEffect(() => {
     if (isCopied) {
@@ -35,6 +37,7 @@ export default function PromptCard({
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
         setIsCopied(true);
+        showCopyModal();
       } else {
         alert("복사할 내용이 없습니다.");
       }

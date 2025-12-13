@@ -16,7 +16,10 @@ import detailEditIcon from "./assets/detailEditIcon.svg";
 import detailDirectUseIcon from "./assets/detailDirectUseIcon.svg";
 import detailCopyButtonIcon from "./assets/detailCopyButtonIcon.svg";
 import detailPromptIcon from "./assets/detailPromptIcon.svg";
+import trashIcon from "./assets/trashIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
+import { useCopyModal } from "../../contexts/CopyModalContext";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -40,7 +43,10 @@ export default function PromptDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const currentMemberId = getMemberId();
+  const { openLoginModal } = useLoginModal();
+  const { showCopyModal } = useCopyModal();
   const isOwner =
     promptData?.memberId &&
     currentMemberId &&
@@ -72,6 +78,7 @@ export default function PromptDetailPage() {
       const response = await apiClient.patch(`/api/prompts/${promptId}/copy`);
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
+        showCopyModal();
       } else {
         alert("복사할 내용이 없습니다.");
       }
@@ -83,8 +90,7 @@ export default function PromptDetailPage() {
 
   const handleDirectUse = () => {
     if (!isLoggedIn()) {
-      alert("로그인이 필요합니다!");
-      window.location.href = "/";
+      openLoginModal();
       return;
     }
     if (!promptData?.promptId) return;
@@ -107,8 +113,7 @@ export default function PromptDetailPage() {
   const handleLikeToggle = async () => {
     if (!promptId) return;
     if (!isLoggedIn()) {
-      alert("로그인이 필요합니다!");
-      window.location.href = "/";
+      openLoginModal();
       return;
     }
     try {
@@ -125,176 +130,229 @@ export default function PromptDetailPage() {
     }
   };
 
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      await apiClient.delete(`/api/prompts/${promptId}`);
+      setIsDeleteModalOpen(false);
+      navigate("/");
+    } catch (err) {
+      console.error("프롬프트 삭제 실패:", err);
+      alert("프롬프트 삭제에 실패했습니다.");
+    }
+  };
+
   return (
-    <MainSection>
-      <LeftSection>
-        <TitlePart>
-          <CategoryTag>{promptData?.category}</CategoryTag>
-          <Title>{promptData?.title}</Title>
-          <LikeButton
-            src={isLiked ? heartSelectedIcon : heartIcon}
-            onClick={handleLikeToggle}
-          />
-        </TitlePart>
-        <WriterInfo>
-          <WriterImg src={promptData?.imageUrl} />
-          <InfoSection>
-            <WriterName>{promptData?.name}</WriterName>
-            <InfoBottomSection>
-              <InfoItem>
-                <InfoIcon src={detailViewIcon} />
-                <InfoText>{promptData?.viewCount}</InfoText>
-                <InfoIcon src={detailHeartIcon} />
-                <InfoText>{promptData?.likeCount}</InfoText>
-                <InfoIcon src={detailCopyIcon} />
-                <InfoText>{promptData?.copyCount}</InfoText>
-              </InfoItem>
-            </InfoBottomSection>
-          </InfoSection>
-          <InfoTime>{formatDate(promptData?.createdAt)}</InfoTime>
-        </WriterInfo>
-        <IntroductionSection>
-          <IntroductionText>{promptData?.introduction}</IntroductionText>
-        </IntroductionSection>
-        <LeftBottomSection>
-          <BottomFirstSection>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.69rem",
-                marginTop: "1.19rem",
-                marginBottom: "1rem",
-              }}
-            >
-              <PromptInfoSection>
-                <TemplateSection>
-                  <PromptInfoSectionIcon src={detailRecommendIcon} />
-                  <PromptInfoSectionText>추천 AI</PromptInfoSectionText>
-                </TemplateSection>
-                <AiEnvironmentText>
-                  {promptData?.aiEnvironment}
-                </AiEnvironmentText>
-              </PromptInfoSection>
-              <PromptInfoSection>
-                <TemplateSection>
-                  <PromptInfoSectionIcon src={detailImageRequiredIcon} />
-                  <PromptInfoSectionText>
-                    이미지 필요 여부
-                  </PromptInfoSectionText>
-                </TemplateSection>
-                <AiEnvironmentText>
-                  {promptData?.imageRequired ? "예" : "아니요"}
-                </AiEnvironmentText>
-              </PromptInfoSection>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                height: "1.625rem",
-                marginLeft: "0.75rem",
-                alignItems: "center",
-              }}
-            >
+    <>
+      <MainSection>
+        <LeftSection>
+          <TitlePart>
+            <CategoryTag>{promptData?.category}</CategoryTag>
+            <Title>{promptData?.title}</Title>
+            <LikeButton
+              src={isLiked ? heartSelectedIcon : heartIcon}
+              onClick={handleLikeToggle}
+            />
+          </TitlePart>
+          <WriterInfo>
+            <WriterImg src={promptData?.profileImageUrl} />
+            <InfoSection>
+              <WriterName>{promptData?.name}</WriterName>
+              <InfoBottomSection>
+                <InfoItem>
+                  <InfoIcon src={detailViewIcon} />
+                  <InfoText>{promptData?.viewCount}</InfoText>
+                  <InfoIcon src={detailHeartIcon} />
+                  <InfoText>{promptData?.likeCount}</InfoText>
+                  <InfoIcon src={detailCopyIcon} />
+                  <InfoText>{promptData?.copyCount}</InfoText>
+                </InfoItem>
+              </InfoBottomSection>
+            </InfoSection>
+            <InfoTime>{formatDate(promptData?.createdAt)}</InfoTime>
+          </WriterInfo>
+          <IntroductionSection>
+            <IntroductionText>{promptData?.introduction}</IntroductionText>
+          </IntroductionSection>
+          <LeftBottomSection>
+            <BottomFirstSection>
               <div
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.69rem",
+                  marginTop: "1.19rem",
+                  marginBottom: "1.5rem",
+                }}
               >
-                <img src={detailPromptIcon} />
+                <PromptInfoSection>
+                  <TemplateSection>
+                    <PromptInfoSectionIcon src={detailRecommendIcon} />
+                    <PromptInfoSectionText>추천 AI</PromptInfoSectionText>
+                  </TemplateSection>
+                  <AiEnvironmentText>
+                    {promptData?.aiEnvironment}
+                  </AiEnvironmentText>
+                </PromptInfoSection>
+                <PromptInfoSection>
+                  <TemplateSection>
+                    <PromptInfoSectionIcon src={detailImageRequiredIcon} />
+                    <PromptInfoSectionText>
+                      이미지 필요 여부
+                    </PromptInfoSectionText>
+                  </TemplateSection>
+                  <ImageRequiredText>
+                    {promptData?.imageRequired ? "O" : "X"}
+                  </ImageRequiredText>
+                </PromptInfoSection>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  height: "1.625rem",
+                  marginLeft: "0.75rem",
+                  alignItems: "center",
+                }}
+              >
                 <div
                   style={{
-                    color: "#000",
-                    textAlign: "center",
-                    fontFamily: "Pretendard, sans-serif",
-                    fontSize: "1.1875rem",
-                    fontStyle: "normal",
-                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
                   }}
                 >
-                  프롬프트
+                  <img src={detailPromptIcon} />
+                  <div
+                    style={{
+                      color: "#000",
+                      textAlign: "center",
+                      fontFamily: "Pretendard, sans-serif",
+                      fontSize: "1.1875rem",
+                      fontStyle: "normal",
+                      fontWeight: "600",
+                    }}
+                  >
+                    프롬프트
+                  </div>
                 </div>
               </div>
-            </div>
-            <PromptContent>{promptData?.content}</PromptContent>
-            <ButtonContainer>
-              {isOwner && (
-                <DetailButton
-                  onClick={() =>
-                    navigate("/upload", {
-                      state: {
-                        editMode: true,
-                        promptData: {
-                          ...promptData,
-                          imageRequired:
-                            promptData?.imgRequired ??
-                            promptData?.imageRequired ??
-                            false,
-                        },
-                      },
-                    })
-                  }
-                >
-                  <DetailButtonIcon src={detailEditIcon} />
-                  <DetailButtonText>수정하기</DetailButtonText>
-                </DetailButton>
-              )}
-              <RightButtonGroup>
-                <DetailButton onClick={handleCopyPrompt}>
-                  <DetailButtonIcon src={detailCopyButtonIcon} />
-                  <DetailButtonText>복사하기</DetailButtonText>
-                </DetailButton>
-                <DirectUseButton onClick={handleDirectUse}>
-                  <DetailButtonIcon src={detailDirectUseIcon} />
-                  <DirectUseButtonText>바로 사용하기</DirectUseButtonText>
-                </DirectUseButton>
-              </RightButtonGroup>
-            </ButtonContainer>
-          </BottomFirstSection>
-          <BottomSecondSection>
-            <div
-              style={{
-                display: "flex",
-                height: "1.625rem",
-                marginLeft: "0.75rem",
-                alignItems: "center",
-              }}
-            >
+              <PromptContent>{promptData?.content}</PromptContent>
+              <ButtonContainer>
+                {isOwner && (
+                  <>
+                    <DetailButton
+                      onClick={() =>
+                        navigate("/upload", {
+                          state: {
+                            editMode: true,
+                            promptData: {
+                              ...promptData,
+                              imageRequired:
+                                promptData?.imgRequired ??
+                                promptData?.imageRequired ??
+                                false,
+                            },
+                          },
+                        })
+                      }
+                    >
+                      <DetailButtonIcon src={detailEditIcon} />
+                      <DetailButtonText>수정하기</DetailButtonText>
+                    </DetailButton>
+                    <DeleteButton onClick={handleDeleteClick}>
+                      <DeleteButtonIcon src={trashIcon} />
+                    </DeleteButton>
+                  </>
+                )}
+                <RightButtonGroup>
+                  <DetailButton onClick={handleCopyPrompt}>
+                    <DetailButtonIcon src={detailCopyButtonIcon} />
+                    <DetailButtonText>복사하기</DetailButtonText>
+                  </DetailButton>
+                  <DirectUseButton onClick={handleDirectUse}>
+                    <DetailButtonIcon src={detailDirectUseIcon} />
+                    <DirectUseButtonText>바로 사용하기</DirectUseButtonText>
+                  </DirectUseButton>
+                </RightButtonGroup>
+              </ButtonContainer>
+            </BottomFirstSection>
+            <BottomSecondSection>
               <div
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+                style={{
+                  display: "flex",
+                  height: "1.625rem",
+                  marginLeft: "0.75rem",
+                  alignItems: "center",
+                }}
               >
-                <img src={detailResultIcon} />
                 <div
                   style={{
-                    color: "#000",
-                    textAlign: "center",
-                    fontFamily: "Pretendard, sans-serif",
-                    fontSize: "1.1875rem",
-                    fontStyle: "normal",
-                    fontWeight: "normal",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
                   }}
                 >
-                  프롬프트 실행 결과
+                  <img src={detailResultIcon} />
+                  <div
+                    style={{
+                      color: "#000",
+                      textAlign: "center",
+                      fontFamily: "Pretendard, sans-serif",
+                      fontSize: "1.1875rem",
+                      fontStyle: "normal",
+                      fontWeight: "normal",
+                    }}
+                  >
+                    프롬프트 실행 결과
+                  </div>
                 </div>
               </div>
-            </div>
-            <PromptResultContent>
-              {promptData?.imageUrl ? (
-                <ResultImage
-                  src={promptData.imageUrl}
-                  alt="프롬프트 실행 결과"
-                />
-              ) : promptData?.result ? (
-                <ResultText>{promptData?.result}</ResultText>
-              ) : (
-                <ResultTextEmpty>실행 결과 예시가 없습니다.</ResultTextEmpty>
-              )}
-            </PromptResultContent>
-          </BottomSecondSection>
-        </LeftBottomSection>
-      </LeftSection>
-      <RightSection>
-        <ChatBar />
-      </RightSection>
-    </MainSection>
+              <PromptResultContent>
+                {promptData?.imageUrl ? (
+                  <ResultImage
+                    src={promptData.imageUrl}
+                    alt="프롬프트 실행 결과"
+                  />
+                ) : promptData?.result ? (
+                  <ResultText>{promptData?.result}</ResultText>
+                ) : (
+                  <ResultTextEmpty>실행 결과 예시가 없습니다.</ResultTextEmpty>
+                )}
+              </PromptResultContent>
+            </BottomSecondSection>
+          </LeftBottomSection>
+        </LeftSection>
+        <RightSection>
+          <ChatBar />
+        </RightSection>
+      </MainSection>
+      {isDeleteModalOpen && (
+        <DeleteModalOverlay onClick={handleDeleteCancel}>
+          <DeleteModalContainer onClick={(e) => e.stopPropagation()}>
+            <DeleteModalText>
+              삭제하시면 되돌릴 수 없습니다.
+              <br />
+              정말 삭제하시겠습니까?
+            </DeleteModalText>
+            <DeleteModalButtonGroup>
+              <DeleteModalCancelButton onClick={handleDeleteCancel}>
+                취소
+              </DeleteModalCancelButton>
+              <DeleteModalConfirmButton onClick={handleDeleteConfirm}>
+                삭제
+              </DeleteModalConfirmButton>
+            </DeleteModalButtonGroup>
+          </DeleteModalContainer>
+        </DeleteModalOverlay>
+      )}
+    </>
   );
 }
 
@@ -314,7 +372,7 @@ const LeftSection = styled.section`
   max-height: 100%;
   background-color: #fff;
   overflow-y: auto;
-  padding: 3rem 6rem;
+  padding: 2rem 6rem;
 `;
 
 const RightSection = styled.section`
@@ -330,6 +388,7 @@ const RightSection = styled.section`
 
 const TitlePart = styled.div`
   display: flex;
+  align-items: center;
   width: 100%;
   border-bottom: 2px solid #aadff7;
   padding-bottom: 1rem;
@@ -339,7 +398,7 @@ const CategoryTag = styled.div`
   font-family: "Pretendard", sans-serif;
   font-size: 1.1875rem;
   font-weight: 600;
-  padding: 0.62rem;
+  padding: 0.4rem 1rem;
   background-color: #e0f5ff;
   color: #000;
   border-radius: 7.5rem;
@@ -350,18 +409,18 @@ const Title = styled.div`
   color: #001e40;
   text-align: center;
   font-family: "Pretendard";
-  font-size: 2.25rem;
+  font-size: 1.4rem;
   font-style: normal;
   font-weight: 600;
 `;
 
 const LikeButton = styled.img`
-  width: 2.56694rem;
-  height: 2.56694rem;
+  width: 2rem;
+  height: 2rem;
   margin-left: auto;
   cursor: pointer;
   align-self: flex-end;
-  margin-bottom: -0.2rem;
+  margin-right: 0.2rem;
 `;
 
 const WriterInfo = styled.div`
@@ -382,7 +441,7 @@ const WriterName = styled.div`
   color: #000;
   text-align: left;
   font-family: "Pretendard";
-  font-size: 1.625rem;
+  font-size: 1.2rem;
   font-style: normal;
   font-weight: 500;
   line-height: 1.9375rem;
@@ -391,8 +450,9 @@ const WriterName = styled.div`
 const InfoSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  justify-content: flex-end;
+
+  gap: 0.5rem;
+  justify-content: center;
 `;
 
 const InfoBottomSection = styled.div`
@@ -418,6 +478,7 @@ const InfoText = styled.div`
   font-style: normal;
   font-weight: 500;
   line-height: 1.5rem;
+  margin-right: 0.5rem;
 `;
 
 const InfoTime = styled.div`
@@ -433,7 +494,7 @@ const InfoTime = styled.div`
 `;
 
 const IntroductionSection = styled.div`
-  width: 55%;
+  width: 100%;
   padding: 1.06rem 1.62rem;
   background: #f5fcff;
   text-align: left;
@@ -453,7 +514,7 @@ const IntroductionText = styled.div`
 
   /* 3줄까지는 박스가 커지고, 그 이후부터는 스크롤 */
   /* 1.1875rem(폰트) * 1.4(line-height) * 3줄 */
-  max-height: calc(1.1875rem * 1.4 * 3);
+  max-height: calc(1.1875rem * 1.4 * 2);
   overflow-y: auto;
 
   /* 스크롤바 스타일 */
@@ -502,12 +563,35 @@ const PromptInfoSectionText = styled.div`
 `;
 
 const AiEnvironmentText = styled.div`
+  background-color: #f5fcff;
+  height: 2rem;
+  padding: 0rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--B-T, #454545);
   text-align: center;
   font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;
+`;
+
+const ImageRequiredText = styled.div`
+  background-color: #f5fcff;
+  height: 2rem;
+  padding: 0rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--Light-blue, #49d8ff);
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
 `;
 
 const TemplateSection = styled.div`
@@ -519,14 +603,13 @@ const TemplateSection = styled.div`
 
 const PromptContent = styled.div`
   width: 100%;
-  height: 24rem;
-  margin-top: 1.62rem;
+  height: 22rem;
+  margin-top: 1.2rem;
   border-radius: 1rem;
   border: 1px solid var(--Line_Blue-light, #aadff7);
-  padding: 2.19rem 2.31rem;
+  padding: 1.2rem 1.8rem;
   color: #000;
   overflow-y: auto;
-
   font-family: "Pretendard";
   font-size: 1.1875rem;
   font-style: normal;
@@ -612,4 +695,93 @@ const DirectUseButtonText = styled.div`
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
+`;
+
+const DeleteButton = styled.div`
+  display: flex;
+  padding: 0.62rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  border: 1px solid var(--Light-blue, #49d8ff);
+`;
+
+const DeleteButtonIcon = styled.img`
+  width: 1.5rem;
+  height: 1.5rem;
+`;
+
+const DeleteModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const DeleteModalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.625rem 3.0625rem 1.125rem 3.625rem;
+  border-radius: 1rem;
+  background: #282828;
+`;
+
+const DeleteModalText = styled.div`
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const DeleteModalButtonGroup = styled.div`
+  display: flex;
+  gap: 1.125rem;
+  align-items: center;
+`;
+
+const DeleteModalCancelButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.5px solid #fff;
+  background: transparent;
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const DeleteModalConfirmButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.5px solid #fff;
+  background: #fff;
+  color: #282828;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 `;
