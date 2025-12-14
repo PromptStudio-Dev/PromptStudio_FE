@@ -218,7 +218,7 @@ const TextContent = styled.div`
   letter-spacing: -0.0125rem; /* -0.475px */
   color: #000000;
   box-sizing: border-box;
-  padding: 0;
+  padding: 0 0.5rem 0 0;
   white-space: pre-wrap;
   word-wrap: break-word;
 

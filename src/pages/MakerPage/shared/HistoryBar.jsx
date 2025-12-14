@@ -304,6 +304,7 @@ const HistoryList = styled.div`
   gap: 2.375rem;
   margin-left: 2.5rem;
   width: 27.375rem;
+  max-width: calc(100% - 2.5rem); /* 컨테이너 너비에 맞춰 조정 */
   min-height: 18rem; /* 라인 높이와 기본 영역 맞추기 */
 `;
 
@@ -313,13 +314,15 @@ const HistoryItem = styled.div`
   height: 3rem;
   border-radius: 0.1875rem;
   background-color: ${(props) => (props.$isActive ? "#e8faff" : "transparent")};
-  padding: 0 0.9375rem;
+  padding: 0 1rem 0 0.9375rem; /* 오른쪽 padding을 3rem에서 1rem으로 줄임 */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   transition: background-color 0.2s ease;
   box-sizing: border-box;
+  width: 100%;
+  min-width: 0; /* flex 아이템이 줄어들 수 있도록 */
 
   &:hover {
     background-color: ${(props) => (props.$isActive ? "#d4e8f0" : "#f5f5f5")};
