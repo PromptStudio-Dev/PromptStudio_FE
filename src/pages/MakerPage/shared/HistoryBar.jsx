@@ -3,6 +3,37 @@ import styled from "styled-components";
 import historyUpButton from "../assets/historybar-up-button.svg";
 import historyDownButton from "../assets/historybar-down-button.svg";
 
+// 시간 포맷팅 함수 (예: "PM 16:42")
+// createdAt은 UTC 시간이므로 한국 시간(KST, UTC+9)으로 변환
+const formatTime = (createdAt) => {
+  if (!createdAt) return "";
+
+  try {
+    // ISO 8601 형식에서 시간대 정보가 없으면 UTC로 가정
+    // 'Z'를 추가하거나 UTC로 명시적으로 파싱
+    const utcDate = createdAt.endsWith("Z")
+      ? new Date(createdAt)
+      : new Date(createdAt + "Z");
+
+    // 한국 시간대(KST, UTC+9)로 변환
+    const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+    const kstDate = new Date(utcDate.getTime() + kstOffset);
+
+    // UTC 메서드를 사용하여 변환된 시간 추출
+    const hours = kstDate.getUTCHours();
+    const minutes = kstDate.getUTCMinutes();
+
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+    const displayMinutes = minutes.toString().padStart(2, "0");
+
+    return `${period}  ${displayHours}:${displayMinutes}`;
+  } catch (error) {
+    console.error("시간 포맷팅 실패:", error);
+    return "";
+  }
+};
+
 export default function HistoryBar({
   currentIndex = 1,
   historyItems = [],
@@ -87,7 +118,11 @@ export default function HistoryBar({
                 >
                   <HistoryItemTitle>{item.title || ""}</HistoryItemTitle>
                   <HistoryItemMeta>
-                    {item.status || item.time || ""}
+                    {index === 0
+                      ? "New"
+                      : item.createdAt
+                      ? formatTime(item.createdAt)
+                      : item.status || item.time || ""}
                   </HistoryItemMeta>
                 </HistoryItem>
               ))}
