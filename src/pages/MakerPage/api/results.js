@@ -20,7 +20,10 @@ export const runPrompt = async (makerId, prompt) => {
 
   const response = await apiClient.post(
     `/api/makers/${makerId}/histories/run?${params.toString()}`,
-    null
+    null,
+    {
+      timeout: 10000000,
+    }
   );
   return response.data;
 };
