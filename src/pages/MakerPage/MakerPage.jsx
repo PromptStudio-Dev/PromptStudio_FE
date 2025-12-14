@@ -75,6 +75,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         const formattedHistories = histories.map((history) => ({
           id: history.historyId,
           title: history.title || `History ${history.historyId}`,
+          createdAt: history.createdAt || null,
         }));
         setHistoryItems(formattedHistories);
 
@@ -632,6 +633,7 @@ export default function MakerPage({ selectedPrompt = null }) {
               const formattedHistories = histories.map((history) => ({
                 id: history.historyId,
                 title: history.title || `History ${history.historyId}`,
+                createdAt: history.createdAt || null,
               }));
               setHistoryItems(formattedHistories);
 
@@ -748,6 +750,7 @@ export default function MakerPage({ selectedPrompt = null }) {
             const formattedHistories = histories.map((history) => ({
               id: history.historyId,
               title: history.title || `History ${history.historyId}`,
+              createdAt: history.createdAt || null,
             }));
             setHistoryItems(formattedHistories);
 
