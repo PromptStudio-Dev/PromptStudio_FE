@@ -3,8 +3,10 @@ import styled from "styled-components";
 import CopyIcon from "../assets/run-result-text-copy-inactive-icon.svg";
 import CopyActiveIcon from "../assets/run-result-text-copy-active-icon.svg";
 import SaveIcon from "../assets/run-result-image-save-inactive-icon.svg";
+import SaveActiveIcon from "../assets/run-result-image-save-active-icon.svg";
 import ExpandIcon from "../assets/run-result-expand-icon.svg";
 import CollapseIcon from "../assets/run-result-collapse-icon.svg";
+import { downloadHistoryImage } from "../api/results";
 
 export default function ResultDisplay({
   imageUrl,
@@ -13,8 +15,12 @@ export default function ResultDisplay({
   onExpand,
   isExpanded = false,
   showActions = true, // 버튼 표시 여부 (기본값: true, ResultModal에서는 false)
+  makerId = null,
+  historyId = null,
 }) {
   const [isCopied, setIsCopied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (isCopied) {
@@ -25,6 +31,16 @@ export default function ResultDisplay({
       return () => clearTimeout(timer);
     }
   }, [isCopied]);
+
+  useEffect(() => {
+    if (isSaved) {
+      const timer = setTimeout(() => {
+        setIsSaved(false);
+      }, 3000); // 3초 후 원래 상태로 복귀
+
+      return () => clearTimeout(timer);
+    }
+  }, [isSaved]);
 
   const handleCopy = () => {
     if (textContent) {
@@ -39,24 +55,68 @@ export default function ResultDisplay({
     }
   };
 
-  // 백엔드와 상의 후 고쳐야 할 필요가 있음
-  // 백엔드에서 S3 CORS 설정 필요
+  // 이미지 저장 로직
   const handleSave = async () => {
-    if (!imageUrl) return;
+    if (!imageUrl || isSaving) return;
+
+    setIsSaving(true);
+    setIsSaved(false);
 
     try {
-      const res = await fetch(imageUrl);
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
+      let blob;
+      let fileName = `image-${Date.now()}.png`;
 
+      // makerId와 historyId가 있으면 백엔드 API를 통해 이미지 다운로드
+      if (makerId && historyId) {
+        try {
+          blob = await downloadHistoryImage(makerId, historyId);
+          // 파일명 생성 (이미지 URL에서 확장자 추출)
+          const getFileExtension = (imageUrl) => {
+            try {
+              const urlPath = new URL(imageUrl).pathname;
+              const extension = urlPath.split(".").pop()?.toLowerCase();
+              if (
+                ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(extension)
+              ) {
+                return extension;
+              }
+            } catch {
+              // URL 파싱 실패 시 기본값 반환
+            }
+            return "png"; // 기본 확장자
+          };
+          const extension = getFileExtension(imageUrl);
+          fileName = `image-${Date.now()}.${extension}`;
+        } catch (apiError) {
+          console.error("이미지 다운로드 실패:", apiError);
+          // API 실패 시 기존 imageUrl로 직접 다운로드 시도
+          const res = await fetch(imageUrl);
+          blob = await res.blob();
+        }
+      } else {
+        // makerId와 historyId가 없으면 기존 방식 (imageUrl 직접 다운로드)
+        const res = await fetch(imageUrl);
+        blob = await res.blob();
+      }
+
+      // Blob을 다운로드
+      const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `image-${Date.now()}.png`; // 브라우저가 직접 다운로드 시작
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
 
-      URL.revokeObjectURL(url);
+      // 메모리 정리
+      URL.revokeObjectURL(blobUrl);
+
+      setIsSaved(true);
     } catch (err) {
-      console.error("다운로드 실패:", err);
+      console.error("이미지 저장 실패:", err);
+      alert("이미지 저장에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -84,9 +144,18 @@ export default function ResultDisplay({
             </CopyButton>
           )}
           {imageUrl && (
-            <SaveButton onClick={handleSave}>
-              <SaveIconImg src={SaveIcon} alt="저장" />
-              <SaveText>저장</SaveText>
+            <SaveButton
+              onClick={handleSave}
+              $isSaved={isSaved}
+              disabled={isSaving}
+            >
+              <SaveIconImg
+                src={isSaved ? SaveActiveIcon : SaveIcon}
+                alt="저장"
+              />
+              <SaveText $isSaved={isSaved}>
+                {isSaving ? "저장중..." : "저장"}
+              </SaveText>
             </SaveButton>
           )}
           <ExpandButton onClick={onExpand}>
@@ -228,15 +297,16 @@ const SaveButton = styled.button`
   background-color: #f5fcff;
   border: none;
   border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   height: 2.5625rem;
   min-width: 5rem;
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
   }
 `;
@@ -250,7 +320,8 @@ const SaveText = styled.span`
   font-family: "Pretendard Variable", sans-serif;
   font-weight: 700;
   font-size: 1rem;
-  color: #848484;
+  color: ${(props) => (props.$isSaved ? "#00AEFF" : "#848484")};
+  transition: color 0.2s ease;
 `;
 
 const ExpandButton = styled.button`
