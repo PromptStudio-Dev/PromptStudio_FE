@@ -582,6 +582,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
         historyItems={historyItems}
         isResultModalOpen={isResultModalOpen}
+        isResultLoading={isResultLoading}
         onRunPrompt={async () => {
           // 확장되지 않은 상태에서 PROMPT RUN을 누르면 ResultModal 표시
           if (!isResultPanelExpanded) {
