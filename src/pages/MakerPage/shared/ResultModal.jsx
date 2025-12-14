@@ -124,51 +124,53 @@ export default function ResultModal({
           </HeaderButtons>
         </ModalHeader>
         <ModalBody>
-          <ResultDisplay
-            isLoading={isResultLoading}
-            imageUrl={resultImageUrl}
-            textContent={resultText}
-            showActions={false}
-          />
+          <ContentWrapper>
+            <ResultDisplay
+              isLoading={isResultLoading}
+              imageUrl={resultImageUrl}
+              textContent={resultText}
+              showActions={false}
+            />
 
-          <BottomSection>
-            <TabHeader>
-              <TabButton
-                type="button"
-                data-active={activeTab === "HISTORY"}
-                onClick={() => setActiveTab("HISTORY")}
-              >
-                <TabTitle>History</TabTitle>
-                <TabCount>
-                  ({currentHistoryIndex}/{historyItems.length || 0})
-                </TabCount>
-              </TabButton>
-              <TabButton
-                type="button"
-                data-active={activeTab === "FEEDBACK"}
-                onClick={() => setActiveTab("FEEDBACK")}
-              >
-                <TabTitle>Feedback</TabTitle>
-              </TabButton>
-            </TabHeader>
+            <BottomSection>
+              <TabHeader>
+                <TabButton
+                  type="button"
+                  data-active={activeTab === "HISTORY"}
+                  onClick={() => setActiveTab("HISTORY")}
+                >
+                  <TabTitle>History</TabTitle>
+                  <TabCount>
+                    ({currentHistoryIndex}/{historyItems.length || 0})
+                  </TabCount>
+                </TabButton>
+                <TabButton
+                  type="button"
+                  data-active={activeTab === "FEEDBACK"}
+                  onClick={() => setActiveTab("FEEDBACK")}
+                >
+                  <TabTitle>Feedback</TabTitle>
+                </TabButton>
+              </TabHeader>
 
-            <TabContentWrapper>
-              {activeTab === "HISTORY" ? (
-                <TabInnerHistory>
-                  <HistoryBar
-                    currentIndex={currentHistoryIndex}
-                    totalCount={historyItems.length || 10}
-                    historyItems={historyItems}
-                    onItemClick={onHistoryItemClick}
-                  />
-                </TabInnerHistory>
-              ) : (
-                <TabInnerFeedback>
-                  <ResultFeedback feedbackText={feedbackText} />
-                </TabInnerFeedback>
-              )}
-            </TabContentWrapper>
-          </BottomSection>
+              <TabContentWrapper>
+                {activeTab === "HISTORY" ? (
+                  <TabInnerHistory>
+                    <HistoryBar
+                      currentIndex={currentHistoryIndex}
+                      totalCount={historyItems.length || 10}
+                      historyItems={historyItems}
+                      onItemClick={onHistoryItemClick}
+                    />
+                  </TabInnerHistory>
+                ) : (
+                  <TabInnerFeedback>
+                    <ResultFeedback feedbackText={feedbackText} />
+                  </TabInnerFeedback>
+                )}
+              </TabContentWrapper>
+            </BottomSection>
+          </ContentWrapper>
         </ModalBody>
       </ModalContent>
     </ModalOverlay>
@@ -217,6 +219,12 @@ const ModalHeader = styled.div`
   padding: 1.5rem 3rem;
 `;
 
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
 const ModalTitle = styled.h2`
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.4375rem;
@@ -249,18 +257,18 @@ const CloseButton = styled.button`
 `;
 
 const ModalBody = styled.div`
-  flex: 1;
-  padding: 3rem;
-  display: flex;
+  flex: 1 0 auto;
+  padding: 1.62rem 3rem 1.62rem 2rem;
   flex-direction: column;
-  gap: 2rem;
+  gap: 3rem;
   overflow-y: auto;
 `;
 
 const BottomSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  padding-left: 2rem;
 `;
 
 const TabContentWrapper = styled.div`
@@ -285,6 +293,7 @@ const TabInnerFeedback = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  padding-bottom: 1rem;
 `;
 
 const TabHeader = styled.div`

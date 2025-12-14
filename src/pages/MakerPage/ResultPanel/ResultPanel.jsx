@@ -5,6 +5,7 @@ import ResultPanelCloseImg from "../assets/prompt-run-close.svg";
 import ResultDisplay from "../shared/ResultDisplay";
 import HistoryBar from "../shared/HistoryBar";
 import ResultFeedback from "../shared/ResultFeedback";
+import ResultModalOpenImg from "../assets/open-resultmodal.svg";
 
 export default function ResultPanel({
   isOpen = true,
@@ -20,6 +21,9 @@ export default function ResultPanel({
   isSidebarOpen = true,
   isResultPanelExpanded = false,
   onExpandChange,
+  makerId = null,
+  historyId = null,
+  onOpenModal = null, // ResultModal 열기 콜백
 }) {
   const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
 
@@ -30,17 +34,34 @@ export default function ResultPanel({
       $isSidebarOpen={isSidebarOpen}
     >
       <ResultPanelHeader $isExpanded={isResultPanelExpanded}>
-        {!isResultPanelExpanded && <AIModalSelector />}
         <SecondWrapper>
-          <RunButton onClick={onRun}>
+          {!isResultPanelExpanded && <AIModalSelector />}
+          <RunButton onClick={onRun} disabled={isResultLoading}>
             <ButtonText>PROMPT</ButtonText>
             <ButtonText>RUN</ButtonText>
           </RunButton>
-          <OpenResultPanelButton
-            src={ResultPanelCloseImg}
-            onClick={onToggle}
-            alt="결과 패널 닫기"
-          />
+          <ButtonTooltipWrapper>
+            <CloseResultPanelButton
+              src={ResultPanelCloseImg}
+              onClick={onToggle}
+              alt="우측 패널 닫기"
+            />
+            <Tooltip>우측 패널 닫기</Tooltip>
+          </ButtonTooltipWrapper>
+          {onOpenModal && (
+            <ButtonTooltipWrapper>
+              <OpenResultModalButton
+                onClick={onOpenModal}
+                title="ResultModal 열기"
+              >
+                <OpenResultModalButtonImg
+                  src={ResultModalOpenImg}
+                  alt="ResultModal 열기"
+                />
+              </OpenResultModalButton>
+              <Tooltip>모달로 띄우기</Tooltip>
+            </ButtonTooltipWrapper>
+          )}
         </SecondWrapper>
       </ResultPanelHeader>
       <ResultContent $isExpanded={isResultPanelExpanded}>
@@ -56,6 +77,8 @@ export default function ResultPanel({
                 }
               }}
               isExpanded={isResultPanelExpanded}
+              makerId={makerId}
+              historyId={historyId}
             />
           </ResultDisplayWrapper>
 
@@ -125,11 +148,10 @@ const ResultPanelWrapper = styled.div`
 
 const ResultPanelHeader = styled.div`
   padding: ${(props) =>
-    props.$isExpanded ? "1.75rem 5.69rem" : "1.25rem 0rem"};
+    props.$isExpanded ? "1.75rem 5.69rem" : "1.25rem 4rem 1.25rem 2rem"};
   display: flex;
   align-items: center;
-  justify-content: ${(props) =>
-    props.$isExpanded ? "flex-end" : "space-between"};
+  justify-content: space-between;
   gap: 0;
 `;
 
@@ -190,7 +212,7 @@ const TabContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  overflow-y: auto; /* 내용이 많으면 스크롤 */
+  overflow: visible; /* HistoryBar의 스크롤 버튼이 잘리지 않도록 */
 `;
 
 const TabInnerHistory = styled.div`
@@ -247,10 +269,65 @@ const TabCount = styled.span`
 const SecondWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 `;
 
-const OpenResultPanelButton = styled.img`
+const OpenResultModalButton = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+`;
+
+const OpenResultModalButtonImg = styled.img`
+  width: 2.25rem;
+  height: auto;
+`;
+
+const ButtonTooltipWrapper = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Tooltip = styled.div`
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(0.25rem);
+  background: #f1f1f1;
+  color: #000000;
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  z-index: 1000;
+  pointer-events: none;
+
+  ${ButtonTooltipWrapper}:hover & {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+`;
+
+const CloseResultPanelButton = styled.img`
   width: 2.25rem;
   height: auto;
   cursor: pointer;
@@ -269,26 +346,31 @@ const RunButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  padding: 0.5rem 2.72rem;
+  padding: 0.75rem 1.5rem;
   background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
   border: none;
   font-family: "Pretendard Variable", sans-serif;
   border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 `;
 
 const ButtonText = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-weight: 800;
-  font-size: 1.5625rem;
+  font-weight: 700;
+  font-size: 1.1875rem;
   color: white;
   letter-spacing: 3%;
+  line-height: 100%;
 `;

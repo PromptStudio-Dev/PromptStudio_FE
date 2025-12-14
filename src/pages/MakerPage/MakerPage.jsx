@@ -75,6 +75,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         const formattedHistories = histories.map((history) => ({
           id: history.historyId,
           title: history.title || `History ${history.historyId}`,
+          createdAt: history.createdAt || null,
         }));
         setHistoryItems(formattedHistories);
 
@@ -581,6 +582,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         activeUpgrade={upgrades.find((u) => u.id === latestUpgradeId)}
         historyItems={historyItems}
         isResultModalOpen={isResultModalOpen}
+        isResultLoading={isResultLoading}
         onRunPrompt={async () => {
           // 확장되지 않은 상태에서 PROMPT RUN을 누르면 ResultModal 표시
           if (!isResultPanelExpanded) {
@@ -632,6 +634,7 @@ export default function MakerPage({ selectedPrompt = null }) {
               const formattedHistories = histories.map((history) => ({
                 id: history.historyId,
                 title: history.title || `History ${history.historyId}`,
+                createdAt: history.createdAt || null,
               }));
               setHistoryItems(formattedHistories);
 
@@ -693,6 +696,10 @@ export default function MakerPage({ selectedPrompt = null }) {
           setIsResultPanelOpen(false);
           setIsResultPanelExpanded(false); // 패널 닫을 때 확장 상태도 초기화
         }}
+        onOpenModal={() => {
+          setIsResultPanelOpen(false);
+          setIsResultModalOpen(true);
+        }}
         isSidebarOpen={isSidebarOpen}
         isResultPanelExpanded={isResultPanelExpanded}
         onExpandChange={setIsResultPanelExpanded}
@@ -748,6 +755,7 @@ export default function MakerPage({ selectedPrompt = null }) {
             const formattedHistories = histories.map((history) => ({
               id: history.historyId,
               title: history.title || `History ${history.historyId}`,
+              createdAt: history.createdAt || null,
             }));
             setHistoryItems(formattedHistories);
 
@@ -869,6 +877,8 @@ export default function MakerPage({ selectedPrompt = null }) {
         resultImageUrl={resultImageUrl}
         resultText={resultText}
         isResultLoading={isResultLoading}
+        makerId={currentMakerId}
+        historyId={currentHistoryId}
       />
 
       <ResultModal
@@ -958,6 +968,8 @@ export default function MakerPage({ selectedPrompt = null }) {
         resultText={resultText}
         feedbackText={resultFeedback}
         isResultLoading={isResultLoading}
+        makerId={currentMakerId}
+        historyId={currentHistoryId}
       />
     </MakerPageWrapper>
   );

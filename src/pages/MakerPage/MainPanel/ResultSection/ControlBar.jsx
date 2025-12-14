@@ -9,6 +9,7 @@ export default function ControlBar({
   onOpenResultPanel,
   hasHistory = false,
   isResultModalOpen = false,
+  isResultLoading = false,
 }) {
   // History가 있고 ResultModal이 열려있지 않을 때만 버튼 활성화
   const isButtonEnabled = hasHistory && !isResultModalOpen;
@@ -24,7 +25,7 @@ export default function ControlBar({
     <ControlBarWrapper>
       <AIModalSelector />
       <SecondWrapper>
-        <RunButton onClick={onRun}>
+        <RunButton onClick={onRun} disabled={isResultLoading}>
           <ButtonText>PROMPT</ButtonText>
           <ButtonText>RUN</ButtonText>
         </RunButton>
@@ -82,14 +83,19 @@ const RunButton = styled.button`
   border: none;
   font-family: "Pretendard Variable", sans-serif;
   border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 `;
 
