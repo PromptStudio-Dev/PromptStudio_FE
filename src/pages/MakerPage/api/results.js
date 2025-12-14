@@ -75,3 +75,26 @@ export const getPromptFeedback = async (makerId) => {
   );
   return response.data;
 };
+
+/**
+ * 히스토리 결과 이미지를 다운로드합니다.
+ * @param {number} makerId - 메이커 ID (필수)
+ * @param {number} historyId - 히스토리 ID (필수)
+ * @returns {Promise<Blob>} 이미지 Blob 데이터
+ */
+export const downloadHistoryImage = async (makerId, historyId) => {
+  if (!makerId) {
+    throw new Error("makerId는 필수입니다.");
+  }
+  if (!historyId) {
+    throw new Error("historyId는 필수입니다.");
+  }
+
+  const response = await apiClient.get(
+    `/api/makers/${makerId}/histories/${historyId}/image/download`,
+    {
+      responseType: "blob", // 이미지 파일을 Blob으로 받기
+    }
+  );
+  return response.data;
+};
