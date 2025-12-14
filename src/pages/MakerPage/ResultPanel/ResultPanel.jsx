@@ -22,6 +22,7 @@ export default function ResultPanel({
   onExpandChange,
   makerId = null,
   historyId = null,
+  onOpenModal = null, // ResultModal 열기 콜백
 }) {
   const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
 
@@ -34,6 +35,11 @@ export default function ResultPanel({
       <ResultPanelHeader $isExpanded={isResultPanelExpanded}>
         {!isResultPanelExpanded && <AIModalSelector />}
         <SecondWrapper>
+          {onOpenModal && (
+            <ModalButton onClick={onOpenModal} title="ResultModal 열기">
+              축소
+            </ModalButton>
+          )}
           <RunButton onClick={onRun} disabled={isResultLoading}>
             <ButtonText>PROMPT</ButtonText>
             <ButtonText>RUN</ButtonText>
@@ -194,7 +200,7 @@ const TabContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  overflow-y: auto; /* 내용이 많으면 스크롤 */
+  overflow: visible; /* HistoryBar의 스크롤 버튼이 잘리지 않도록 */
 `;
 
 const TabInnerHistory = styled.div`
@@ -252,6 +258,30 @@ const SecondWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+`;
+
+const ModalButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #e8e8e8;
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;
 
 const OpenResultPanelButton = styled.img`

@@ -696,6 +696,10 @@ export default function MakerPage({ selectedPrompt = null }) {
           setIsResultPanelOpen(false);
           setIsResultPanelExpanded(false); // 패널 닫을 때 확장 상태도 초기화
         }}
+        onOpenModal={() => {
+          setIsResultPanelOpen(false);
+          setIsResultModalOpen(true);
+        }}
         isSidebarOpen={isSidebarOpen}
         isResultPanelExpanded={isResultPanelExpanded}
         onExpandChange={setIsResultPanelExpanded}
