@@ -34,7 +34,7 @@ export default function ResultPanel({
       <ResultPanelHeader $isExpanded={isResultPanelExpanded}>
         {!isResultPanelExpanded && <AIModalSelector />}
         <SecondWrapper>
-          <RunButton onClick={onRun}>
+          <RunButton onClick={onRun} disabled={isResultLoading}>
             <ButtonText>PROMPT</ButtonText>
             <ButtonText>RUN</ButtonText>
           </RunButton>
@@ -278,14 +278,19 @@ const RunButton = styled.button`
   border: none;
   font-family: "Pretendard Variable", sans-serif;
   border-radius: 0.5rem;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
 
-  &:hover {
+  &:hover:not(:disabled) {
     opacity: 0.9;
   }
 
-  &:active {
+  &:active:not(:disabled) {
     transform: scale(0.98);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 `;
 
