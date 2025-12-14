@@ -869,6 +869,8 @@ export default function MakerPage({ selectedPrompt = null }) {
         resultImageUrl={resultImageUrl}
         resultText={resultText}
         isResultLoading={isResultLoading}
+        makerId={currentMakerId}
+        historyId={currentHistoryId}
       />
 
       <ResultModal
@@ -958,6 +960,8 @@ export default function MakerPage({ selectedPrompt = null }) {
         resultText={resultText}
         feedbackText={resultFeedback}
         isResultLoading={isResultLoading}
+        makerId={currentMakerId}
+        historyId={currentHistoryId}
       />
     </MakerPageWrapper>
   );

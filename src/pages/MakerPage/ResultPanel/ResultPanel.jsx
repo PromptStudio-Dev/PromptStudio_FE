@@ -20,6 +20,8 @@ export default function ResultPanel({
   isSidebarOpen = true,
   isResultPanelExpanded = false,
   onExpandChange,
+  makerId = null,
+  historyId = null,
 }) {
   const [activeTab, setActiveTab] = useState("HISTORY"); // "HISTORY" | "FEEDBACK"
 
@@ -56,6 +58,8 @@ export default function ResultPanel({
                 }
               }}
               isExpanded={isResultPanelExpanded}
+              makerId={makerId}
+              historyId={historyId}
             />
           </ResultDisplayWrapper>
 
