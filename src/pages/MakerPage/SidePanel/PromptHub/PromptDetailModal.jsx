@@ -4,10 +4,12 @@ import { getPromptDetail } from "../../api";
 import detailHeartIcon from "../../../PromptDetailPage/assets/detailHeartIcon.svg";
 import detailViewIcon from "../../../PromptDetailPage/assets/detailViewIcon.svg";
 import detailCopyIcon from "../../../PromptDetailPage/assets/detailCopyIcon.svg";
+import detailCopyButtonIcon from "../../../PromptDetailPage/assets/detailCopyButtonIcon.svg";
 import detailRecommendIcon from "../../../PromptDetailPage/assets/detailRecommendIcon.svg";
 import detailImageRequiredIcon from "../../../PromptDetailPage/assets/detailImageRequiredIcon.svg";
 import detailResultIcon from "../../../PromptDetailPage/assets/detailResultIcon.svg";
 import detailPromptIcon from "../../../PromptDetailPage/assets/detailPromptIcon.svg";
+import CloseIconImg from "../../assets/result-modal-close-button.svg";
 import apiClient from "../../../../api/client";
 import { useCopyModal } from "../../../../contexts/CopyModalContext";
 
@@ -104,6 +106,15 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
   return (
     <ModalOverlay onClick={handleOverlayClick}>
       <ModalContent onClick={(e) => e.stopPropagation()}>
+        <ModalHeader>
+          <TitlePart>
+            <CategoryTag>{promptData?.category}</CategoryTag>
+            <Title>{promptData?.title}</Title>
+          </TitlePart>
+          <CloseButton onClick={onClose}>
+            <CloseIcon src={CloseIconImg} />
+          </CloseButton>
+        </ModalHeader>
         <ModalBody>
           {isLoading ? (
             <LoadingMessage>로딩 중...</LoadingMessage>
@@ -111,10 +122,6 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
             <ErrorMessage>{error}</ErrorMessage>
           ) : promptData ? (
             <>
-              <TitlePart>
-                <CategoryTag>{promptData?.category}</CategoryTag>
-                <Title>{promptData?.title}</Title>
-              </TitlePart>
               <InfoTime>{formatDate(promptData?.createdAt)}</InfoTime>
               <WriterInfo>
                 <WriterImg src={promptData?.imageUrl} alt="작성자" />
@@ -165,9 +172,9 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
                             이미지 필요 여부
                           </PromptInfoSectionText>
                         </TemplateSection>
-                        <AiEnvironmentText>
-                          {promptData?.imageRequired ? "예" : "아니요"}
-                        </AiEnvironmentText>
+                        <ImageRequiredText>
+                          {promptData?.imageRequired ? "O" : "X"}
+                        </ImageRequiredText>
                       </PromptInfoSection>
                     </PromptInfoWrapper>
                     <PromptIconWrapper>
@@ -183,6 +190,7 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
                     <ButtonContainer>
                       <RightButtonGroup>
                         <DetailButton onClick={handleCopyPrompt}>
+                          <DetailButtonIcon src={detailCopyButtonIcon} />
                           <DetailButtonText>복사하기</DetailButtonText>
                         </DetailButton>
                       </RightButtonGroup>
@@ -232,7 +240,7 @@ const ModalOverlay = styled.div`
   right: 0;
   bottom: 0;
   background-color: rgba(0, 30, 64, 0.5);
-  z-index: 10000;
+  z-index: 9000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,10 +319,31 @@ const ModalContent = styled.div`
   position: relative;
 `;
 
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 2.8rem;
+  border-bottom: 0.125rem solid #aadff7;
+`;
+
+const CloseButton = styled.button`
+  width: 1.5rem;
+  background: none;
+  border: none;
+  height: auto;
+  cursor: pointer;
+`;
+
+const CloseIcon = styled.img`
+  width: 1.5rem;
+  height: auto;
+`;
+
 const ModalBody = styled.div`
   flex: 1;
   min-height: 0;
-  padding: 1.5rem 3rem;
+  padding: 0 3rem 1.5rem 3rem;
   display: flex;
   flex-direction: column;
   overflow: auto;
@@ -338,10 +367,8 @@ const ErrorMessage = styled.div`
 
 const TitlePart = styled.div`
   display: flex;
-  width: 100%;
-  border-bottom: 0.125rem solid #aadff7;
-  padding-bottom: 0.69rem;
   align-items: center;
+  flex: 1;
 `;
 
 const CategoryTag = styled.div`
@@ -378,7 +405,7 @@ const WriterInfo = styled.div`
 const IntroductionLeftBottomSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0;
 `;
 
 const WriterImg = styled.img`
@@ -414,7 +441,7 @@ const InfoBottomSection = styled.div`
 
 const InfoItem = styled.div`
   display: flex;
-  gap: 0.08rem;
+  gap: 0.38rem;
   align-items: center;
   justify-content: center;
 `;
@@ -463,8 +490,9 @@ const IntroductionSection = styled.div`
   background: #f5fcff;
   text-align: left;
   align-self: flex-start;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
   box-sizing: border-box;
+  border-radius: 0.5rem;
 `;
 
 const IntroductionText = styled.div`
@@ -492,7 +520,7 @@ const LeftBottomSection = styled.div`
   display: flex;
   width: 100%;
   gap: 2rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
 `;
 
 const BottomFirstSection = styled.div`
@@ -528,12 +556,35 @@ const PromptInfoSectionText = styled.div`
 `;
 
 const AiEnvironmentText = styled.div`
+  background-color: #f5fcff;
+  height: 2rem;
+  padding: 0rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--B-T, #454545);
   text-align: center;
   font-family: "Pretendard";
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;
+`;
+
+const ImageRequiredText = styled.div`
+  background-color: #f5fcff;
+  height: 2rem;
+  padding: 0rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--Light-blue, #49d8ff);
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
 `;
 
 const TemplateSection = styled.div`
@@ -545,10 +596,10 @@ const TemplateSection = styled.div`
 
 const PromptContent = styled.div`
   width: 100%;
-  height: 24rem;
+  height: 20.25rem;
   margin-top: 0.75rem;
   border-radius: 1rem;
-  border: 0.0625rem solid var(--Line_Blue-light, #aadff7);
+  border: 0.0625rem solid #aadff7;
   padding: 1rem 1.44rem;
   color: #000;
   overflow-y: auto;
@@ -602,18 +653,20 @@ const DetailButton = styled.div`
   align-items: center;
   cursor: pointer;
   border-radius: 0.5rem;
-  background: linear-gradient(
-    87deg,
-    var(--B-Blue-line, #00aeff) -43%,
-    #6ed1ff 147.28%
-  );
+  border: 0.0625rem solid #49d8ff;
+`;
+
+const DetailButtonIcon = styled.img`
+  width: 1.25rem;
+  height: 1.25rem;
 `;
 
 const DetailButtonText = styled.div`
-  color: #ffffff;
+  color: #00aeff;
   font-family: "Pretendard";
   font-size: 1rem;
-  font-weight: 700;
+  font-style: normal;
+  font-weight: 600;
 `;
 
 const ButtonContainer = styled.div`
