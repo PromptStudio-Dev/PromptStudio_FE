@@ -249,8 +249,8 @@ const CloseButton = styled.button`
 `;
 
 const ModalBody = styled.div`
-  flex: 1;
-  padding: 3rem;
+  flex: 1 0 auto;
+  padding: 1.62rem 3rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
