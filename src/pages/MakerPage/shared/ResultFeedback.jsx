@@ -20,6 +20,7 @@ const FeedbackContainer = styled.section`
   padding: 1rem;
   box-sizing: border-box;
   display: block; /* 텍스트 길이에 따라 높이 자동 확장 */
+  margin-bottom: 8rem;
 `;
 
 const FeedbackText = styled.p`
