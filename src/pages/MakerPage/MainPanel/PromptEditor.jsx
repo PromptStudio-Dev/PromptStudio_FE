@@ -67,6 +67,7 @@ export default function PromptEditor({
         const calculateModalPosition = () => {
           const textareaRect = textarea.getBoundingClientRect();
           const textUpToEnd = content.substring(0, end);
+          const scrollTop = textarea.scrollTop || 0;
 
           const tempElement = document.createElement("div");
           tempElement.style.position = "absolute";
@@ -85,7 +86,7 @@ export default function PromptEditor({
           document.body.removeChild(tempElement);
 
           const spacing = 0;
-          const textEndTop = textareaRect.top + textEndHeight;
+          const textEndTop = textareaRect.top + textEndHeight - scrollTop;
           const newTop = textEndTop + spacing;
           const newLeft = textareaRect.left;
 
@@ -238,6 +239,115 @@ export default function PromptEditor({
     isResultPanelOpen,
     initialModalPosition,
     modalPosition.left,
+  ]);
+
+  // textarea 스크롤 시 모달 위치 업데이트
+  useEffect(() => {
+    if (!showModal && !activeUpgradeId) return;
+    if (!selectionRange || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const { start, end } = selectionRange;
+
+    // 업그레이드 결과가 있는 경우와 없는 경우를 구분하여 처리
+    if (activeUpgradeId && activeUpgrade?.content) {
+      // 업그레이드 결과가 있는 경우: 기존 updateModalPosition 로직 사용
+      const selectedTextPart = content.substring(start, end);
+      const upgradedText = activeUpgrade.content;
+      const beforeText = content.substring(0, start);
+      const textUpToUpgradeEnd = `${beforeText}${selectedTextPart}\n${upgradedText}`;
+
+      const textareaRect = textarea.getBoundingClientRect();
+      const scrollTop = textarea.scrollTop || 0;
+
+      const tempElement = document.createElement("div");
+      tempElement.style.position = "absolute";
+      tempElement.style.visibility = "hidden";
+      tempElement.style.width = `${textarea.offsetWidth}px`;
+      tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
+      tempElement.style.fontSize = "1.25rem";
+      tempElement.style.lineHeight = "1.625rem";
+      tempElement.style.padding = "1rem 0";
+      tempElement.style.whiteSpace = "pre-wrap";
+      tempElement.style.wordWrap = "break-word";
+      tempElement.textContent = textUpToUpgradeEnd;
+
+      document.body.appendChild(tempElement);
+      const textEndHeight = tempElement.offsetHeight;
+      document.body.removeChild(tempElement);
+
+      const spacing = 0;
+      const textEndTop = textareaRect.top + textEndHeight - scrollTop;
+      const newTop = textEndTop + spacing;
+      const newLeft = textareaRect.left;
+
+      const estimatedModalWidth = Math.min(
+        window.innerWidth * 0.38,
+        49.1875 * 16
+      );
+      const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
+      const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+      const modalRect = modalRef.current?.getBoundingClientRect();
+      const modalHeight = modalRect?.height ?? 0;
+      const maxTop = Math.max(0, window.innerHeight - modalHeight);
+      const clampedTop = Math.min(newTop, maxTop);
+
+      setModalPosition({
+        top: Math.max(0, clampedTop),
+        left: clampedLeft,
+      });
+    } else if (showModal) {
+      // 초기 모달 표시 상태: 기존 calculateModalPosition 로직 사용
+      const textareaRect = textarea.getBoundingClientRect();
+      const textUpToEnd = content.substring(0, end);
+      const scrollTop = textarea.scrollTop || 0;
+
+      const tempElement = document.createElement("div");
+      tempElement.style.position = "absolute";
+      tempElement.style.visibility = "hidden";
+      tempElement.style.width = `${textarea.offsetWidth}px`;
+      tempElement.style.fontFamily = '"Pretendard Variable", sans-serif';
+      tempElement.style.fontSize = "1.25rem";
+      tempElement.style.lineHeight = "1.625rem";
+      tempElement.style.padding = "1rem 0";
+      tempElement.style.whiteSpace = "pre-wrap";
+      tempElement.style.wordWrap = "break-word";
+      tempElement.textContent = textUpToEnd;
+
+      document.body.appendChild(tempElement);
+      const textEndHeight = tempElement.offsetHeight;
+      document.body.removeChild(tempElement);
+
+      const spacing = 0;
+      const textEndTop = textareaRect.top + textEndHeight - scrollTop;
+      const newTop = textEndTop + spacing;
+      const newLeft = textareaRect.left;
+
+      const estimatedModalWidth = Math.min(
+        window.innerWidth * 0.38,
+        49.1875 * 16
+      );
+      const maxLeft = Math.max(0, window.innerWidth - estimatedModalWidth);
+      const clampedLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+      const modalRect = modalRef.current?.getBoundingClientRect();
+      const modalHeight = modalRect?.height ?? 0;
+      const maxTop = Math.max(0, window.innerHeight - modalHeight);
+      const clampedTop = Math.min(newTop, maxTop);
+
+      setModalPosition({
+        top: Math.max(0, clampedTop),
+        left: clampedLeft,
+      });
+    }
+  }, [
+    textareaScrollTop,
+    showModal,
+    activeUpgradeId,
+    selectionRange,
+    activeUpgrade,
+    content,
   ]);
 
   const handleUpgradeSubmit = (upgradeRequest) => {
