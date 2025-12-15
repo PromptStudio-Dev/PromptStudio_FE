@@ -38,6 +38,11 @@ export default function PromptEditor({
   };
 
   const handleMouseUp = useCallback(() => {
+    // 업그레이드 중일 때는 아무 처리도 하지 않음
+    if (isUpgradeSubmitted && activeUpgradeId == null) {
+      return;
+    }
+
     // textarea 내에서 시작하지 않았으면 무시
     if (!isMouseDownInTextareaRef.current) {
       isMouseDownInTextareaRef.current = false;
@@ -140,10 +145,15 @@ export default function PromptEditor({
     setTimeout(() => {
       processSelection();
     }, 10);
-  }, [content]);
+  }, [content, isUpgradeSubmitted, activeUpgradeId]);
 
   const handleMouseDown = useCallback(
     (e) => {
+      // 업그레이드 중일 때는 아무 처리도 하지 않음
+      if (isUpgradeSubmitted && activeUpgradeId == null) {
+        return;
+      }
+
       const textarea = textareaRef.current;
       if (!textarea) return;
 
@@ -169,7 +179,7 @@ export default function PromptEditor({
         onCancelUpgrade?.(activeUpgradeId);
       }
     },
-    [showModal, activeUpgradeId, onCancelUpgrade]
+    [showModal, activeUpgradeId, onCancelUpgrade, isUpgradeSubmitted]
   );
 
   // 기존에는 textarea 레벨에서 props 로 감지했지만, 이제는 document 레벨에서 감지
