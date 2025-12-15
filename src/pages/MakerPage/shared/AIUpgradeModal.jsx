@@ -68,6 +68,7 @@ export default function AIUpgradeModal({
     onEditUpgrade?.(upgradeId);
   };
 
+  // 재업그레이드 시에도 로딩 표시: isSubmitted가 true이고, activeUpgradeId가 아직 업데이트되지 않았거나 변경 중일 때
   const isLoading = isSubmitted && activeUpgradeId == null;
 
   return (
