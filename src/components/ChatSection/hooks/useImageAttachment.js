@@ -3,9 +3,15 @@ import { useState, useRef, useEffect, useCallback } from "react";
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-export const useImageAttachment = () => {
+export const useImageAttachment = ({ onMaxImagesExceeded } = {}) => {
   const [attachedImages, setAttachedImages] = useState([]);
   const fileInputRef = useRef(null);
+  const onMaxImagesExceededRef = useRef(onMaxImagesExceeded);
+
+  // 콜백 ref 업데이트
+  useEffect(() => {
+    onMaxImagesExceededRef.current = onMaxImagesExceeded;
+  }, [onMaxImagesExceeded]);
 
   // 언마운트 시 정리를 위해 현재 이미지 리스트를 ref로 추적
   const imagesRef = useRef(attachedImages);
@@ -28,7 +34,9 @@ export const useImageAttachment = () => {
     const imageFiles = files.filter((file) => file.type?.startsWith("image/"));
     const availableSlots = Math.max(0, MAX_IMAGES - currentCount);
     if (availableSlots <= 0) {
-      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+      if (onMaxImagesExceededRef.current) {
+        onMaxImagesExceededRef.current();
+      }
       return [];
     }
 

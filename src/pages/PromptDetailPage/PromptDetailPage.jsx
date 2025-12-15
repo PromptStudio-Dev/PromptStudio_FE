@@ -15,6 +15,7 @@ import detailResultIcon from "./assets/detailResultIcon.svg";
 import detailEditIcon from "./assets/detailEditIcon.svg";
 import detailDirectUseIcon from "./assets/detailDirectUseIcon.svg";
 import detailCopyButtonIcon from "./assets/detailCopyButtonIcon.svg";
+import copyCompleteIcon from "./assets/copyCompleteIcon.svg";
 import detailPromptIcon from "./assets/detailPromptIcon.svg";
 import trashIcon from "./assets/trashIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
@@ -44,6 +45,7 @@ export default function PromptDetailPage() {
   const [error, setError] = useState(null);
   const [isLiked, setIsLiked] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const currentMemberId = getMemberId();
   const { openLoginModal } = useLoginModal();
   const { showCopyModal } = useCopyModal();
@@ -79,6 +81,13 @@ export default function PromptDetailPage() {
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
         showCopyModal();
+        // copyCount 증가
+        setPromptData((prev) =>
+          prev ? { ...prev, copyCount: (prev.copyCount ?? 0) + 1 } : prev
+        );
+        // 버튼 UI 변경 (2초간)
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
       } else {
         alert("복사할 내용이 없습니다.");
       }
@@ -119,10 +128,22 @@ export default function PromptDetailPage() {
     try {
       const { data } = await apiClient.post(`/api/prompts/${promptId}/likes`);
       if (data) {
-        setIsLiked(Boolean(data.liked));
-        setPromptData((prev) =>
-          prev ? { ...prev, liked: Boolean(data.liked) } : prev
-        );
+        const newLiked = Boolean(data.liked);
+        setIsLiked(newLiked);
+        setPromptData((prev) => {
+          if (!prev) return prev;
+          // 이전 상태와 새 상태를 비교하여 likeCount 업데이트
+          const prevLiked = prev.liked;
+          let newLikeCount = prev.likeCount ?? 0;
+          if (newLiked && !prevLiked) {
+            // 좋아요 추가
+            newLikeCount += 1;
+          } else if (!newLiked && prevLiked) {
+            // 좋아요 취소
+            newLikeCount = Math.max(0, newLikeCount - 1);
+          }
+          return { ...prev, liked: newLiked, likeCount: newLikeCount };
+        });
       }
     } catch (err) {
       console.error("좋아요 요청 실패:", err);
@@ -272,10 +293,14 @@ export default function PromptDetailPage() {
                   </>
                 )}
                 <RightButtonGroup>
-                  <DetailButton onClick={handleCopyPrompt}>
-                    <DetailButtonIcon src={detailCopyButtonIcon} />
-                    <DetailButtonText>복사하기</DetailButtonText>
-                  </DetailButton>
+                  <CopyButton $isCopied={isCopied} onClick={handleCopyPrompt}>
+                    <DetailButtonIcon
+                      src={isCopied ? copyCompleteIcon : detailCopyButtonIcon}
+                    />
+                    <CopyButtonText $isCopied={isCopied}>
+                      복사하기
+                    </CopyButtonText>
+                  </CopyButton>
                   <DirectUseButton onClick={handleDirectUse}>
                     <DetailButtonIcon src={detailDirectUseIcon} />
                     <DirectUseButtonText>바로 사용하기</DirectUseButtonText>
@@ -479,6 +504,7 @@ const InfoText = styled.div`
   font-weight: 500;
   line-height: 1.5rem;
   margin-right: 0.5rem;
+  min-width: 1.05rem;
 `;
 
 const InfoTime = styled.div`
@@ -667,6 +693,22 @@ const DetailButtonText = styled.div`
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 600;
+`;
+
+const CopyButton = styled(DetailButton)`
+  background: ${({ $isCopied }) =>
+    $isCopied
+      ? "linear-gradient(87deg, #00AEFF -43%, #6ED1FF 147.28%)"
+      : "transparent"};
+  border: ${({ $isCopied }) =>
+    $isCopied ? "none" : "1px solid var(--Light-blue, #49d8ff)"};
+  transition: background 0.2s ease, border 0.2s ease;
+`;
+
+const CopyButtonText = styled(DetailButtonText)`
+  color: ${({ $isCopied }) =>
+    $isCopied ? "#FFF" : "var(--B-Blue-line, #00aeff)"};
+  transition: color 0.2s ease;
 `;
 
 const ButtonContainer = styled.div`

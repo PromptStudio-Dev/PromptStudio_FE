@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import {
   generateCodeVerifier,
   generateCodeChallenge,
@@ -8,6 +9,7 @@ import {
 import { clearAuthData } from "../../utils/authStorage";
 
 export default function UserMenu() {
+  const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(
     Boolean(localStorage.getItem("token"))
   );
@@ -63,6 +65,7 @@ export default function UserMenu() {
     sessionStorage.removeItem(PKCE_VERIFIER_KEY);
     setIsLoggedIn(false);
     window.dispatchEvent(new Event("auth-changed"));
+    navigate("/");
   };
 
   return (

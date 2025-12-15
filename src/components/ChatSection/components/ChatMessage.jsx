@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import notDownloadIcon from "../assets/notDownloadIcon.svg";
+import apiClient from "../../../api/client";
 
-const ChatMessage = ({ message }) => {
+const ChatMessage = ({ message, onTypingComplete }) => {
   const { content, promptCardHeight, promptCardWidth, imageLayout, type } =
     message;
   const { text, promptCard, images } = content;
@@ -12,10 +14,18 @@ const ChatMessage = ({ message }) => {
   // 어시스턴트 메시지의 순차적 타이핑 효과
   const [displayedText, setDisplayedText] = useState("");
   const fullText = text || "";
+  const hasCalledCompleteRef = useRef(false);
+  const onTypingCompleteRef = useRef(onTypingComplete);
+
+  // onTypingComplete가 변경될 때 ref 업데이트 (useEffect 재실행 방지)
+  useEffect(() => {
+    onTypingCompleteRef.current = onTypingComplete;
+  }, [onTypingComplete]);
 
   useEffect(() => {
     if (isAssistant && fullText) {
       setDisplayedText("");
+      hasCalledCompleteRef.current = false;
       let currentIndex = 0;
 
       const typingInterval = setInterval(() => {
@@ -24,6 +34,11 @@ const ChatMessage = ({ message }) => {
           currentIndex += 1;
         } else {
           clearInterval(typingInterval);
+          // 타이핑 완료 콜백 호출 (ref를 통해 최신 콜백 사용)
+          if (onTypingCompleteRef.current && !hasCalledCompleteRef.current) {
+            hasCalledCompleteRef.current = true;
+            onTypingCompleteRef.current();
+          }
         }
       }, 30); // 30ms마다 한 글자씩 (타이핑 속도 조절 가능)
 
@@ -49,8 +64,48 @@ const ChatMessage = ({ message }) => {
     );
   }
 
-  // 어시스턴트 메시지인 경우 순차적으로 텍스트 표시
+  // 어시스턴트 메시지인 경우: 텍스트만 또는 이미지만
   if (isAssistant) {
+    const assistantImage = content.image; // 이미지 한 장만 올 수 있음
+
+    // 이미지 저장 핸들러
+    const handleSaveImage = async () => {
+      if (!assistantImage) return;
+      try {
+        const response = await apiClient.get("/api/chat/image/download", {
+          params: { imageUrl: assistantImage },
+          responseType: "blob",
+        });
+        const blob = response.data;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `image_${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("이미지 저장 실패:", error);
+      }
+    };
+
+    // 이미지가 있는 경우
+    if (assistantImage) {
+      return (
+        <AssistantMessageContainer>
+          <AssistantImageWrapper>
+            <AssistantImage src={assistantImage} alt="AI 생성 이미지" />
+            <SaveButton onClick={handleSaveImage}>
+              <SaveIcon src={notDownloadIcon} alt="저장" />
+              <SaveText>저장</SaveText>
+            </SaveButton>
+          </AssistantImageWrapper>
+        </AssistantMessageContainer>
+      );
+    }
+
+    // 텍스트만 있는 경우
     return (
       <AssistantMessageContainer>
         <AssistantMessageText>
@@ -459,6 +514,50 @@ const AssistantMessageText = styled.div`
   color: #001e40;
   word-wrap: break-word;
   white-space: pre-wrap;
+`;
+
+const AssistantImageWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 65%;
+  gap: 0.44rem;
+`;
+
+const AssistantImage = styled.img`
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.5rem;
+`;
+
+const SaveButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.38rem;
+  background: #f5fcff;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const SaveIcon = styled.img`
+  width: 1.2rem;
+  height: 1.2rem;
+`;
+
+const SaveText = styled.span`
+  color: #a6a6a6;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 700;
 `;
 
 const TypingCursor = styled.span`

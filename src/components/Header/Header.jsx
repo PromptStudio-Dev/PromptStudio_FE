@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import GNB from "./GNB";
 import UserMenu from "./UserMenu";
 import UploadIcon from "./uploadIcon.svg";
+import LogoIcon from "./logoIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
 
@@ -12,6 +13,9 @@ export default function Header() {
   const isMakerRoute = location.pathname.startsWith("/maker");
   const { openLoginModal } = useLoginModal();
 
+  const handleLogoClick = () => {
+    navigate("/");
+  };
 
   const handleUploadClick = () => {
     if (!isLoggedIn()) {
@@ -24,7 +28,14 @@ export default function Header() {
   return (
     <HeaderBar>
       <HeaderInner>
-        <GNB />
+        <LeftGroup>
+          <Logo
+            src={LogoIcon}
+            alt="PromptStudio Logo"
+            onClick={handleLogoClick}
+          />
+          <GNB />
+        </LeftGroup>
         <RightGroup>
           {!isMakerRoute && (
             <UploadButton onClick={handleUploadClick}>
@@ -56,6 +67,18 @@ const HeaderInner = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+`;
+
+const LeftGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+`;
+
+const Logo = styled.img`
+  height: 2rem;
+  width: calc(2rem * (5.8125 / 2.6875));
+  cursor: pointer;
 `;
 
 const RightGroup = styled.div`
