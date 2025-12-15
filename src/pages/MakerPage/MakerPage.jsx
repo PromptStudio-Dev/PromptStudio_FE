@@ -48,6 +48,7 @@ export default function MakerPage({ selectedPrompt = null }) {
     selectedPrompt?.makerId ?? null
   );
   const [existingImageUrls, setExistingImageUrls] = useState([]);
+  const [insertedTextRange, setInsertedTextRange] = useState(null); // 삽입된 텍스트 위치
   const saveIntervalRef = useRef(null);
   const skipNextAutoSaveRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -323,6 +324,9 @@ export default function MakerPage({ selectedPrompt = null }) {
 
       if (existingUpgrade) {
         // 재업그레이드: 기존 업그레이드가 있으면 재업그레이드 API 사용
+        // 로딩 표시를 위해 activeUpgradeId를 임시로 null로 설정
+        setLatestUpgradeId(null);
+
         // prevDirection은 originalDirection을 우선 사용 (새로고침 후에도 원래 direction 유지)
         // originalDirection이 없으면 direction 사용 (하위 호환성)
         const prevDirection =
@@ -338,6 +342,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
         // 기존 업그레이드 항목 갱신
         // originalDirection은 유지하고, direction만 업데이트
+        // contentSnapshot은 첫 업그레이드 시의 원본 텍스트를 유지 (취소 시 복원용)
         setUpgrades((prev) =>
           prev.map((item) =>
             item.id === existingUpgrade.id
@@ -349,6 +354,8 @@ export default function MakerPage({ selectedPrompt = null }) {
                   // originalDirection은 첫 업그레이드 시의 값 유지
                   originalDirection:
                     existingUpgrade.originalDirection || responseData.direction,
+                  // contentSnapshot은 첫 업그레이드 시의 원본 텍스트 유지 (취소 시 복원용)
+                  contentSnapshot: existingUpgrade.contentSnapshot,
                 }
               : item
           )
@@ -415,7 +422,14 @@ export default function MakerPage({ selectedPrompt = null }) {
           setPromptContent((currentContent) => {
             const before = currentContent.slice(0, start);
             const after = currentContent.slice(end);
-            return `${before}${target.content}${after}`;
+            const newContent = `${before}${target.content}${after}`;
+
+            // 삽입된 텍스트 위치 저장 (하이라이트용)
+            const insertedStart = start;
+            const insertedEnd = start + target.content.length;
+            setInsertedTextRange({ start: insertedStart, end: insertedEnd });
+
+            return newContent;
           });
         }
       }
@@ -451,7 +465,15 @@ export default function MakerPage({ selectedPrompt = null }) {
           const before = currentContent.slice(0, end);
           const after = currentContent.slice(end);
           // 선택된 텍스트 다음에 줄바꿈과 함께 업그레이드된 텍스트 삽입
-          return `${before}\n${target.content}${after}`;
+          const insertedText = `\n${target.content}`;
+          const newContent = `${before}${insertedText}${after}`;
+
+          // 삽입된 텍스트 위치 저장 (하이라이트용)
+          const insertedStart = end;
+          const insertedEnd = end + insertedText.length;
+          setInsertedTextRange({ start: insertedStart, end: insertedEnd });
+
+          return newContent;
         });
       }
     }
@@ -463,6 +485,17 @@ export default function MakerPage({ selectedPrompt = null }) {
       setLatestUpgradeId(null);
     }
   };
+
+  // 삽입된 텍스트 하이라이트 3초 후 제거
+  useEffect(() => {
+    if (insertedTextRange) {
+      const timer = setTimeout(() => {
+        setInsertedTextRange(null);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [insertedTextRange]);
 
   // 텍스트 재업그레이드 API 연동
   const handleReupgradeRequest = async () => {
@@ -576,6 +609,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         onAttachedImagesChange={setAttachedImages}
         onUpgradeRequest={handleUpgradeRequest}
         onAcceptUpgrade={handleAcceptUpgrade}
+        insertedTextRange={insertedTextRange}
         onCancelUpgrade={handleCancelUpgrade}
         onEditUpgrade={handleEditUpgrade}
         activeUpgradeId={latestUpgradeId}
@@ -593,6 +627,8 @@ export default function MakerPage({ selectedPrompt = null }) {
             }
 
             setIsResultLoading(true);
+            // ResultModal을 바로 열어서 로딩 상태를 표시
+            setIsResultModalOpen(true);
             try {
               // RUN 전에 한 번 더 강제 자동 저장을 실행
               try {
@@ -641,18 +677,15 @@ export default function MakerPage({ selectedPrompt = null }) {
               // 가장 최신 히스토리 선택 (인덱스 1)
               setCurrentHistoryIndex(1);
 
-              // 최신 프롬프트에 대한 피드백 조회
+              // RUN 1번당 피드백은 반드시 한 번만 호출
               const cachedFeedback = historyFeedbackMap[result.historyId];
-              if (cachedFeedback !== undefined) {
-                setResultFeedback(cachedFeedback);
-              } else {
+              if (cachedFeedback === undefined) {
                 try {
                   const feedbackResponse = await getPromptFeedback(
                     currentMakerId
                   );
                   const feedbackText = feedbackResponse?.feedback ?? null;
 
-                  setResultFeedback(feedbackText);
                   setHistoryFeedbackMap((prev) => {
                     const next = { ...prev, [result.historyId]: feedbackText };
                     try {
@@ -669,9 +702,6 @@ export default function MakerPage({ selectedPrompt = null }) {
                   console.error("피드백 조회 실패:", e);
                 }
               }
-
-              // ResultModal 표시
-              setIsResultModalOpen(true);
             } catch (error) {
               console.error("프롬프트 실행 실패:", error);
               alert("프롬프트 실행에 실패했습니다.");
@@ -762,18 +792,15 @@ export default function MakerPage({ selectedPrompt = null }) {
             // 가장 최신 히스토리 선택 (인덱스 1)
             setCurrentHistoryIndex(1);
 
-            // 최신 프롬프트에 대한 피드백 조회 (히스토리별로 한 번만 호출)
+            // RUN 1번당 피드백은 반드시 한 번만 호출
             const cachedFeedback = historyFeedbackMap[result.historyId];
-            if (cachedFeedback !== undefined) {
-              setResultFeedback(cachedFeedback);
-            } else {
+            if (cachedFeedback === undefined) {
               try {
                 const feedbackResponse = await getPromptFeedback(
                   currentMakerId
                 );
                 const feedbackText = feedbackResponse?.feedback ?? null;
 
-                setResultFeedback(feedbackText);
                 setHistoryFeedbackMap((prev) => {
                   const next = { ...prev, [result.historyId]: feedbackText };
                   try {
@@ -841,34 +868,10 @@ export default function MakerPage({ selectedPrompt = null }) {
             setCurrentHistoryId(restored.historyId);
             setCurrentHistoryIndex(index + 1);
 
-            // 복원된 프롬프트에 대한 피드백: 캐시 우선, 없으면 한 번만 조회
+            // 복원된 프롬프트에 대한 피드백: 캐시에서만 가져오기 (RUN할 때 호출했어야 함)
             const targetHistoryId = restored.historyId ?? item.id;
             const cachedFeedback = historyFeedbackMap[targetHistoryId];
-            if (cachedFeedback !== undefined) {
-              setResultFeedback(cachedFeedback);
-            } else {
-              try {
-                const feedbackResponse = await getPromptFeedback(
-                  currentMakerId
-                );
-                const feedbackText = feedbackResponse?.feedback ?? null;
-                setResultFeedback(feedbackText);
-                setHistoryFeedbackMap((prev) => {
-                  const next = { ...prev, [targetHistoryId]: feedbackText };
-                  try {
-                    localStorage.setItem(
-                      `makerFeedback:${currentMakerId}`,
-                      JSON.stringify(next)
-                    );
-                  } catch (error) {
-                    console.error("피드백 캐시 저장 실패:", error);
-                  }
-                  return next;
-                });
-              } catch (e) {
-                console.error("피드백 조회 실패:", e);
-              }
-            }
+            setResultFeedback(cachedFeedback ?? null);
           } catch (error) {
             console.error("히스토리 복원 실패:", error);
             alert("히스토리 복원에 실패했습니다.");
@@ -879,6 +882,18 @@ export default function MakerPage({ selectedPrompt = null }) {
         isResultLoading={isResultLoading}
         makerId={currentMakerId}
         historyId={currentHistoryId}
+        onFeedbackTabClick={() => {
+          // 피드백 탭 클릭 시 현재 historyId에 대한 피드백만 표시 (캐시에서)
+          if (!currentHistoryId) return;
+
+          const cachedFeedback = historyFeedbackMap[currentHistoryId];
+          if (cachedFeedback !== undefined) {
+            setResultFeedback(cachedFeedback);
+          } else {
+            // 캐시가 없으면 null로 설정 (RUN할 때 호출했어야 함)
+            setResultFeedback(null);
+          }
+        }}
       />
 
       <ResultModal
@@ -931,34 +946,10 @@ export default function MakerPage({ selectedPrompt = null }) {
             setCurrentHistoryId(restored.historyId);
             setCurrentHistoryIndex(index + 1);
 
-            // 복원된 프롬프트에 대한 피드백: 캐시 우선, 없으면 한 번만 조회
+            // 복원된 프롬프트에 대한 피드백: 캐시에서만 가져오기 (RUN할 때 호출했어야 함)
             const targetHistoryId = restored.historyId ?? item.id;
             const cachedFeedback = historyFeedbackMap[targetHistoryId];
-            if (cachedFeedback !== undefined) {
-              setResultFeedback(cachedFeedback);
-            } else {
-              try {
-                const feedbackResponse = await getPromptFeedback(
-                  currentMakerId
-                );
-                const feedbackText = feedbackResponse?.feedback ?? null;
-                setResultFeedback(feedbackText);
-                setHistoryFeedbackMap((prev) => {
-                  const next = { ...prev, [targetHistoryId]: feedbackText };
-                  try {
-                    localStorage.setItem(
-                      `makerFeedback:${currentMakerId}`,
-                      JSON.stringify(next)
-                    );
-                  } catch (error) {
-                    console.error("피드백 캐시 저장 실패:", error);
-                  }
-                  return next;
-                });
-              } catch (e) {
-                console.error("피드백 조회 실패:", e);
-              }
-            }
+            setResultFeedback(cachedFeedback ?? null);
           } catch (error) {
             console.error("히스토리 복원 실패:", error);
             alert("히스토리 복원에 실패했습니다.");
@@ -970,6 +961,18 @@ export default function MakerPage({ selectedPrompt = null }) {
         isResultLoading={isResultLoading}
         makerId={currentMakerId}
         historyId={currentHistoryId}
+        onFeedbackTabClick={() => {
+          // 피드백 탭 클릭 시 현재 historyId에 대한 피드백만 표시 (캐시에서)
+          if (!currentHistoryId) return;
+
+          const cachedFeedback = historyFeedbackMap[currentHistoryId];
+          if (cachedFeedback !== undefined) {
+            setResultFeedback(cachedFeedback);
+          } else {
+            // 캐시가 없으면 null로 설정 (RUN할 때 호출했어야 함)
+            setResultFeedback(null);
+          }
+        }}
       />
     </MakerPageWrapper>
   );
