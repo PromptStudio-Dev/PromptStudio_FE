@@ -882,18 +882,6 @@ export default function MakerPage({ selectedPrompt = null }) {
         isResultLoading={isResultLoading}
         makerId={currentMakerId}
         historyId={currentHistoryId}
-        onFeedbackTabClick={() => {
-          // 피드백 탭 클릭 시 현재 historyId에 대한 피드백만 표시 (캐시에서)
-          if (!currentHistoryId) return;
-
-          const cachedFeedback = historyFeedbackMap[currentHistoryId];
-          if (cachedFeedback !== undefined) {
-            setResultFeedback(cachedFeedback);
-          } else {
-            // 캐시가 없으면 null로 설정 (RUN할 때 호출했어야 함)
-            setResultFeedback(null);
-          }
-        }}
       />
 
       <ResultModal
@@ -961,18 +949,6 @@ export default function MakerPage({ selectedPrompt = null }) {
         isResultLoading={isResultLoading}
         makerId={currentMakerId}
         historyId={currentHistoryId}
-        onFeedbackTabClick={() => {
-          // 피드백 탭 클릭 시 현재 historyId에 대한 피드백만 표시 (캐시에서)
-          if (!currentHistoryId) return;
-
-          const cachedFeedback = historyFeedbackMap[currentHistoryId];
-          if (cachedFeedback !== undefined) {
-            setResultFeedback(cachedFeedback);
-          } else {
-            // 캐시가 없으면 null로 설정 (RUN할 때 호출했어야 함)
-            setResultFeedback(null);
-          }
-        }}
       />
     </MakerPageWrapper>
   );
