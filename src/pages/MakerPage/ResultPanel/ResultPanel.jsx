@@ -148,10 +148,11 @@ const ResultPanelWrapper = styled.div`
 
 const ResultPanelHeader = styled.div`
   padding: ${(props) =>
-    props.$isExpanded ? "1.75rem 5.69rem" : "1.25rem 4rem 1.25rem 2rem"};
+    props.$isExpanded ? "1.75rem 5.69rem" : "1.75rem 4rem 1.25rem 2rem"};
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: ${(props) =>
+    props.$isExpanded ? "flex-end" : "space-between"};
   gap: 0;
 `;
 

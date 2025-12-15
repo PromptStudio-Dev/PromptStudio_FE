@@ -23,8 +23,8 @@ export default function ControlBar({
 
   return (
     <ControlBarWrapper>
-      <AIModalSelector />
       <SecondWrapper>
+        <AIModalSelector />
         <RunButton onClick={onRun} disabled={isResultLoading}>
           <ButtonText>PROMPT</ButtonText>
           <ButtonText>RUN</ButtonText>
@@ -47,7 +47,7 @@ export default function ControlBar({
 const SecondWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 `;
 
 const OpenResultPanelButton = styled.img`
@@ -66,11 +66,12 @@ const OpenResultPanelButton = styled.img`
 `;
 
 const ControlBarWrapper = styled.div`
+  padding: 0 3.8rem 1.25rem 2rem;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  justify-content: space-between;
+  gap: 0;
   flex-shrink: 0;
-  gap: 1.25rem;
 `;
 
 const RunButton = styled.button`
@@ -78,7 +79,7 @@ const RunButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 0.625rem;
-  padding: 0.5rem 2.72rem;
+  padding: 0.75rem 1.5rem;
   background: linear-gradient(99deg, #49d8ff -86.38%, #269aed 148.91%);
   border: none;
   font-family: "Pretendard Variable", sans-serif;
@@ -100,9 +101,9 @@ const RunButton = styled.button`
 `;
 
 const ButtonText = styled.span`
-  font-family: "Pretendard Variable", sans-serif;
-  font-weight: 800;
-  font-size: 1.5625rem;
+  font-weight: 700;
+  font-size: 1.1875rem;
   color: white;
   letter-spacing: 3%;
+  line-height: 100%;
 `;
