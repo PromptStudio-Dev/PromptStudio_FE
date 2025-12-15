@@ -258,17 +258,17 @@ const CloseButton = styled.button`
 
 const ModalBody = styled.div`
   flex: 1 0 auto;
-  padding: 1.62rem 3rem 1.62rem 2rem;
+  padding: 0 1.62rem 1.62rem 2rem;
   flex-direction: column;
-  gap: 3rem;
+  gap: 2rem;
   overflow-y: auto;
 `;
 
 const BottomSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-left: 2rem;
+  gap: 1.5rem;
+  margin-left: 1rem;
 `;
 
 const TabContentWrapper = styled.div`
@@ -293,7 +293,6 @@ const TabInnerFeedback = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-bottom: 1rem;
 `;
 
 const TabHeader = styled.div`
