@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../assets/hub-modal-dropdown.svg";
+import HubBackButtonImg from "../../assets/hub-modal-backbutton.svg";
 
 export default function HubModalSelector({
   selectedModel,
@@ -41,6 +42,15 @@ export default function HubModalSelector({
     setIsOpen(!isOpen);
   };
 
+  const handleBackClick = (e) => {
+    e.stopPropagation();
+    if (disabled) return;
+    onModelChange?.("모든 허브");
+  };
+
+  const showBackButton =
+    selectedModel === "내가 작성한 글" || selectedModel === "좋아요";
+
   return (
     <SelectorWrapper ref={wrapperRef}>
       <SelectorButton
@@ -52,6 +62,14 @@ export default function HubModalSelector({
         $disabled={disabled}
       >
         <ModelInfo>
+          {showBackButton && (
+            <BackButtonWrapper>
+              <BackButton onClick={handleBackClick} type="button">
+                <BackButtonIcon src={HubBackButtonImg} alt="뒤로" />
+              </BackButton>
+              <Divider />
+            </BackButtonWrapper>
+          )}
           <ModelName>{selectedModel}</ModelName>
         </ModelInfo>
         <DropdownIcon src={HubDropdownImg} />
@@ -109,6 +127,48 @@ const SelectorButton = styled.button`
 const ModelInfo = styled.div`
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const BackButtonIcon = styled.img`
+  width: 1.625rem;
+  height: 1.625rem;
+`;
+
+const BackButtonWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const Divider = styled.div`
+  width: 0.0625rem;
+  height: 1.1875rem;
+  background-color: #d9d9d9;
+  flex-shrink: 0;
 `;
 
 const ModelName = styled.span`
@@ -141,13 +201,17 @@ const DropdownMenu = styled.div`
 const MenuItem = styled.button`
   width: 100%;
   padding: 0.75rem 1rem;
-  background: ${(props) => (props.$isSelected ? "#e0f5ff" : "white")};
+  background: white;
   border: none;
   text-align: left;
   cursor: pointer;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.1875rem;
   color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
+
+  &:hover {
+    background: #e0f5ff;
+  }
 
   &:first-child {
     border-radius: 8px 8px 0 0;
