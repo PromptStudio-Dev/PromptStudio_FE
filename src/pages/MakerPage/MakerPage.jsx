@@ -48,6 +48,7 @@ export default function MakerPage({ selectedPrompt = null }) {
     selectedPrompt?.makerId ?? null
   );
   const [existingImageUrls, setExistingImageUrls] = useState([]);
+  const [insertedTextRange, setInsertedTextRange] = useState(null); // 삽입된 텍스트 위치
   const saveIntervalRef = useRef(null);
   const skipNextAutoSaveRef = useRef(false);
   const isSavingRef = useRef(false);
@@ -415,7 +416,14 @@ export default function MakerPage({ selectedPrompt = null }) {
           setPromptContent((currentContent) => {
             const before = currentContent.slice(0, start);
             const after = currentContent.slice(end);
-            return `${before}${target.content}${after}`;
+            const newContent = `${before}${target.content}${after}`;
+
+            // 삽입된 텍스트 위치 저장 (하이라이트용)
+            const insertedStart = start;
+            const insertedEnd = start + target.content.length;
+            setInsertedTextRange({ start: insertedStart, end: insertedEnd });
+
+            return newContent;
           });
         }
       }
@@ -451,7 +459,15 @@ export default function MakerPage({ selectedPrompt = null }) {
           const before = currentContent.slice(0, end);
           const after = currentContent.slice(end);
           // 선택된 텍스트 다음에 줄바꿈과 함께 업그레이드된 텍스트 삽입
-          return `${before}\n${target.content}${after}`;
+          const insertedText = `\n${target.content}`;
+          const newContent = `${before}${insertedText}${after}`;
+
+          // 삽입된 텍스트 위치 저장 (하이라이트용)
+          const insertedStart = end;
+          const insertedEnd = end + insertedText.length;
+          setInsertedTextRange({ start: insertedStart, end: insertedEnd });
+
+          return newContent;
         });
       }
     }
@@ -463,6 +479,17 @@ export default function MakerPage({ selectedPrompt = null }) {
       setLatestUpgradeId(null);
     }
   };
+
+  // 삽입된 텍스트 하이라이트 3초 후 제거
+  useEffect(() => {
+    if (insertedTextRange) {
+      const timer = setTimeout(() => {
+        setInsertedTextRange(null);
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [insertedTextRange]);
 
   // 텍스트 재업그레이드 API 연동
   const handleReupgradeRequest = async () => {
@@ -576,6 +603,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         onAttachedImagesChange={setAttachedImages}
         onUpgradeRequest={handleUpgradeRequest}
         onAcceptUpgrade={handleAcceptUpgrade}
+        insertedTextRange={insertedTextRange}
         onCancelUpgrade={handleCancelUpgrade}
         onEditUpgrade={handleEditUpgrade}
         activeUpgradeId={latestUpgradeId}

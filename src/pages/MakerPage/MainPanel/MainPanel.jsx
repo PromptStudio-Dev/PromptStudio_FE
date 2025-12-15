@@ -28,6 +28,7 @@ export default function MainPanel({
   isResultPanelExpanded = false,
   isResultModalOpen = false,
   isResultLoading = false,
+  insertedTextRange = null,
 }) {
   return (
     <MakerPanelWrapper
@@ -82,6 +83,7 @@ export default function MainPanel({
               activeUpgradeId={activeUpgradeId}
               activeUpgrade={activeUpgrade}
               isResultPanelOpen={isResultPanelOpen}
+              insertedTextRange={insertedTextRange}
             />
           </PromptInputWrapper>
         </TopSection>
