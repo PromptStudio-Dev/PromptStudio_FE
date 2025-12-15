@@ -3,6 +3,8 @@ import UpgradeMenu from "./UpgradeMenu";
 import styled from "styled-components";
 import PromptUpgradeIcon from "../assets/prompt-upgrade-icon.svg";
 import PromptUpgradeButton from "../assets/prompt-upgrade-button.svg";
+import Lottie from "lottie-react";
+import inlineLoadingAnimation from "../assets/Inline Loading.json";
 
 export default function AIUpgradeModal({
   position,
@@ -66,6 +68,8 @@ export default function AIUpgradeModal({
     onEditUpgrade?.(upgradeId);
   };
 
+  const isLoading = isSubmitted && activeUpgradeId == null;
+
   return (
     <SelectionModal
       ref={modalRef}
@@ -74,30 +78,44 @@ export default function AIUpgradeModal({
         left: `${position.left}px`,
       }}
     >
-      <LeftSection onMouseEnter={handleLeftButtonMouseEnter}>
-        <LeftButton>AI 맞춤 추천</LeftButton>
-        <UpgradeMenu
-          isVisible={showMenu}
-          onAccept={() => handleAccept(activeUpgradeId)}
-          onCancel={() => handleCancel(activeUpgradeId)}
-          onEdit={() => handleEdit(activeUpgradeId)}
-        />
-      </LeftSection>
-      <MiddleSection>
-        <UpgradeIcon src={PromptUpgradeIcon} alt="업그레이드 아이콘" />
-        <UpgradeInput
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyPress}
-          placeholder="AI 사용으로 업그레이드하기"
-          disabled={isSubmitted}
-        />
-        {!isSubmitted && (
-          <UpgradeButton onClick={handleSubmit}>
-            <ButtonIcon src={PromptUpgradeButton} alt="업그레이드 버튼" />
-          </UpgradeButton>
-        )}
-      </MiddleSection>
+      {isLoading ? (
+        <LoadingSection>
+          <LoadingAnimationWrapper>
+            <Lottie animationData={inlineLoadingAnimation} loop={true} />
+          </LoadingAnimationWrapper>
+          <LoadingText>흩어진 프롬프트 파도 모으는 중..</LoadingText>
+          <LoadingAnimationWrapper>
+            <Lottie animationData={inlineLoadingAnimation} loop={true} />
+          </LoadingAnimationWrapper>
+        </LoadingSection>
+      ) : (
+        <>
+          <LeftSection onMouseEnter={handleLeftButtonMouseEnter}>
+            <LeftButton>AI 맞춤 추천</LeftButton>
+            <UpgradeMenu
+              isVisible={showMenu}
+              onAccept={() => handleAccept(activeUpgradeId)}
+              onCancel={() => handleCancel(activeUpgradeId)}
+              onEdit={() => handleEdit(activeUpgradeId)}
+            />
+          </LeftSection>
+          <MiddleSection>
+            <UpgradeIcon src={PromptUpgradeIcon} alt="업그레이드 아이콘" />
+            <UpgradeInput
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="AI 사용으로 업그레이드하기"
+              disabled={isSubmitted}
+            />
+            {!isSubmitted && (
+              <UpgradeButton onClick={handleSubmit}>
+                <ButtonIcon src={PromptUpgradeButton} alt="업그레이드 버튼" />
+              </UpgradeButton>
+            )}
+          </MiddleSection>
+        </>
+      )}
     </SelectionModal>
   );
 }
@@ -204,4 +222,31 @@ const UpgradeButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
+`;
+
+const LoadingSection = styled.div`
+  width: 100%;
+  height: 2.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0;
+`;
+
+const LoadingAnimationWrapper = styled.div`
+  width: 2.5rem;
+  height: 2.5rem;
+  padding-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 1;
+`;
+
+const LoadingText = styled.div`
+  font-family: "Pretendard Variable", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #49d8ff;
 `;
