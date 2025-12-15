@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../assets/hub-modal-dropdown.svg";
+import HubBackButtonImg from "../../assets/hub-modal-backbutton.svg";
 
-export default function HubModalSelector({ selectedModel, onModelChange }) {
+export default function HubModalSelector({
+  selectedModel,
+  onModelChange,
+  disabled = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -15,35 +20,62 @@ export default function HubModalSelector({ selectedModel, onModelChange }) {
         setIsOpen(false);
       }
     };
-    if (isOpen) {
+    if (isOpen && !disabled) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
+    } else if (isOpen && disabled) {
+      setIsOpen(false);
     }
-  }, [isOpen]);
+  }, [isOpen, disabled]);
 
   // 키보드 이벤트 핸들러
   const handleKeyDown = (event) => {
+    if (disabled) return;
     if (event.key === "Escape") {
       setIsOpen(false);
     }
   };
 
+  const handleButtonClick = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+  };
+
+  const handleBackClick = (e) => {
+    e.stopPropagation();
+    if (disabled) return;
+    onModelChange?.("모든 허브");
+  };
+
+  const showBackButton =
+    selectedModel === "내가 작성한 글" || selectedModel === "좋아요";
+
   return (
     <SelectorWrapper ref={wrapperRef}>
       <SelectorButton
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleButtonClick}
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        disabled={disabled}
+        $disabled={disabled}
       >
         <ModelInfo>
+          {showBackButton && (
+            <BackButtonWrapper>
+              <BackButton onClick={handleBackClick} type="button">
+                <BackButtonIcon src={HubBackButtonImg} alt="뒤로" />
+              </BackButton>
+              <Divider />
+            </BackButtonWrapper>
+          )}
           <ModelName>{selectedModel}</ModelName>
         </ModelInfo>
         <DropdownIcon src={HubDropdownImg} />
       </SelectorButton>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <DropdownMenu role="listbox">
           {models.map((model) => (
             <MenuItem
@@ -75,20 +107,68 @@ const SelectorWrapper = styled.div`
 const SelectorButton = styled.button`
   width: 21.875rem;
   height: 3.0625rem;
-  background-color: #ffffff;
-  border: 0.0625rem solid #aadff7;
+  background-color: ${(props) => (props.$disabled ? "#f5f5f5" : "#ffffff")};
+  border: 0.0625rem solid
+    ${(props) => (props.$disabled ? "#e0e0e0" : "#aadff7")};
   border-radius: 120px;
   padding: 0 1rem 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
   transition: all 0.2s;
+  opacity: ${(props) => (props.$disabled ? 0.6 : 1)};
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 `;
 
 const ModelInfo = styled.div`
   display: flex;
   align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+`;
+
+const BackButtonIcon = styled.img`
+  width: 1.625rem;
+  height: 1.625rem;
+`;
+
+const BackButtonWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const Divider = styled.div`
+  width: 0.0625rem;
+  height: 1.1875rem;
+  background-color: #d9d9d9;
+  flex-shrink: 0;
 `;
 
 const ModelName = styled.span`
@@ -121,13 +201,17 @@ const DropdownMenu = styled.div`
 const MenuItem = styled.button`
   width: 100%;
   padding: 0.75rem 1rem;
-  background: ${(props) => (props.$isSelected ? "#e0f5ff" : "white")};
+  background: white;
   border: none;
   text-align: left;
   cursor: pointer;
   font-family: "Pretendard Variable", sans-serif;
   font-size: 1.1875rem;
   color: ${(props) => (props.$isSelected ? "#001e40" : "#454545")};
+
+  &:hover {
+    background: #e0f5ff;
+  }
 
   &:first-child {
     border-radius: 8px 8px 0 0;

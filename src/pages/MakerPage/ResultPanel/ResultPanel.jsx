@@ -160,7 +160,7 @@ const ResultContent = styled.div`
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: ${(props) => (props.$isExpanded ? "0" : "3rem 2.75rem 0 2.75rem")};
+  padding: ${(props) => (props.$isExpanded ? "0" : "2rem 2.75rem 0 2.75rem")};
   display: flex;
   flex-direction: column;
   gap: 0; /* 세로선이 전체를 채우도록 간격 없음 */

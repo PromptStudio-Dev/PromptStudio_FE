@@ -231,14 +231,13 @@ const LoadingSection = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0;
+  gap: 0.8rem;
 `;
 
 const LoadingAnimationWrapper = styled.div`
   width: 2.5rem;
   height: 2.5rem;
-  padding-bottom: 0.5rem;
+  padding-bottom: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;

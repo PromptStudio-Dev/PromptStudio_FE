@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import Lottie from "lottie-react";
 import CopyIcon from "../assets/run-result-text-copy-inactive-icon.svg";
 import CopyActiveIcon from "../assets/run-result-text-copy-active-icon.svg";
 import SaveIcon from "../assets/run-result-image-save-inactive-icon.svg";
@@ -7,6 +8,7 @@ import SaveActiveIcon from "../assets/run-result-image-save-active-icon.svg";
 import ExpandIcon from "../assets/run-result-expand-icon.svg";
 import CollapseIcon from "../assets/run-result-collapse-icon.svg";
 import { downloadHistoryImage } from "../api/results";
+import MakerLoadingAnimation from "../assets/Maker Loading.json";
 
 export default function ResultDisplay({
   imageUrl,
@@ -121,18 +123,30 @@ export default function ResultDisplay({
   };
 
   return (
-    <DisplayContainer $isExpanded={isExpanded}>
+    <DisplayContainer
+      $isExpanded={isExpanded}
+      $isLoading={isLoading}
+      $isModal={!showActions}
+    >
       <ResultSection>
-        {imageUrl ? (
+        {isLoading ? (
+          <LoadingContainer>
+            <LoadingAnimationWrapper $isModal={!showActions}>
+              <Lottie animationData={MakerLoadingAnimation} loop={true} />
+            </LoadingAnimationWrapper>
+            <LoadingTextWrapper>
+              <LoadingText>흩어진 프롬프트 파도 모으는 중..</LoadingText>
+            </LoadingTextWrapper>
+          </LoadingContainer>
+        ) : imageUrl ? (
           <ResultImage src={imageUrl} alt="생성된 이미지" />
         ) : textContent ? (
           <TextContent>{textContent}</TextContent>
         ) : (
           <Placeholder />
         )}
-        {isLoading && <LoadingText>결과 생성중...</LoadingText>}
       </ResultSection>
-      {showActions && (textContent || imageUrl) && (
+      {showActions && !isLoading && (textContent || imageUrl) && (
         <ActionButtons>
           {textContent && (
             <CopyButton onClick={handleCopy} $isCopied={isCopied}>
@@ -172,8 +186,14 @@ export default function ResultDisplay({
 
 const DisplayContainer = styled.div`
   position: relative;
-  width: ${(props) => (props.$isExpanded ? "62rem" : "29.25rem")};
-  height: ${(props) => (props.$isExpanded ? "28.9375rem" : "25.6875rem")};
+  width: ${(props) => {
+    if (props.$isModal) return "27.3125rem";
+    return props.$isExpanded ? "62rem" : "29.25rem";
+  }};
+  height: ${(props) => {
+    if (props.$isModal) return "27.3125rem";
+    return props.$isExpanded ? "28.9375rem" : "25.6875rem";
+  }};
   overflow: ${(props) => (props.$isExpanded ? "visible" : "hidden")};
   display: flex;
   flex-direction: column;
@@ -204,7 +224,6 @@ const ResultImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 0.925rem;
 `;
 
 const TextContent = styled.div`
@@ -231,16 +250,36 @@ const TextContent = styled.div`
   }
 `;
 
+const LoadingContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+`;
+
+const LoadingAnimationWrapper = styled.div`
+  width: 90%;
+  height: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
 const LoadingText = styled.p`
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: "Pretendard Variable", sans-serif;
-  font-size: 1.214rem;
-  font-weight: 400;
-  color: #848484;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #49d8ff;
   margin: 0;
+`;
+
+const LoadingTextWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ActionButtons = styled.div`

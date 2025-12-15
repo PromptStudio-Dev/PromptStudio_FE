@@ -78,6 +78,27 @@ export default function PromptEditor({
         return;
       }
 
+      // 업그레이드 결과가 표시되고 있을 때 다른 텍스트를 선택하면 취소
+      if (activeUpgradeId) {
+        // 기존 업그레이드의 선택 범위와 비교
+        const isDifferentSelection =
+          !activeUpgrade ||
+          !activeUpgrade.selectionRange ||
+          activeUpgrade.selectionRange.start !== start ||
+          activeUpgrade.selectionRange.end !== end;
+
+        if (isDifferentSelection) {
+          // 다른 텍스트를 선택했으므로 업그레이드 취소
+          console.log("다른 텍스트 선택 감지, 업그레이드 취소:", {
+            activeUpgradeId,
+            oldRange: activeUpgrade?.selectionRange,
+            newRange: { start, end },
+          });
+          onCancelUpgrade?.(activeUpgradeId);
+          // 취소 후에도 새로운 선택을 처리하기 위해 계속 진행
+        }
+      }
+
       const draggedText = content.substring(start, end);
       const trimmedText = draggedText.trim();
 
@@ -153,7 +174,13 @@ export default function PromptEditor({
     setTimeout(() => {
       processSelection();
     }, 10);
-  }, [content, isUpgradeSubmitted, activeUpgradeId]);
+  }, [
+    content,
+    isUpgradeSubmitted,
+    activeUpgradeId,
+    activeUpgrade,
+    onCancelUpgrade,
+  ]);
 
   const handleMouseDown = useCallback(
     (e) => {
@@ -179,12 +206,16 @@ export default function PromptEditor({
         // 기존에 활성화된 업그레이드가 있으면 취소
         if (activeUpgradeId) {
           onCancelUpgrade?.(activeUpgradeId);
+          // 취소 후 상태 초기화
+          resetSelectionState();
         }
         setShowModal(false);
       }
       // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
       else if (activeUpgradeId) {
         onCancelUpgrade?.(activeUpgradeId);
+        // 취소 후 상태 초기화
+        resetSelectionState();
       }
     },
     [showModal, activeUpgradeId, onCancelUpgrade, isUpgradeSubmitted]

@@ -4,7 +4,7 @@ import styled from "styled-components";
 export default function ResultFeedback({ feedbackText }) {
   const text =
     (feedbackText && feedbackText.trim()) ||
-    "이 결과에 대한 피드백이 여기에 표시됩니다.";
+    "피드백은 하루 30회까지 요청할 수 있어요.\n내일 다시 시도해주세요!";
 
   return (
     <FeedbackContainer>
