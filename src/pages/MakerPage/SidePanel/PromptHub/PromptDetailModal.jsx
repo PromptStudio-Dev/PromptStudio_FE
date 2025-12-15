@@ -60,6 +60,10 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
       if (response.data && response.data.content) {
         await navigator.clipboard.writeText(response.data.content);
         showCopyModal();
+        // copyCount 증가
+        setPromptData((prev) =>
+          prev ? { ...prev, copyCount: (prev.copyCount ?? 0) + 1 } : prev
+        );
       } else {
         alert("복사할 내용이 없습니다.");
       }
