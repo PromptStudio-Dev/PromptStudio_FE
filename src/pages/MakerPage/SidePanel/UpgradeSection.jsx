@@ -12,6 +12,7 @@ export default function UpgradeSection({
   onReupgrade,
 }) {
   const [selectedUpgradeId, setSelectedUpgradeId] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const hasUpgrades = Array.isArray(upgrades) && upgrades.length > 0;
   const selectedUpgrade = useMemo(() => {
@@ -30,6 +31,17 @@ export default function UpgradeSection({
     setSelectedUpgradeId(null);
   };
 
+  const handleReupgrade = async () => {
+    setIsRefreshing(true);
+    try {
+      await onReupgrade?.();
+    } catch (error) {
+      console.error("재업그레이드 실패:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (!hasUpgrades) {
     return null;
   }
@@ -39,9 +51,15 @@ export default function UpgradeSection({
       <SectionWrapper>
         <SectionHeader>
           <SectionTitle>업그레이드 결과</SectionTitle>
-          <UpgradeAgainButton onClick={onReupgrade}>
-            <UpgradeAgainButtonText>새로고침</UpgradeAgainButtonText>
-            <UpgradeAgainButtonImage src={UpgradeAgainButtonImg} />
+          <UpgradeAgainButton onClick={handleReupgrade} disabled={isRefreshing}>
+            {isRefreshing ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                <UpgradeAgainButtonText>새로고침</UpgradeAgainButtonText>
+                <UpgradeAgainButtonImage src={UpgradeAgainButtonImg} />
+              </>
+            )}
           </UpgradeAgainButton>
         </SectionHeader>
         <CardsContainer>
@@ -74,13 +92,14 @@ export default function UpgradeSection({
 
 const UpgradeAgainButton = styled.button`
   background-color: transparent;
-  border: 0.0625rem solid #454545;
-  cursor: pointer;
+  border: none;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   display: flex;
   align-items: center;
   gap: 0.5rem;
   border-radius: 7.5rem;
   padding: 0.19rem 1rem;
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
 `;
 
 const UpgradeAgainButtonText = styled.p`
@@ -142,4 +161,22 @@ const CardsContainer = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem; /* 16px */
+`;
+
+const LoadingSpinner = styled.div`
+  width: 1.1875rem;
+  height: 1.1875rem;
+  border: 0.125rem solid #e0e0e0;
+  border-top: 0.125rem solid #49d8ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 `;
