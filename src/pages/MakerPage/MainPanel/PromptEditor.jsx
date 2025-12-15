@@ -37,6 +37,14 @@ export default function PromptEditor({
     setIsUpgradeSubmitted(false);
   };
 
+  // insertedTextRange가 설정되면 shimmer 효과 제거
+  useEffect(() => {
+    if (insertedTextRange) {
+      setIsUpgradeSubmitted(false);
+      setShowModal(false);
+    }
+  }, [insertedTextRange]);
+
   const handleMouseUp = useCallback(() => {
     // 업그레이드 중일 때는 아무 처리도 하지 않음
     if (isUpgradeSubmitted && activeUpgradeId == null) {
