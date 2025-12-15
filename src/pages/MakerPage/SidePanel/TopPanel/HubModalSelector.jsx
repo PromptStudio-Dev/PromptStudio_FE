@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import HubDropdownImg from "../../assets/hub-modal-dropdown.svg";
 
-export default function HubModalSelector({ selectedModel, onModelChange }) {
+export default function HubModalSelector({
+  selectedModel,
+  onModelChange,
+  disabled = false,
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -15,27 +19,37 @@ export default function HubModalSelector({ selectedModel, onModelChange }) {
         setIsOpen(false);
       }
     };
-    if (isOpen) {
+    if (isOpen && !disabled) {
       document.addEventListener("mousedown", handleClickOutside);
       return () =>
         document.removeEventListener("mousedown", handleClickOutside);
+    } else if (isOpen && disabled) {
+      setIsOpen(false);
     }
-  }, [isOpen]);
+  }, [isOpen, disabled]);
 
   // 키보드 이벤트 핸들러
   const handleKeyDown = (event) => {
+    if (disabled) return;
     if (event.key === "Escape") {
       setIsOpen(false);
     }
   };
 
+  const handleButtonClick = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+  };
+
   return (
     <SelectorWrapper ref={wrapperRef}>
       <SelectorButton
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleButtonClick}
         onKeyDown={handleKeyDown}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        disabled={disabled}
+        $disabled={disabled}
       >
         <ModelInfo>
           <ModelName>{selectedModel}</ModelName>
@@ -43,7 +57,7 @@ export default function HubModalSelector({ selectedModel, onModelChange }) {
         <DropdownIcon src={HubDropdownImg} />
       </SelectorButton>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <DropdownMenu role="listbox">
           {models.map((model) => (
             <MenuItem
@@ -75,15 +89,21 @@ const SelectorWrapper = styled.div`
 const SelectorButton = styled.button`
   width: 21.875rem;
   height: 3.0625rem;
-  background-color: #ffffff;
-  border: 0.0625rem solid #aadff7;
+  background-color: ${(props) => (props.$disabled ? "#f5f5f5" : "#ffffff")};
+  border: 0.0625rem solid
+    ${(props) => (props.$disabled ? "#e0e0e0" : "#aadff7")};
   border-radius: 120px;
   padding: 0 1rem 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
+  cursor: ${(props) => (props.$disabled ? "not-allowed" : "pointer")};
   transition: all 0.2s;
+  opacity: ${(props) => (props.$disabled ? 0.6 : 1)};
+
+  &:disabled {
+    cursor: not-allowed;
+  }
 `;
 
 const ModelInfo = styled.div`

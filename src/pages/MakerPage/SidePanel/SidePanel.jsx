@@ -48,6 +48,7 @@ export default function SidePanel({
         onSearchSubmit={handleSearchSubmit}
         selectedHub={selectedHub}
         onHubChange={setSelectedHub}
+        disabled={hasUpgrades}
       />
       <ContentWrapper>
         {hasUpgrades ? (

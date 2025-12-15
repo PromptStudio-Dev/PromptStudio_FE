@@ -11,6 +11,7 @@ export default function TopPanel({
   onSearchSubmit,
   selectedHub = "모든 허브",
   onHubChange,
+  disabled = false,
 }) {
   return (
     <TopContainer>
@@ -19,6 +20,7 @@ export default function TopPanel({
           value={searchValue}
           onChange={onSearchChange}
           onSearch={onSearchSubmit}
+          disabled={disabled}
         />
         {onClose && (
           <CloseButton onClick={onClose} aria-label="사이드바 닫기">
@@ -29,6 +31,7 @@ export default function TopPanel({
       <HubModalSelector
         selectedModel={selectedHub}
         onModelChange={onHubChange}
+        disabled={disabled}
       />
     </TopContainer>
   );
