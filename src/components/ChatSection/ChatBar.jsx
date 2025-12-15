@@ -29,9 +29,12 @@ export default function ChatBar() {
   const [modalInitialValues, setModalInitialValues] = useState(null);
   const [modalInitialImages, setModalInitialImages] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const isAutoScrollEnabledRef = useRef(true);
   const chatViewSectionRef = useRef(null);
   const { openLoginModal } = useLoginModal();
+  const [showImageLimitAlert, setShowImageLimitAlert] = useState(false);
 
   // 커스텀 훅들 사용
   const { isHighlighted, handleDragOver } = useDragDrop();
@@ -43,7 +46,12 @@ export default function ChatBar() {
     handleImageRemove,
     clearImages,
     replaceImagesWithFiles,
-  } = useImageAttachment();
+  } = useImageAttachment({
+    onMaxImagesExceeded: () => {
+      setShowImageLimitAlert(true);
+      setTimeout(() => setShowImageLimitAlert(false), 2000);
+    },
+  });
   const { textareaRef, handleTextareaChange: originalHandleTextareaChange } =
     useTextareaAutoResize();
 
@@ -228,8 +236,8 @@ export default function ChatBar() {
   // 메시지 전송 핸들러
   const handleSendMessage = () => {
     if (!ensureLoggedIn()) return;
-    // 응답 대기 중이면 전송 차단
-    if (isLoading) return;
+    // 응답 대기 중이거나 타이핑 중이면 전송 차단
+    if (isLoading || isTyping) return;
 
     const textContent = textareaValue.trim() || "";
     const hasContent =
@@ -290,24 +298,88 @@ export default function ChatBar() {
     };
     setMessages((prev) => [...prev, loadingMessage]);
 
-    // 응답 메시지 추가 (더미 데이터) - 3초 후
-    setTimeout(() => {
-      // 로딩 메시지 제거
-      setMessages((prev) => prev.filter((msg) => msg.id !== loadingMessageId));
+    // API 호출
+    const sendChatMessage = async () => {
+      try {
+        const formData = new FormData();
 
-      const assistantMessage = {
-        id: Date.now() + 2,
-        type: "assistant",
-        content: {
-          text: "2월 22일 서비스 개선 회의 요약\n 1.	로그인 버튼 미반응 이슈는 2880×1800 200% 환경에서 레이어 겹침 발생 → rem 기반 수정 진행\n2.	온보딩 테스트 결과 정보 과다 및 애니메이션 버벅임 발견 → 화면 분리 및 성능 최적화 예정\n3.	최근 CS 문의 27%가 브라우저 확대 시 UI 깨짐 → px 기반 마진 구조 개선 필요\n4.	LCP 평균 3.8초 → hero 이미지 webp 전환으로 개선 진행\n5.	각 담당자는 작업 현황을 슬랙으로 공유, 다음 회의는 추후 공지",
-        },
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+        // 프롬프트 카드가 있으면 promptText와 textContent를 연결
+        const messageToSend = droppedPrompt?.promptText
+          ? [droppedPrompt.promptText, textContent].filter(Boolean).join(" ")
+          : textContent;
+        formData.append("message", messageToSend);
 
-      // 응답 완료 후 로딩 상태 해제
-      setIsLoading(false);
-    }, 2000); // 3초 후 응답 메시지 추가
+        // 이미지 파일들 추가
+        attachedImages.forEach((img) => {
+          if (img.file) {
+            formData.append("images", img.file);
+          }
+        });
+
+        let response;
+
+        if (!sessionId) {
+          // 채팅 시작 API 호출
+          response = await apiClient.post("/api/chat/start", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+
+          // sessionId 저장
+          if (response.data?.sessionId) {
+            setSessionId(response.data.sessionId);
+          }
+        } else {
+          // 채팅 전송 API 호출
+          formData.append("sessionId", sessionId);
+          response = await apiClient.post("/api/chat/send", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
+
+        // 로딩 메시지 제거
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== loadingMessageId)
+        );
+
+        const { resultType, content, imageUrl } = response.data;
+
+        // 응답 메시지 생성
+        const assistantMessage = {
+          id: Date.now() + 2,
+          type: "assistant",
+          content:
+            resultType === "IMAGE" ? { image: imageUrl } : { text: content },
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+
+        // 로딩 상태 해제 후 타이핑 상태로 전환 (이미지 응답은 타이핑 없음)
+        setIsLoading(false);
+        if (resultType === "TEXT") {
+          setIsTyping(true);
+        }
+      } catch (error) {
+        console.error("채팅 전송 실패:", error);
+        // 로딩 메시지 제거
+        setMessages((prev) =>
+          prev.filter((msg) => msg.id !== loadingMessageId)
+        );
+        setIsLoading(false);
+
+        // 에러 메시지 표시
+        const errorMessage = {
+          id: Date.now() + 2,
+          type: "assistant",
+          content: {
+            text: "죄송합니다. 메시지 전송에 실패했습니다. 다시 시도해주세요.",
+          },
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+      }
+    };
+
+    sendChatMessage();
 
     // 전송 후 상태 초기화
     if (textareaRef.current) {
@@ -324,7 +396,7 @@ export default function ChatBar() {
 
   // 엔터키 핸들러
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !isLoading) {
+    if (e.key === "Enter" && !e.shiftKey && !isLoading && !isTyping) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -356,7 +428,8 @@ export default function ChatBar() {
   // 전송 가능 여부 확인
   const hasContent =
     (textareaValue.trim() || droppedPrompt || attachedImages.length > 0) &&
-    !isLoading;
+    !isLoading &&
+    !isTyping;
 
   // 메시지가 추가될 때마다 하단으로 스크롤
   useEffect(() => {
@@ -374,7 +447,7 @@ export default function ChatBar() {
     const handleUsePrompt = (event) => {
       const data = event.detail;
       if (!data) return;
-       if (!isLoggedIn()) {
+      if (!isLoggedIn()) {
         openLoginModal();
         return;
       }
@@ -443,12 +516,30 @@ export default function ChatBar() {
             </EmptyMessageText>
           </EmptyMessageWrapper>
         ) : (
-          messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))
+          messages.map((message, index) => {
+            // 마지막 assistant 메시지에만 타이핑 완료 콜백 전달
+            const isLastAssistant =
+              message.type === "assistant" &&
+              isTyping &&
+              index === messages.length - 1;
+            return (
+              <ChatMessage
+                key={message.id}
+                message={message}
+                onTypingComplete={
+                  isLastAssistant ? () => setIsTyping(false) : undefined
+                }
+              />
+            );
+          })
         )}
       </ChatViewSection>
       <ChatSendArea ref={chatSendAreaRef}>
+        {showImageLimitAlert && (
+          <ImageLimitAlert>
+            이미지는 최대 6개까지만 첨부할 수 있습니다.
+          </ImageLimitAlert>
+        )}
         {droppedPrompt && (
           <DroppedPromptPreview
             ref={promptPreviewRef}
@@ -528,6 +619,46 @@ const ChatSendArea = styled.div`
   flex-direction: column;
   align-items: flex-start;
   gap: 1rem;
+`;
+
+const ImageLimitAlert = styled.div`
+  position: absolute;
+  bottom: calc(100% + 8.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  padding: 0.625rem 1rem;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(97deg, #49d8ff -80.24%, #0062ff 108.79%);
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  box-sizing: border-box;
+  white-space: nowrap;
+  z-index: 10;
+  animation: fadeInOut 2s ease-in-out forwards;
+
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    15% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    85% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-10px);
+    }
+  }
 `;
 
 const EmptyMessageWrapper = styled.div`

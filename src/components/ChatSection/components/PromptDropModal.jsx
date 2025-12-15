@@ -8,6 +8,7 @@ import React, {
 import styled from "styled-components";
 
 import { useImageAttachment } from "../hooks/useImageAttachment";
+import { useCopyModal } from "../../../contexts/CopyModalContext";
 
 // 백엔드에서 fields 데이터를 제공하므로 간소화된 구조 사용
 const dummyPromptData = {
@@ -78,6 +79,7 @@ export default function PromptDropModal({
     replaceImagesWithFiles: replaceModalImagesWithFiles,
   } = useImageAttachment();
   const hasAppliedInitialImagesRef = useRef(false);
+  const { showCopyModal } = useCopyModal();
 
   const fieldNamesKey = useMemo(() => {
     if (!promptData?.fields?.length && !dummyPromptData.fields?.length) {
@@ -428,6 +430,7 @@ export default function PromptDropModal({
 
               if (isImageRequired && modalImages.length === 0) {
                 setIsImageMissing(true);
+                showCopyModal("이미지를 첨부해야 합니다!");
                 return;
               }
 
