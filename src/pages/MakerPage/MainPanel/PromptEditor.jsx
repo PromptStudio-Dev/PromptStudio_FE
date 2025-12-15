@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 import AIUpgradeModal from "../shared/AIUpgradeModal";
@@ -26,6 +26,7 @@ export default function PromptEditor({
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
   const modalRef = useRef(null);
+  const isMouseDownInTextareaRef = useRef(false);
 
   const resetSelectionState = () => {
     setShowModal(false);
@@ -33,7 +34,14 @@ export default function PromptEditor({
     setSelectedText("");
   };
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
+    // textarea 내에서 시작하지 않았으면 무시
+    if (!isMouseDownInTextareaRef.current) {
+      isMouseDownInTextareaRef.current = false;
+      return;
+    }
+    isMouseDownInTextareaRef.current = false;
+
     const textarea = textareaRef.current;
     if (!textarea) return;
 
@@ -45,14 +53,12 @@ export default function PromptEditor({
       return; // 선택 없으면 바로 리턴
     }
 
-    // 브라우저가 selection을 확정할 시간을 줌
-    setTimeout(() => {
+    const processSelection = () => {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
 
-      // selection이 변경되었거나 사라졌으면 무시
-      if (start === end || start !== immediateStart || end !== immediateEnd) {
-        console.log("Selection lost or changed, ignoring");
+      // selection이 사라졌으면 무시
+      if (start === end) {
         return;
       }
 
@@ -122,23 +128,65 @@ export default function PromptEditor({
       } else {
         resetSelectionState();
       }
-    }, 10);
-  };
+    };
 
-  const handleMouseDown = () => {
-    // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
-    if (showModal) {
-      // 기존에 활성화된 업그레이드가 있으면 취소
-      if (activeUpgradeId) {
+    // 즉시 체크 (빠른 드래그 대응) - 추가
+    processSelection();
+
+    // 브라우저가 selection을 확정할 시간을 주고 다시 체크
+    setTimeout(() => {
+      processSelection();
+    }, 10);
+  }, [content]);
+
+  const handleMouseDown = useCallback(
+    (e) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      // textarea 내에서 mousedown이 발생했는지 확인
+      const isInsideTextarea =
+        textarea.contains(e.target) || textarea === e.target;
+      isMouseDownInTextareaRef.current = isInsideTextarea;
+
+      if (!isInsideTextarea) {
+        return;
+      }
+
+      // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
+      if (showModal) {
+        // 기존에 활성화된 업그레이드가 있으면 취소
+        if (activeUpgradeId) {
+          onCancelUpgrade?.(activeUpgradeId);
+        }
+        setShowModal(false);
+      }
+      // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
+      else if (activeUpgradeId) {
         onCancelUpgrade?.(activeUpgradeId);
       }
-      setShowModal(false);
-    }
-    // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
-    else if (activeUpgradeId) {
-      onCancelUpgrade?.(activeUpgradeId);
-    }
-  };
+    },
+    [showModal, activeUpgradeId, onCancelUpgrade]
+  );
+
+  // 기존에는 textarea 레벨에서 props 로 감지했지만, 이제는 document 레벨에서 감지
+  useEffect(() => {
+    const handleDocumentMouseDown = (e) => {
+      handleMouseDown(e);
+    };
+
+    const handleDocumentMouseUp = () => {
+      handleMouseUp();
+    };
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+    document.addEventListener("mouseup", handleDocumentMouseUp);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+      document.removeEventListener("mouseup", handleDocumentMouseUp);
+    };
+  }, [handleMouseDown, handleMouseUp]);
 
   // 업그레이드 결과가 나왔을 때 모달 위치를 텍스트 높이에 맞춰 조정
   useEffect(() => {
@@ -348,6 +396,7 @@ export default function PromptEditor({
     selectionRange,
     activeUpgrade,
     content,
+    isResultPanelOpen,
   ]);
 
   const handleUpgradeSubmit = (upgradeRequest) => {
@@ -455,8 +504,6 @@ export default function PromptEditor({
         ref={textareaRef}
         value={content}
         onChange={(e) => onContentChange?.(e.target.value)}
-        onMouseUp={handleMouseUp}
-        onMouseDown={handleMouseDown}
         onScroll={(e) => setTextareaScrollTop(e.target.scrollTop)}
         $shouldHideText={shouldHideTextareaText}
       />
