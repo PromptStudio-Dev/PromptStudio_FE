@@ -187,11 +187,11 @@ export default function ResultDisplay({
 const DisplayContainer = styled.div`
   position: relative;
   width: ${(props) => {
-    if (props.$isModal) return "100%";
+    if (props.$isModal) return "27.3125rem";
     return props.$isExpanded ? "62rem" : "29.25rem";
   }};
   height: ${(props) => {
-    if (props.$isModal) return "100%";
+    if (props.$isModal) return "27.3125rem";
     return props.$isExpanded ? "28.9375rem" : "25.6875rem";
   }};
   overflow: ${(props) => (props.$isExpanded ? "visible" : "hidden")};
@@ -224,7 +224,6 @@ const ResultImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 0.925rem;
 `;
 
 const TextContent = styled.div`
@@ -262,8 +261,8 @@ const LoadingContainer = styled.div`
 `;
 
 const LoadingAnimationWrapper = styled.div`
-  width: ${(props) => (props.$isModal ? "15rem" : "24rem")};
-  height: ${(props) => (props.$isModal ? "15rem" : "24rem")};
+  width: 90%;
+  height: 90%;
   display: flex;
   align-items: center;
   justify-content: center;
