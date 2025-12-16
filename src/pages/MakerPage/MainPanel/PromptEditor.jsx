@@ -26,6 +26,8 @@ export default function PromptEditor({
   const [textareaScrollTop, setTextareaScrollTop] = useState(0);
   const [prevActiveUpgradeId, setPrevActiveUpgradeId] = useState(null);
   const [isUpgradeSubmitted, setIsUpgradeSubmitted] = useState(false); // 업그레이드 전송 여부
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [upgradeIdToCancel, setUpgradeIdToCancel] = useState(null);
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
   const modalRef = useRef(null);
@@ -105,14 +107,16 @@ export default function PromptEditor({
           activeUpgrade.selectionRange.end !== end;
 
         if (isDifferentSelection) {
-          // 다른 텍스트를 선택했으므로 업그레이드 취소
-          console.log("다른 텍스트 선택 감지, 업그레이드 취소:", {
+          // 다른 텍스트를 선택했으므로 삭제 모달 표시
+          console.log("다른 텍스트 선택 감지, 삭제 모달 표시:", {
             activeUpgradeId,
             oldRange: activeUpgrade?.selectionRange,
             newRange: { start, end },
           });
-          onCancelUpgrade?.(activeUpgradeId);
-          // 취소 후에도 새로운 선택을 처리하기 위해 계속 진행
+          setUpgradeIdToCancel(activeUpgradeId);
+          setIsDeleteModalOpen(true);
+          // 새로운 선택 처리를 중단하고 리턴
+          return;
         }
       }
 
@@ -220,19 +224,17 @@ export default function PromptEditor({
 
       // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
       if (showModal) {
-        // 기존에 활성화된 업그레이드가 있으면 취소
+        // 기존에 활성화된 업그레이드가 있으면 삭제 모달 표시
         if (activeUpgradeId) {
-          onCancelUpgrade?.(activeUpgradeId);
+          setUpgradeIdToCancel(activeUpgradeId);
+          setIsDeleteModalOpen(true);
           // 취소 후 상태 초기화
-          resetSelectionState();
         }
-        setShowModal(false);
       }
-      // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
+      // 모달이 없어도 업그레이드가 활성화되어 있으면 삭제 모달 표시 (다른 텍스트 드래그 시작)
       else if (activeUpgradeId) {
-        onCancelUpgrade?.(activeUpgradeId);
-        // 취소 후 상태 초기화
-        resetSelectionState();
+        setUpgradeIdToCancel(activeUpgradeId);
+        setIsDeleteModalOpen(true);
       }
     },
     [showModal, activeUpgradeId, onCancelUpgrade, isUpgradeSubmitted]
@@ -629,6 +631,38 @@ export default function PromptEditor({
           />,
           document.body
         )}
+
+      {isDeleteModalOpen &&
+        createPortal(
+          <DeleteModalOverlay onClick={() => setIsDeleteModalOpen(false)}>
+            <DeleteModalContainer onClick={(e) => e.stopPropagation()}>
+              <DeleteModalText>변경 사항을 삭제하시겠습니까?</DeleteModalText>
+              <DeleteModalButtonGroup>
+                <DeleteModalCancelButton
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setUpgradeIdToCancel(null);
+                  }}
+                >
+                  아니오
+                </DeleteModalCancelButton>
+                <DeleteModalConfirmButton
+                  onClick={() => {
+                    if (upgradeIdToCancel) {
+                      onCancelUpgrade?.(upgradeIdToCancel);
+                      resetSelectionState();
+                    }
+                    setIsDeleteModalOpen(false);
+                    setUpgradeIdToCancel(null);
+                  }}
+                >
+                  삭제
+                </DeleteModalConfirmButton>
+              </DeleteModalButtonGroup>
+            </DeleteModalContainer>
+          </DeleteModalOverlay>,
+          document.body
+        )}
     </EditorWrapper>
   );
 }
@@ -798,4 +832,78 @@ const UpgradedText = styled.span`
 
 const InsertedTextHighlight = styled.span`
   color: #00aeff;
+`;
+
+const DeleteModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const DeleteModalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.625rem 3.0625rem 1.125rem 3.625rem;
+  border-radius: 1rem;
+  background: #282828;
+`;
+
+const DeleteModalText = styled.div`
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const DeleteModalButtonGroup = styled.div`
+  display: flex;
+  gap: 1.125rem;
+  align-items: center;
+`;
+
+const DeleteModalCancelButton = styled.button`
+  display: flex;
+  width: 5rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: transparent;
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const DeleteModalConfirmButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: #fff;
+  color: #282828;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 `;
