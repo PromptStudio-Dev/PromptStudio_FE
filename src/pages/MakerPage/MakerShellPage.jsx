@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styled from "styled-components";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import MakerPage from "./MakerPage";
@@ -8,6 +14,8 @@ import MakerPageIcon from "./assets/prompt-maker-image.svg";
 import MakerNextButton from "./assets/maker-next-button.svg";
 import MakerPrevButton from "./assets/maker-prev-button.svg";
 import { createMaker, getMaker, getMakers, deleteMaker } from "./api";
+import { isLoggedIn } from "../../utils/authStorage";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 
 const RUN_STATE = {
   RUN: "RUN",
@@ -19,6 +27,7 @@ const MAKER_NOT_FOUND_MESSAGE = "선택한 Maker를 찾을 수 없습니다.";
 export default function MakerShellPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { openLoginModal } = useLoginModal();
   const { makerId: makerIdParam } = useParams();
   const [makerView, setMakerView] = useState(RUN_STATE.RUN);
   const [makers, setMakers] = useState([]);
@@ -31,6 +40,7 @@ export default function MakerShellPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [makerIdToDelete, setMakerIdToDelete] = useState(null);
+  const authGuardedRef = useRef(false);
 
   const CARDS_PER_PAGE = 9;
 
@@ -39,6 +49,9 @@ export default function MakerShellPage() {
     setMakerListError(null);
 
     try {
+      if (!isLoggedIn()) {
+        throw new Error("로그인이 필요합니다.");
+      }
       // RUN / NO RUN에 따라 hasHistory(boolean) 결정
       const hasHistory = makerView === RUN_STATE.RUN;
 
@@ -97,6 +110,16 @@ export default function MakerShellPage() {
       setIsLoadingMakers(false);
     }
   }, [makerView]);
+
+  // 로그인 여부 선행 체크: 비로그인 시 허브로 돌려보내고 로그인 모달 오픈
+  useEffect(() => {
+    if (authGuardedRef.current) return;
+    if (!isLoggedIn()) {
+      authGuardedRef.current = true;
+      openLoginModal();
+      navigate("/", { replace: true });
+    }
+  }, [navigate, openLoginModal]);
 
   useEffect(() => {
     fetchMakers();
@@ -243,6 +266,10 @@ export default function MakerShellPage() {
         throw new Error("로그인이 필요합니다. 먼저 로그인해주세요.");
       }
 
+      if (!isLoggedIn()) {
+        throw new Error("로그인이 필요합니다. 먼저 로그인해주세요.");
+      }
+
       // API를 통해 메이커 생성
       const response = await createMaker(Number(memberId));
       const { makerId } = response;
@@ -288,13 +315,17 @@ export default function MakerShellPage() {
 
   const handleSelectMaker = useCallback(
     async (makerId) => {
+      if (!isLoggedIn()) {
+        openLoginModal();
+        return;
+      }
       if (!makerId) {
         return;
       }
 
       navigate(`/maker/${makerId}`);
     },
-    [navigate]
+    [navigate, openLoginModal]
   );
 
   const handleDeleteClick = useCallback((makerId) => {
