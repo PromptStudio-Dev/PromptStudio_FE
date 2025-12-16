@@ -162,7 +162,7 @@ const CategoryList = styled.div`
 
   /* 이 페이지에서만 CategoryTag의 font-size를 1.625rem으로 설정 */
   & > * {
-    font-size: 1.625rem;
+    font-size: 1.3rem;
     font-style: normal;
     font-weight: 600;
     padding: 0.42rem 1rem;
@@ -210,7 +210,7 @@ const ScopeItemText = styled.span`
   color: ${({ $isSelected }) => ($isSelected ? "#00AEFF" : "#A9A9A9")};
   text-align: center;
   font-family: inherit;
-  font-size: 1.4375rem;
+  font-size: 1.3rem;
   font-style: normal;
   font-weight: 500;
   transition: color 0.2s ease;
@@ -230,6 +230,7 @@ const TitleText = styled.span`
 const TitleSection = styled.div`
   width: 100%;
   display: flex;
+  margin-bottom: 1rem;
   flex-direction: column;
 `;
 
@@ -255,7 +256,7 @@ const TitleInput = styled.input`
   border-radius: 1rem;
   border: 0.125rem solid var(--Light-blue, #49d8ff);
   padding: 1rem 2.25rem;
-  font-size: 1.625rem;
+  font-size: 1.3rem;
   font-style: normal;
   font-weight: 400;
   line-height: normal;

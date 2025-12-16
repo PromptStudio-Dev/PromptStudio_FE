@@ -76,8 +76,8 @@ const LeftGroup = styled.div`
 `;
 
 const Logo = styled.img`
-  height: 2rem;
-  width: calc(2rem * (5.8125 / 2.6875));
+  height: 3.5rem;
+  width: calc(3.5rem * (5.8125 / 2.6875));
   cursor: pointer;
 `;
 
