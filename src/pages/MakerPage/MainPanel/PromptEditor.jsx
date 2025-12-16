@@ -797,28 +797,22 @@ const HighlightedText = styled.span`
 `;
 
 const ShimmerHighlightedText = styled.span`
-  background: linear-gradient(
-    90deg,
-    #a6a6a6 0%,
-    #a6a6a6 30%,
-    #49d8ff 50%,
-    #269aed 70%,
-    #a6a6a6 100%
-  );
   font-weight: bold;
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  animation: textShimmer 8s ease-in-out;
+  display: inline-block;
+  animation: brightnessColorWave 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: ${({ $delay }) => $delay}s;
 
-  @keyframes textShimmer {
-    0% {
-      background-position: 200% 0;
-    }
+  @keyframes brightnessColorWave {
+    0%,
     100% {
-      background-position: -200% 0;
+      opacity: 0.4;
+      filter: brightness(0.6) hue-rotate(0deg);
+      color: #001e40;
+    }
+    50% {
+      opacity: 1;
+      filter: brightness(1.3) hue-rotate(10deg);
+      color: #00aeff;
     }
   }
 `;
