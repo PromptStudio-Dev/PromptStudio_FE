@@ -38,6 +38,7 @@ export default function AIUpgradeModal({
   const handleSubmit = () => {
     if (inputValue.trim()) {
       onSubmit(inputValue);
+      setInputValue("");
       setIsSubmitted(true); // 전송됨 상태로 변경
     }
   };
