@@ -35,13 +35,13 @@ export default function PromptEditor({
   const modalRef = useRef(null);
   const isMouseDownInTextareaRef = useRef(false);
 
-  const resetSelectionState = () => {
+  const resetSelectionState = useCallback(() => {
     setShowModal(false);
     setSelectionRange(null);
     setSelectedText("");
     setIsUpgradeSubmitted(false);
     setIsReupgrading(false);
-  };
+  }, []);
 
   // insertedTextRange가 설정되면 shimmer 효과 제거
   useEffect(() => {
@@ -65,7 +65,12 @@ export default function PromptEditor({
 
     // 현재 activeUpgradeId를 이전 값으로 저장
     setPrevActiveUpgradeId(activeUpgradeId);
-  }, [activeUpgradeId, isUpgradeSubmitted, prevActiveUpgradeId]);
+  }, [
+    activeUpgradeId,
+    isUpgradeSubmitted,
+    prevActiveUpgradeId,
+    resetSelectionState,
+  ]);
 
   // 업그레이드 내용이 변경되면 재업그레이드 완료
   useEffect(() => {
@@ -74,42 +79,13 @@ export default function PromptEditor({
     }
   }, [activeUpgrade?.content, isReupgrading]);
 
-  const handleMouseUp = useCallback(() => {
-    // 업그레이드 중일 때는 아무 처리도 하지 않음
-    if (isUpgradeSubmitted && activeUpgradeId == null) {
-      return;
-    }
+  const processSelectionRange = useCallback(
+    (start, end) => {
+      if (start === end) return;
+      const textarea = textareaRef.current;
+      if (!textarea) return;
 
-    // textarea 내에서 시작하지 않았으면 무시
-    if (!isMouseDownInTextareaRef.current) {
-      isMouseDownInTextareaRef.current = false;
-      return;
-    }
-    isMouseDownInTextareaRef.current = false;
-
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    // 즉시 selection 체크
-    const immediateStart = textarea.selectionStart;
-    const immediateEnd = textarea.selectionEnd;
-
-    if (immediateStart === immediateEnd) {
-      return; // 선택 없으면 바로 리턴
-    }
-
-    const processSelection = () => {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-
-      // selection이 사라졌으면 무시
-      if (start === end) {
-        return;
-      }
-
-      // 업그레이드 결과가 표시되고 있을 때 다른 텍스트를 선택하면 취소
       if (activeUpgradeId) {
-        // 기존 업그레이드의 선택 범위와 비교
         const isDifferentSelection =
           !activeUpgrade ||
           !activeUpgrade.selectionRange ||
@@ -117,15 +93,8 @@ export default function PromptEditor({
           activeUpgrade.selectionRange.end !== end;
 
         if (isDifferentSelection) {
-          // 다른 텍스트를 선택했으므로 삭제 모달 표시
-          console.log("다른 텍스트 선택 감지, 삭제 모달 표시:", {
-            activeUpgradeId,
-            oldRange: activeUpgrade?.selectionRange,
-            newRange: { start, end },
-          });
           setUpgradeIdToCancel(activeUpgradeId);
           setIsDeleteModalOpen(true);
-          // 새로운 선택 처리를 중단하고 리턴
           return;
         }
       }
@@ -136,7 +105,6 @@ export default function PromptEditor({
       if (trimmedText.length >= 40) {
         setSelectedText(draggedText);
         setSelectionRange({ start, end });
-        console.log("드래그된 텍스트:", draggedText);
 
         const calculateModalPosition = () => {
           const textareaRect = textarea.getBoundingClientRect();
@@ -184,10 +152,7 @@ export default function PromptEditor({
           setInitialModalPosition(newPosition);
         };
 
-        // 먼저 모달 표시
         setShowModal(true);
-
-        // DOM 렌더링 후 위치 계산
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             calculateModalPosition();
@@ -196,22 +161,48 @@ export default function PromptEditor({
       } else {
         resetSelectionState();
       }
-    };
+    },
+    [
+      activeUpgrade,
+      activeUpgradeId,
+      content,
+      resetSelectionState,
+      setModalPosition,
+      setInitialModalPosition,
+    ]
+  );
 
-    // 즉시 체크 (빠른 드래그 대응) - 추가
-    processSelection();
+  const handleMouseUp = useCallback(() => {
+    // 업그레이드 중일 때는 아무 처리도 하지 않음
+    if (isUpgradeSubmitted && activeUpgradeId == null) {
+      return;
+    }
+
+    // textarea 내에서 시작하지 않았으면 무시
+    if (!isMouseDownInTextareaRef.current) {
+      isMouseDownInTextareaRef.current = false;
+      return;
+    }
+    isMouseDownInTextareaRef.current = false;
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // 즉시 selection 체크
+    const immediateStart = textarea.selectionStart;
+    const immediateEnd = textarea.selectionEnd;
+
+    if (immediateStart === immediateEnd) {
+      return; // 선택 없으면 바로 리턴
+    }
+
+    processSelectionRange(immediateStart, immediateEnd);
 
     // 브라우저가 selection을 확정할 시간을 주고 다시 체크
     setTimeout(() => {
-      processSelection();
+      processSelectionRange(textarea.selectionStart, textarea.selectionEnd);
     }, 10);
-  }, [
-    content,
-    isUpgradeSubmitted,
-    activeUpgradeId,
-    activeUpgrade,
-    onCancelUpgrade,
-  ]);
+  }, [isUpgradeSubmitted, activeUpgradeId, processSelectionRange]);
 
   const handleMouseDown = useCallback(
     (e) => {
@@ -251,7 +242,7 @@ export default function PromptEditor({
         }
       }
     },
-    [showModal, activeUpgradeId, isUpgradeLoading]
+    [showModal, activeUpgradeId, isUpgradeLoading, resetSelectionState]
   );
 
   // 기존에는 textarea 레벨에서 props 로 감지했지만, 이제는 document 레벨에서 감지
@@ -272,6 +263,27 @@ export default function PromptEditor({
       document.removeEventListener("mouseup", handleDocumentMouseUp);
     };
   }, [handleMouseDown, handleMouseUp]);
+
+  // Ctrl/Cmd + A 전체 선택 시에도 드래그 선택 처리
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const isSelectAll =
+        (e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey);
+      if (!isSelectAll) return;
+      if (isUpgradeLoading) return;
+
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+      if (document.activeElement !== textarea) return;
+
+      requestAnimationFrame(() => {
+        processSelectionRange(textarea.selectionStart, textarea.selectionEnd);
+      });
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isUpgradeLoading, processSelectionRange]);
 
   // 업그레이드 결과가 나왔을 때 모달 위치를 텍스트 높이에 맞춰 조정
   useEffect(() => {

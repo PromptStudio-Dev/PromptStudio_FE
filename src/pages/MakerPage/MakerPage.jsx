@@ -729,6 +729,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         onOpenModal={() => {
           setIsResultPanelOpen(false);
           setIsResultModalOpen(true);
+          setIsResultPanelExpanded(false);
         }}
         isSidebarOpen={isSidebarOpen}
         isResultPanelExpanded={isResultPanelExpanded}
@@ -886,7 +887,10 @@ export default function MakerPage({ selectedPrompt = null }) {
 
       <ResultModal
         isOpen={isResultModalOpen}
-        onClose={() => setIsResultModalOpen(false)}
+        onClose={() => {
+          setIsResultModalOpen(false);
+          setIsResultPanelExpanded(false);
+        }}
         onExpand={() => {
           setIsResultModalOpen(false);
           setIsResultPanelOpen(true);
