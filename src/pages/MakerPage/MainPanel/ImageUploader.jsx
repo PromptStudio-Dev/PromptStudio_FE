@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import styled from "styled-components";
 import ImgUploadButtonImg from "../assets/image-upload-button.svg";
 
@@ -8,8 +8,10 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 export default function ImageUploader({
   attachedImages = [],
   onAttachedImagesChange,
+  onMaxImagesExceeded,
 }) {
   const fileInputRef = useRef(null);
+  const [showImageLimitAlert, setShowImageLimitAlert] = useState(false);
 
   const revokePreviewUrls = (images) => {
     images.forEach((image) => {
@@ -25,7 +27,11 @@ export default function ImageUploader({
     const imageFiles = files.filter((file) => file.type?.startsWith("image/"));
     const availableSlots = Math.max(0, MAX_IMAGES - currentCount);
     if (availableSlots <= 0) {
-      alert(`이미지는 최대 ${MAX_IMAGES}장까지 첨부할 수 있습니다.`);
+      setShowImageLimitAlert(true);
+      setTimeout(() => setShowImageLimitAlert(false), 2000);
+      if (onMaxImagesExceeded) {
+        onMaxImagesExceeded();
+      }
       return [];
     }
 
@@ -101,6 +107,11 @@ export default function ImageUploader({
 
   return (
     <UploaderWrapper>
+      {showImageLimitAlert && (
+        <ImageLimitAlert>
+          이미지는 최대 6개까지만 첨부할 수 있습니다.
+        </ImageLimitAlert>
+      )}
       <Divider />
       <BottomSection>
         <UploadButton onClick={handleImageAttachClick}>
@@ -233,4 +244,44 @@ const UploadButtonImg = styled.img`
 
 const HiddenInput = styled.input`
   display: none;
+`;
+
+const ImageLimitAlert = styled.div`
+  position: absolute;
+  bottom: calc(100% + 1rem);
+  left: 30%;
+  transform: translateX(-50%);
+  display: flex;
+  padding: 0.625rem 1rem;
+  justify-content: center;
+  border-radius: 0.5rem;
+  background: linear-gradient(97deg, #49d8ff -80.24%, #0062ff 108.79%);
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  box-sizing: border-box;
+  white-space: nowrap;
+  z-index: 10;
+  animation: fadeInOut 2s ease-in-out forwards;
+
+  @keyframes fadeInOut {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(10px);
+    }
+    15% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    85% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-10px);
+    }
+  }
 `;
