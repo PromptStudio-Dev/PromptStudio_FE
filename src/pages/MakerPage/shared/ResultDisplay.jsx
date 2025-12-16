@@ -261,8 +261,14 @@ const LoadingContainer = styled.div`
 `;
 
 const LoadingAnimationWrapper = styled.div`
-  width: 90%;
-  height: 90%;
+  width: ${(props) => {
+    if (props.$isModal) return "85%";
+    return "90%";
+  }};
+  height: ${(props) => {
+    if (props.$isModal) return "85%";
+    return "90%";
+  }};
   display: flex;
   align-items: center;
   justify-content: center;

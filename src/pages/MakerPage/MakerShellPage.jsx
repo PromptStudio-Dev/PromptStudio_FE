@@ -542,7 +542,7 @@ export default function MakerShellPage() {
                 <InlineError>{makerListError}</InlineError>
               ) : filteredMakers.length === 0 ? (
                 <InlineStatus>
-                  메이커로 나만의 프롬프트를 만들어 보세요
+                  나만의 고퀄리티 프롬프트로 효율을 높여보세요
                 </InlineStatus>
               ) : (
                 filledMakers.map((prompt) =>
