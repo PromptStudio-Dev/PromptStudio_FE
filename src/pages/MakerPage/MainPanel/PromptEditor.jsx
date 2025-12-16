@@ -26,6 +26,10 @@ export default function PromptEditor({
   const [textareaScrollTop, setTextareaScrollTop] = useState(0);
   const [prevActiveUpgradeId, setPrevActiveUpgradeId] = useState(null);
   const [isUpgradeSubmitted, setIsUpgradeSubmitted] = useState(false); // 업그레이드 전송 여부
+  const [isReupgrading, setIsReupgrading] = useState(false);
+  const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [upgradeIdToCancel, setUpgradeIdToCancel] = useState(null);
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
   const modalRef = useRef(null);
@@ -36,6 +40,7 @@ export default function PromptEditor({
     setSelectionRange(null);
     setSelectedText("");
     setIsUpgradeSubmitted(false);
+    setIsReupgrading(false);
   };
 
   // insertedTextRange가 설정되면 shimmer 효과 제거
@@ -61,6 +66,13 @@ export default function PromptEditor({
     // 현재 activeUpgradeId를 이전 값으로 저장
     setPrevActiveUpgradeId(activeUpgradeId);
   }, [activeUpgradeId, isUpgradeSubmitted, prevActiveUpgradeId]);
+
+  // 업그레이드 내용이 변경되면 재업그레이드 완료
+  useEffect(() => {
+    if (activeUpgrade?.content && isReupgrading) {
+      setIsReupgrading(false);
+    }
+  }, [activeUpgrade?.content, isReupgrading]);
 
   const handleMouseUp = useCallback(() => {
     // 업그레이드 중일 때는 아무 처리도 하지 않음
@@ -105,14 +117,16 @@ export default function PromptEditor({
           activeUpgrade.selectionRange.end !== end;
 
         if (isDifferentSelection) {
-          // 다른 텍스트를 선택했으므로 업그레이드 취소
-          console.log("다른 텍스트 선택 감지, 업그레이드 취소:", {
+          // 다른 텍스트를 선택했으므로 삭제 모달 표시
+          console.log("다른 텍스트 선택 감지, 삭제 모달 표시:", {
             activeUpgradeId,
             oldRange: activeUpgrade?.selectionRange,
             newRange: { start, end },
           });
-          onCancelUpgrade?.(activeUpgradeId);
-          // 취소 후에도 새로운 선택을 처리하기 위해 계속 진행
+          setUpgradeIdToCancel(activeUpgradeId);
+          setIsDeleteModalOpen(true);
+          // 새로운 선택 처리를 중단하고 리턴
+          return;
         }
       }
 
@@ -201,41 +215,43 @@ export default function PromptEditor({
 
   const handleMouseDown = useCallback(
     (e) => {
-      // 업그레이드 중일 때는 아무 처리도 하지 않음
-      if (isUpgradeSubmitted && activeUpgradeId == null) {
+      // 로딩 중엔 아무 것도 못 하게 (그대로 유지)
+      if (isUpgradeLoading) return;
+
+      // 모달은 ㄱㅊ
+      if (modalRef.current?.contains(e.target)) {
         return;
       }
 
       const textarea = textareaRef.current;
       if (!textarea) return;
 
-      // textarea 내에서 mousedown이 발생했는지 확인
       const isInsideTextarea =
         textarea.contains(e.target) || textarea === e.target;
       isMouseDownInTextareaRef.current = isInsideTextarea;
 
+      // textarea 밖 클릭
       if (!isInsideTextarea) {
+        // 모달만 떠 있고 업그레이드 결과는 없으면 -> 그냥 닫기
+        if (showModal && !activeUpgradeId) {
+          resetSelectionState();
+        }
         return;
       }
 
-      // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
+      // textarea 안 클릭
       if (showModal) {
-        // 기존에 활성화된 업그레이드가 있으면 취소
         if (activeUpgradeId) {
-          onCancelUpgrade?.(activeUpgradeId);
-          // 취소 후 상태 초기화
+          // 업그레이드 결과가 있을 때만 삭제 확인
+          setUpgradeIdToCancel(activeUpgradeId);
+          setIsDeleteModalOpen(true);
+        } else {
+          // 전송 전 상태면 그냥 닫기
           resetSelectionState();
         }
-        setShowModal(false);
-      }
-      // 모달이 없어도 업그레이드가 활성화되어 있으면 취소 (다른 텍스트 드래그 시작)
-      else if (activeUpgradeId) {
-        onCancelUpgrade?.(activeUpgradeId);
-        // 취소 후 상태 초기화
-        resetSelectionState();
       }
     },
-    [showModal, activeUpgradeId, onCancelUpgrade, isUpgradeSubmitted]
+    [showModal, activeUpgradeId, isUpgradeLoading]
   );
 
   // 기존에는 textarea 레벨에서 props 로 감지했지만, 이제는 document 레벨에서 감지
@@ -468,17 +484,19 @@ export default function PromptEditor({
     isResultPanelOpen,
   ]);
 
-  const handleUpgradeSubmit = (upgradeRequest) => {
-    // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
-    console.log("업그레이드 전송:", { selectedText, upgradeRequest });
-    setIsUpgradeSubmitted(true); // 전송 상태로 변경
-    if (onUpgradeRequest && selectionRange) {
-      onUpgradeRequest({
+  const handleUpgradeSubmit = async (upgradeRequest) => {
+    setIsUpgradeLoading(true); //  로딩 시작
+    setIsUpgradeSubmitted(true);
+
+    try {
+      await onUpgradeRequest({
         selectedText,
         upgradeRequest,
         selectionRange,
         contentSnapshot: content,
       });
+    } finally {
+      setIsUpgradeLoading(false); // 결과 오면 로딩 종료
     }
   };
 
@@ -527,7 +545,7 @@ export default function PromptEditor({
     const afterText = content.substring(end);
 
     // 전송 후 대기 중일 때만 shimmer 효과 적용
-    const isWaitingForResponse = isUpgradeSubmitted && !activeUpgradeId;
+    const isWaitingForResponse = isUpgradeLoading;
 
     return (
       <>
@@ -567,7 +585,7 @@ export default function PromptEditor({
   const shouldShowSelectionOverlay = !!(
     showModal &&
     selectionRange &&
-    !(activeUpgradeId && activeUpgrade)
+    (!activeUpgradeId || !activeUpgrade || isUpgradeLoading)
   );
   const shouldHideTextareaText =
     showModal || activeUpgradeId || insertedTextRange;
@@ -595,7 +613,8 @@ export default function PromptEditor({
       {activeUpgradeId &&
         activeUpgrade &&
         selectionRange &&
-        !insertedTextRange && (
+        !insertedTextRange &&
+        !isUpgradeLoading && (
           <TextOverlay $scrollTop={textareaScrollTop}>
             <div>{renderTextWithStrikethrough()}</div>
           </TextOverlay>
@@ -625,8 +644,42 @@ export default function PromptEditor({
             onCancelUpgrade={handleCancelUpgrade}
             onEditUpgrade={handleEditUpgrade}
             activeUpgradeId={activeUpgradeId}
+            isLoading={isUpgradeLoading}
+            isReupgrading={isReupgrading}
             modalRef={modalRef}
           />,
+          document.body
+        )}
+
+      {isDeleteModalOpen &&
+        createPortal(
+          <DeleteModalOverlay onClick={() => setIsDeleteModalOpen(false)}>
+            <DeleteModalContainer onClick={(e) => e.stopPropagation()}>
+              <DeleteModalText>변경 사항을 삭제하시겠습니까?</DeleteModalText>
+              <DeleteModalButtonGroup>
+                <DeleteModalCancelButton
+                  onClick={() => {
+                    setIsDeleteModalOpen(false);
+                    setUpgradeIdToCancel(null);
+                  }}
+                >
+                  아니오
+                </DeleteModalCancelButton>
+                <DeleteModalConfirmButton
+                  onClick={() => {
+                    if (upgradeIdToCancel) {
+                      onCancelUpgrade?.(upgradeIdToCancel);
+                      resetSelectionState();
+                    }
+                    setIsDeleteModalOpen(false);
+                    setUpgradeIdToCancel(null);
+                  }}
+                >
+                  삭제
+                </DeleteModalConfirmButton>
+              </DeleteModalButtonGroup>
+            </DeleteModalContainer>
+          </DeleteModalOverlay>,
           document.body
         )}
     </EditorWrapper>
@@ -798,4 +851,78 @@ const UpgradedText = styled.span`
 
 const InsertedTextHighlight = styled.span`
   color: #00aeff;
+`;
+
+const DeleteModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const DeleteModalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.625rem 3.0625rem 1.125rem 3.625rem;
+  border-radius: 1rem;
+  background: #282828;
+`;
+
+const DeleteModalText = styled.div`
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const DeleteModalButtonGroup = styled.div`
+  display: flex;
+  gap: 1.125rem;
+  align-items: center;
+`;
+
+const DeleteModalCancelButton = styled.button`
+  display: flex;
+  width: 5rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: transparent;
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const DeleteModalConfirmButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: #fff;
+  color: #282828;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 `;

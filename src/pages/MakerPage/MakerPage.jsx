@@ -323,14 +323,10 @@ export default function MakerPage({ selectedPrompt = null }) {
       let targetUpgradeId;
 
       if (existingUpgrade) {
-        // 재업그레이드: 기존 업그레이드가 있으면 재업그레이드 API 사용
-        // 로딩 표시를 위해 activeUpgradeId를 임시로 null로 설정
-        setLatestUpgradeId(null);
-
         // prevDirection은 originalDirection을 우선 사용 (새로고침 후에도 원래 direction 유지)
         // originalDirection이 없으면 direction 사용 (하위 호환성)
         const prevDirection =
-          existingUpgrade.originalDirection ?? existingUpgrade.direction ?? "";
+          existingUpgrade.direction ?? existingUpgrade.originalDirection ?? "";
 
         responseData = await reupgradeMakerText({
           fullText: contentSnapshot || promptContent,
@@ -361,6 +357,10 @@ export default function MakerPage({ selectedPrompt = null }) {
           )
         );
         targetUpgradeId = existingUpgrade.id;
+
+        setLatestUpgradeId(null);
+        setTimeout(() => setLatestUpgradeId(targetUpgradeId), 0);
+        return; //
       } else {
         // 첫 업그레이드: 기존 업그레이드가 없으면 새 업그레이드 API 사용
         responseData = await upgradeMakerText({
@@ -555,7 +555,9 @@ export default function MakerPage({ selectedPrompt = null }) {
                 ...item,
                 content: responseData.upgradedText,
                 originalText: responseData.originalText,
-                direction: responseData.direction, // 새로고침 시 ""로 업데이트될 수 있음
+                direction: responseData.direction?.trim()
+                  ? responseData.direction
+                  : item.direction, // 새로고침 시 ""로 업데이트될 수 있음
                 // originalDirection은 첫 업그레이드 시의 값 유지
                 originalDirection:
                   upgrade.originalDirection || upgrade.direction,
