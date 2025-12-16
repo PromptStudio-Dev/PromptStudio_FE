@@ -24,6 +24,7 @@ export default function PromptEditor({
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState(null);
   const [textareaScrollTop, setTextareaScrollTop] = useState(0);
+  const [prevActiveUpgradeId, setPrevActiveUpgradeId] = useState(null);
   const [isUpgradeSubmitted, setIsUpgradeSubmitted] = useState(false); // 업그레이드 전송 여부
   const wrapperRef = useRef(null);
   const textareaRef = useRef(null);
@@ -44,6 +45,22 @@ export default function PromptEditor({
       setShowModal(false);
     }
   }, [insertedTextRange]);
+
+  // activeUpgradeId 변화 감지 - 값이 있다가 null이 되면 (취소/거절) 모달 닫기
+  useEffect(() => {
+    // 이전에 activeUpgradeId가 있었는데, 지금 null이 되었고, 업그레이드 전송 상태였다면
+    // -> 취소/거절로 판단
+    if (
+      prevActiveUpgradeId !== null &&
+      activeUpgradeId === null &&
+      isUpgradeSubmitted
+    ) {
+      resetSelectionState();
+    }
+
+    // 현재 activeUpgradeId를 이전 값으로 저장
+    setPrevActiveUpgradeId(activeUpgradeId);
+  }, [activeUpgradeId, isUpgradeSubmitted, prevActiveUpgradeId]);
 
   const handleMouseUp = useCallback(() => {
     // 업그레이드 중일 때는 아무 처리도 하지 않음

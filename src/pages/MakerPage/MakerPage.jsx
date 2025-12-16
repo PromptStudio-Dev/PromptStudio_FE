@@ -448,9 +448,7 @@ export default function MakerPage({ selectedPrompt = null }) {
   const handleCancelUpgrade = (upgradeId) => {
     setUpgrades((prev) => prev.filter((upgrade) => upgrade.id !== upgradeId));
 
-    if (latestUpgradeId === upgradeId) {
-      setLatestUpgradeId(null);
-    }
+    setLatestUpgradeId(null);
   };
 
   // 업그레이드 아래에 삽입
