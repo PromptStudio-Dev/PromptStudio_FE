@@ -215,39 +215,43 @@ export default function PromptEditor({
 
   const handleMouseDown = useCallback(
     (e) => {
-      // 업그레이드 중일 때는 아무 처리도 하지 않음
-      if (isUpgradeSubmitted && activeUpgradeId == null) {
+      // 로딩 중엔 아무 것도 못 하게 (그대로 유지)
+      if (isUpgradeLoading) return;
+
+      // 모달은 ㄱㅊ
+      if (modalRef.current?.contains(e.target)) {
         return;
       }
 
       const textarea = textareaRef.current;
       if (!textarea) return;
 
-      // textarea 내에서 mousedown이 발생했는지 확인
       const isInsideTextarea =
         textarea.contains(e.target) || textarea === e.target;
       isMouseDownInTextareaRef.current = isInsideTextarea;
 
+      // textarea 밖 클릭
       if (!isInsideTextarea) {
+        // 모달만 떠 있고 업그레이드 결과는 없으면 -> 그냥 닫기
+        if (showModal && !activeUpgradeId) {
+          resetSelectionState();
+        }
         return;
       }
 
-      // 마우스를 누르면 모달 숨김 (새로운 선택 시작)
+      // textarea 안 클릭
       if (showModal) {
-        // 기존에 활성화된 업그레이드가 있으면 삭제 모달 표시
         if (activeUpgradeId) {
+          // 업그레이드 결과가 있을 때만 삭제 확인
           setUpgradeIdToCancel(activeUpgradeId);
           setIsDeleteModalOpen(true);
-          // 취소 후 상태 초기화
+        } else {
+          // 전송 전 상태면 그냥 닫기
+          resetSelectionState();
         }
       }
-      // 모달이 없어도 업그레이드가 활성화되어 있으면 삭제 모달 표시 (다른 텍스트 드래그 시작)
-      else if (activeUpgradeId) {
-        setUpgradeIdToCancel(activeUpgradeId);
-        setIsDeleteModalOpen(true);
-      }
     },
-    [showModal, activeUpgradeId, onCancelUpgrade, isUpgradeSubmitted]
+    [showModal, activeUpgradeId, isUpgradeLoading]
   );
 
   // 기존에는 textarea 레벨에서 props 로 감지했지만, 이제는 document 레벨에서 감지
