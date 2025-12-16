@@ -326,7 +326,7 @@ export default function MakerPage({ selectedPrompt = null }) {
         // prevDirection은 originalDirection을 우선 사용 (새로고침 후에도 원래 direction 유지)
         // originalDirection이 없으면 direction 사용 (하위 호환성)
         const prevDirection =
-          existingUpgrade.originalDirection ?? existingUpgrade.direction ?? "";
+          existingUpgrade.direction ?? existingUpgrade.originalDirection ?? "";
 
         responseData = await reupgradeMakerText({
           fullText: contentSnapshot || promptContent,
@@ -555,7 +555,9 @@ export default function MakerPage({ selectedPrompt = null }) {
                 ...item,
                 content: responseData.upgradedText,
                 originalText: responseData.originalText,
-                direction: responseData.direction, // 새로고침 시 ""로 업데이트될 수 있음
+                direction: responseData.direction?.trim()
+                  ? responseData.direction
+                  : item.direction, // 새로고침 시 ""로 업데이트될 수 있음
                 // originalDirection은 첫 업그레이드 시의 값 유지
                 originalDirection:
                   upgrade.originalDirection || upgrade.direction,
