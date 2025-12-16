@@ -29,6 +29,8 @@ export default function MakerShellPage() {
   const [makerError, setMakerError] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [makerIdToDelete, setMakerIdToDelete] = useState(null);
 
   const CARDS_PER_PAGE = 9;
 
@@ -295,36 +297,54 @@ export default function MakerShellPage() {
     [navigate]
   );
 
-  const handleDeleteMaker = useCallback(
-    async (makerId) => {
-      if (!makerId) {
-        return;
-      }
+  const handleDeleteClick = useCallback((makerId) => {
+    if (!makerId) {
+      return;
+    }
+    setMakerIdToDelete(makerId);
+    setIsDeleteModalOpen(true);
+  }, []);
 
-      try {
-        // 서버에서 메이커 삭제
-        await deleteMaker(makerId);
+  const handleDeleteCancel = useCallback(() => {
+    setIsDeleteModalOpen(false);
+    setMakerIdToDelete(null);
+  }, []);
 
-        // 프론트 목록에서 해당 메이커 제거
-        setMakers((prev) => prev.filter((maker) => maker?.makerId !== makerId));
+  const handleDeleteConfirm = useCallback(async () => {
+    if (!makerIdToDelete) {
+      return;
+    }
 
-        // 선택된 메이커가 삭제된 경우 상세 페이지 초기화
-        setSelectedMaker((prev) => {
-          if (prev?.makerId === makerId) {
-            return null;
-          }
-          return prev;
-        });
+    try {
+      // 서버에서 메이커 삭제
+      await deleteMaker(makerIdToDelete);
 
-        // 백엔드 상태와 동기화(실제 삭제 여부 확인)
-        await fetchMakers();
-      } catch (error) {
-        console.error("메이커를 삭제하지 못했습니다.", error);
-        setMakerListError("메이커를 삭제하지 못했습니다.");
-      }
-    },
-    [setMakers, fetchMakers]
-  );
+      // 프론트 목록에서 해당 메이커 제거
+      setMakers((prev) =>
+        prev.filter((maker) => maker?.makerId !== makerIdToDelete)
+      );
+
+      // 선택된 메이커가 삭제된 경우 상세 페이지 초기화
+      setSelectedMaker((prev) => {
+        if (prev?.makerId === makerIdToDelete) {
+          return null;
+        }
+        return prev;
+      });
+
+      // 모달 닫기
+      setIsDeleteModalOpen(false);
+      setMakerIdToDelete(null);
+
+      // 백엔드 상태와 동기화(실제 삭제 여부 확인)
+      await fetchMakers();
+    } catch (error) {
+      console.error("메이커를 삭제하지 못했습니다.", error);
+      setMakerListError("메이커를 삭제하지 못했습니다.");
+      setIsDeleteModalOpen(false);
+      setMakerIdToDelete(null);
+    }
+  }, [makerIdToDelete, setMakers, fetchMakers]);
 
   const makerKey = useMemo(() => {
     if (!selectedMaker) return "maker-empty";
@@ -514,7 +534,7 @@ export default function MakerShellPage() {
                       description={prompt.displayContent ?? prompt.content}
                       imageUrl={prompt.imageUrl}
                       onClick={() => handleSelectMaker(prompt?.makerId)}
-                      onDelete={() => handleDeleteMaker(prompt?.makerId)}
+                      onDelete={() => handleDeleteClick(prompt?.makerId)}
                     />
                   )
                 )
@@ -547,6 +567,25 @@ export default function MakerShellPage() {
           </CardGridContainer>
         </TopSection>
       </Inner>
+      {isDeleteModalOpen && (
+        <DeleteModalOverlay onClick={handleDeleteCancel}>
+          <DeleteModalContainer onClick={(e) => e.stopPropagation()}>
+            <DeleteModalText>
+              삭제하시면 되돌릴 수 없습니다.
+              <br />
+              정말 삭제하시겠습니까?
+            </DeleteModalText>
+            <DeleteModalButtonGroup>
+              <DeleteModalCancelButton onClick={handleDeleteCancel}>
+                취소
+              </DeleteModalCancelButton>
+              <DeleteModalConfirmButton onClick={handleDeleteConfirm}>
+                삭제
+              </DeleteModalConfirmButton>
+            </DeleteModalButtonGroup>
+          </DeleteModalContainer>
+        </DeleteModalOverlay>
+      )}
     </MakerShellWrapper>
   );
 }
@@ -764,4 +803,78 @@ const EmptyCard = styled.div`
   max-width: 22.375rem;
   aspect-ratio: 358 / 202;
   visibility: hidden; /* 공간은 유지, 보이진 않음 */
+`;
+
+const DeleteModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+`;
+
+const DeleteModalContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.625rem 3.0625rem 1.125rem 3.625rem;
+  border-radius: 1rem;
+  background: #282828;
+`;
+
+const DeleteModalText = styled.div`
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1.1875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  margin-bottom: 1.5rem;
+`;
+
+const DeleteModalButtonGroup = styled.div`
+  display: flex;
+  gap: 1.125rem;
+  align-items: center;
+`;
+
+const DeleteModalCancelButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: transparent;
+  color: #fff;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+`;
+
+const DeleteModalConfirmButton = styled.button`
+  display: flex;
+  width: 4rem;
+  height: 1.8125rem;
+  padding: 0.375rem 0.625rem;
+  justify-content: center;
+  align-items: center;
+  border-radius: 7.5rem;
+  border: 0.0313rem solid #fff;
+  background: #fff;
+  color: #282828;
+  font-family: "Pretendard Variable";
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
 `;
