@@ -13,12 +13,18 @@ export default function AIUpgradeModal({
   onCancelUpgrade,
   onEditUpgrade,
   activeUpgradeId,
+  isLoading = false,
   modalRef,
 }) {
   const [inputValue, setInputValue] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
+  useEffect(() => {
+    if (!isLoading) {
+      setIsSubmitted(false);
+    }
+  }, [isLoading]);
   // activeUpgradeId가 생기면 자동으로 메뉴 표시 및 모달 재활성화
   useEffect(() => {
     if (activeUpgradeId != null) {
@@ -69,7 +75,6 @@ export default function AIUpgradeModal({
   };
 
   // 재업그레이드 시에도 로딩 표시: isSubmitted가 true이고, activeUpgradeId가 아직 업데이트되지 않았거나 변경 중일 때
-  const isLoading = isSubmitted && activeUpgradeId == null;
 
   return (
     <SelectionModal

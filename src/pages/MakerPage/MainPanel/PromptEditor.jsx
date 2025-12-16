@@ -26,6 +26,8 @@ export default function PromptEditor({
   const [textareaScrollTop, setTextareaScrollTop] = useState(0);
   const [prevActiveUpgradeId, setPrevActiveUpgradeId] = useState(null);
   const [isUpgradeSubmitted, setIsUpgradeSubmitted] = useState(false); // 업그레이드 전송 여부
+  const [isReupgrading, setIsReupgrading] = useState(false);
+  const [isUpgradeLoading, setIsUpgradeLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [upgradeIdToCancel, setUpgradeIdToCancel] = useState(null);
   const wrapperRef = useRef(null);
@@ -38,6 +40,7 @@ export default function PromptEditor({
     setSelectionRange(null);
     setSelectedText("");
     setIsUpgradeSubmitted(false);
+    setIsReupgrading(false);
   };
 
   // insertedTextRange가 설정되면 shimmer 효과 제거
@@ -63,6 +66,13 @@ export default function PromptEditor({
     // 현재 activeUpgradeId를 이전 값으로 저장
     setPrevActiveUpgradeId(activeUpgradeId);
   }, [activeUpgradeId, isUpgradeSubmitted, prevActiveUpgradeId]);
+
+  // 업그레이드 내용이 변경되면 재업그레이드 완료
+  useEffect(() => {
+    if (activeUpgrade?.content && isReupgrading) {
+      setIsReupgrading(false);
+    }
+  }, [activeUpgrade?.content, isReupgrading]);
 
   const handleMouseUp = useCallback(() => {
     // 업그레이드 중일 때는 아무 처리도 하지 않음
@@ -470,17 +480,19 @@ export default function PromptEditor({
     isResultPanelOpen,
   ]);
 
-  const handleUpgradeSubmit = (upgradeRequest) => {
-    // 모달 유지되어야 하므로 setShowModal(false) 를 하지 않음
-    console.log("업그레이드 전송:", { selectedText, upgradeRequest });
-    setIsUpgradeSubmitted(true); // 전송 상태로 변경
-    if (onUpgradeRequest && selectionRange) {
-      onUpgradeRequest({
+  const handleUpgradeSubmit = async (upgradeRequest) => {
+    setIsUpgradeLoading(true); //  로딩 시작
+    setIsUpgradeSubmitted(true);
+
+    try {
+      await onUpgradeRequest({
         selectedText,
         upgradeRequest,
         selectionRange,
         contentSnapshot: content,
       });
+    } finally {
+      setIsUpgradeLoading(false); // 결과 오면 로딩 종료
     }
   };
 
@@ -529,7 +541,7 @@ export default function PromptEditor({
     const afterText = content.substring(end);
 
     // 전송 후 대기 중일 때만 shimmer 효과 적용
-    const isWaitingForResponse = isUpgradeSubmitted && !activeUpgradeId;
+    const isWaitingForResponse = isUpgradeLoading;
 
     return (
       <>
@@ -569,7 +581,7 @@ export default function PromptEditor({
   const shouldShowSelectionOverlay = !!(
     showModal &&
     selectionRange &&
-    !(activeUpgradeId && activeUpgrade)
+    (!activeUpgradeId || !activeUpgrade || isUpgradeLoading)
   );
   const shouldHideTextareaText =
     showModal || activeUpgradeId || insertedTextRange;
@@ -597,7 +609,8 @@ export default function PromptEditor({
       {activeUpgradeId &&
         activeUpgrade &&
         selectionRange &&
-        !insertedTextRange && (
+        !insertedTextRange &&
+        !isUpgradeLoading && (
           <TextOverlay $scrollTop={textareaScrollTop}>
             <div>{renderTextWithStrikethrough()}</div>
           </TextOverlay>
@@ -627,6 +640,8 @@ export default function PromptEditor({
             onCancelUpgrade={handleCancelUpgrade}
             onEditUpgrade={handleEditUpgrade}
             activeUpgradeId={activeUpgradeId}
+            isLoading={isUpgradeLoading}
+            isReupgrading={isReupgrading}
             modalRef={modalRef}
           />,
           document.body

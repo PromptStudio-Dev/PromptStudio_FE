@@ -357,6 +357,10 @@ export default function MakerPage({ selectedPrompt = null }) {
           )
         );
         targetUpgradeId = existingUpgrade.id;
+
+        setLatestUpgradeId(null);
+        setTimeout(() => setLatestUpgradeId(targetUpgradeId), 0);
+        return; //
       } else {
         // 첫 업그레이드: 기존 업그레이드가 없으면 새 업그레이드 API 사용
         responseData = await upgradeMakerText({
