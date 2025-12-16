@@ -437,17 +437,7 @@ export default function MakerShellPage() {
     if (!selectedMaker) {
       return (
         <MakerWrapper>
-          <MakerContent>
-            <CenteredContainer>
-              {isLoadingMakers || isCreatingMaker ? (
-                <InlineStatus>프롬프트를 불러오는 중...</InlineStatus>
-              ) : (
-                <InlineError>
-                  {makerError ?? MAKER_NOT_FOUND_MESSAGE}
-                </InlineError>
-              )}
-            </CenteredContainer>
-          </MakerContent>
+          <MakerContent></MakerContent>
         </MakerWrapper>
       );
     }
