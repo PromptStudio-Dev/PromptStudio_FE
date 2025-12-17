@@ -87,23 +87,21 @@ export const autoSaveMaker = async (makerId, data) => {
     throw new Error("makerId는 필수입니다.");
   }
 
-  // 쿼리 파라미터 구성
-  const params = new URLSearchParams();
+  // FormData 구성: 긴 텍스트는 바디로 보내 URL 길이/쿼리 제한을 피함
+  const formData = new FormData();
+
   if (data.title !== undefined && data.title !== null) {
-    params.append("title", data.title);
+    formData.append("title", data.title);
   }
   if (data.content !== undefined && data.content !== null) {
-    params.append("content", data.content);
+    formData.append("content", data.content);
   }
   if (data.existingImageUrls && Array.isArray(data.existingImageUrls)) {
     data.existingImageUrls.forEach((url) => {
-      params.append("existingImageUrls", url);
+      formData.append("existingImageUrls", url);
     });
   }
 
-  // FormData 구성 (새 이미지 파일들만)
-  // 명세: newImages는 file[] (파일 배열)
-  const formData = new FormData();
   if (data.newImages && Array.isArray(data.newImages)) {
     data.newImages.forEach((file) => {
       if (file instanceof File) {
@@ -112,16 +110,11 @@ export const autoSaveMaker = async (makerId, data) => {
     });
   }
 
-  // PATCH 요청 (쿼리 파라미터 + multipart/form-data)
-  const response = await apiClient.patch(
-    `/api/makers/${makerId}?${params.toString()}`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
-  );
+  const response = await apiClient.patch(`/api/makers/${makerId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
   return response.data;
 };
