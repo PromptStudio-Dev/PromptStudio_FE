@@ -10,8 +10,8 @@ export default function ArchiveCategoryTag({
   const hasIcon = Boolean(img);
 
   return (
-    <Tag isSelected={isSelected} onClick={onClick}>
-      {hasIcon && <IconImage src={img} alt={name} isSelected={isSelected} />}
+    <Tag $isSelected={isSelected} onClick={onClick}>
+      {hasIcon && <IconImage src={img} alt={name} $isSelected={isSelected} />}
       <TagLabel>{name}</TagLabel>
     </Tag>
   );
@@ -23,8 +23,8 @@ const IconImage = styled.img`
   object-fit: contain;
   display: block;
   margin-right: 0.5rem;
-  filter: ${({ isSelected }) =>
-    isSelected
+  filter: ${({ $isSelected }) =>
+    $isSelected
       ? "brightness(0) invert(1)"
       : "brightness(0) saturate(100%) invert(69%) sepia(93%) saturate(1352%) hue-rotate(156deg) brightness(101%) contrast(101%)"};
   transition: filter 0.2s;
@@ -38,8 +38,8 @@ const Tag = styled.div`
   min-width: 4rem;
   min-height: 2.8125rem;
   border-radius: 7.5rem;
-  background: ${({ isSelected }) => (isSelected ? "#00C8FF" : "none")};
-  color: ${({ isSelected }) => (isSelected ? "#fff" : "#454545")};
+  background: ${({ $isSelected }) => ($isSelected ? "#00C8FF" : "none")};
+  color: ${({ $isSelected }) => ($isSelected ? "#fff" : "#454545")};
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 500;
@@ -47,7 +47,7 @@ const Tag = styled.div`
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
   box-sizing: border-box;
-  border: ${({ isSelected }) => (isSelected ? "none" : "1px solid #AADFF7")};
+  border: ${({ $isSelected }) => ($isSelected ? "none" : "1px solid #AADFF7")};
 
   @media (max-width: 1600px) {
     font-size: 1rem;

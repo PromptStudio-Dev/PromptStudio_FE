@@ -51,7 +51,7 @@ export default function PromptCard({
 
   return (
     <PromptCardContainer
-      backgroundImage={backgroundImage}
+      $backgroundImage={backgroundImage}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -125,9 +125,9 @@ const PromptCardContainer = styled.div`
   border-radius: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
-  background: ${({ backgroundImage }) =>
-    backgroundImage
-      ? `url(${backgroundImage}) center / cover no-repeat`
+  background: ${({ $backgroundImage }) =>
+    $backgroundImage
+      ? `url(${$backgroundImage}) center / cover no-repeat`
       : `#DBF5FF`};
   cursor: pointer;
   outline: none;
@@ -139,8 +139,8 @@ const PromptCardContainer = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${({ backgroundImage }) =>
-      backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
+    background-color: ${({ $backgroundImage }) =>
+      $backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
     border-radius: 1rem;
     pointer-events: none;
     z-index: 0;

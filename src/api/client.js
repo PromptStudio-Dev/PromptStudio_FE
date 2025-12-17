@@ -80,7 +80,7 @@ apiClient.interceptors.response.use(
       }
 
       // 이미 갱신 중이면 큐에 등록해서 완료 후 재시도
-      if (isRefreshing) {
+      if (isRefreshing || refreshPromise) {
         return new Promise((resolve, reject) => {
           enqueueRequest((newToken) => {
             if (!newToken) {
@@ -93,6 +93,7 @@ apiClient.interceptors.response.use(
         });
       }
 
+      // refreshPromise가 없고 isRefreshing이 false일 때만 새로 시작
       isRefreshing = true;
       refreshPromise = axios
         .post(
