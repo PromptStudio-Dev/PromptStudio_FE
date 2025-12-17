@@ -12,6 +12,7 @@ import apiClient from "../../api/client";
 import { useCopyModal } from "../../contexts/CopyModalContext";
 import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
 import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
+import UploadLoadingModal from "../../components/UploadLoadingModal/UploadLoadingModal";
 
 export default function UploadPage() {
   const location = useLocation();
@@ -300,6 +301,7 @@ export default function UploadPage() {
           )}
         </ButtonContainer>
       </UploadPageWrapper>
+      <UploadLoadingModal isOpen={isRegistering} />
       <LoginRequiredModal
         isOpen={isErrorModalOpen}
         onClose={() => setIsErrorModalOpen(false)}
