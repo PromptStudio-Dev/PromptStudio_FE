@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import SidePanel from "./SidePanel/SidePanel";
 import MainPanel from "./MainPanel/MainPanel";
 import ResultPanel from "./ResultPanel/ResultPanel";
 import ResultModal from "./shared/ResultModal";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import ErrorModal from "../../components/ErrorModal/ErrorModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 import {
   autoSaveMaker,
   upgradeMakerText,
@@ -20,10 +25,14 @@ const normalizeContent = (raw) =>
   typeof raw === "string" ? raw.replace(/\r\n/g, "\n") : raw;
 
 export default function MakerPage({ selectedPrompt = null }) {
+  const navigate = useNavigate();
+  const { startGoogleLogin } = useLoginModal();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(false);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isResultPanelExpanded, setIsResultPanelExpanded] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isAuthErrorModalOpen, setIsAuthErrorModalOpen] = useState(false);
   const [upgrades, setUpgrades] = useState([]);
   const [promptTitle, setPromptTitle] = useState(selectedPrompt?.title ?? "");
   const [promptContent, setPromptContent] = useState(
@@ -393,21 +402,14 @@ export default function MakerPage({ selectedPrompt = null }) {
     } catch (error) {
       console.error("텍스트 업그레이드 실패:", error);
 
-      // 에러 처리
-      let errorMessage = "텍스트 업그레이드에 실패했습니다.";
-      if (
-        error?.code === "ERR_NAME_NOT_RESOLVED" ||
-        error?.message?.includes("ERR_NAME_NOT_RESOLVED")
-      ) {
-        errorMessage =
-          "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
-      } else if (error?.response) {
-        errorMessage = `서버 오류: ${error.response.status}`;
-      } else if (error?.request) {
-        errorMessage = "서버로부터 응답을 받지 못했습니다.";
+      // 인증 에러 처리
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        setIsAuthErrorModalOpen(true);
+        return;
       }
 
-      alert(errorMessage);
+      // 나머지 모든 에러는 일반 오류 모달
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -573,21 +575,14 @@ export default function MakerPage({ selectedPrompt = null }) {
     } catch (error) {
       console.error("텍스트 재업그레이드 실패:", error);
 
-      // 에러 처리
-      let errorMessage = "텍스트 재업그레이드에 실패했습니다.";
-      if (
-        error?.code === "ERR_NAME_NOT_RESOLVED" ||
-        error?.message?.includes("ERR_NAME_NOT_RESOLVED")
-      ) {
-        errorMessage =
-          "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
-      } else if (error?.response) {
-        errorMessage = `서버 오류: ${error.response.status}`;
-      } else if (error?.request) {
-        errorMessage = "서버로부터 응답을 받지 못했습니다.";
+      // 인증 에러 처리
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        setIsAuthErrorModalOpen(true);
+        return;
       }
 
-      alert(errorMessage);
+      // 나머지 모든 에러는 일반 오류 모달
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -709,7 +704,17 @@ export default function MakerPage({ selectedPrompt = null }) {
               }
             } catch (error) {
               console.error("프롬프트 실행 실패:", error);
-              alert("프롬프트 실행에 실패했습니다.");
+
+              // 인증 에러 처리
+              if (
+                error?.response?.status === 401 ||
+                error?.response?.status === 403
+              ) {
+                setIsAuthErrorModalOpen(true);
+              } else {
+                // 나머지 모든 에러는 일반 오류 모달
+                setIsErrorModalOpen(true);
+              }
             } finally {
               setIsResultLoading(false);
             }
@@ -825,7 +830,17 @@ export default function MakerPage({ selectedPrompt = null }) {
             }
           } catch (error) {
             console.error("프롬프트 실행 실패:", error);
-            alert("프롬프트 실행에 실패했습니다.");
+
+            // 인증 에러 처리
+            if (
+              error?.response?.status === 401 ||
+              error?.response?.status === 403
+            ) {
+              setIsAuthErrorModalOpen(true);
+            } else {
+              // 나머지 모든 에러는 일반 오류 모달
+              setIsErrorModalOpen(true);
+            }
           } finally {
             setIsResultLoading(false);
           }
@@ -880,7 +895,17 @@ export default function MakerPage({ selectedPrompt = null }) {
             setResultFeedback(cachedFeedback ?? null);
           } catch (error) {
             console.error("히스토리 복원 실패:", error);
-            alert("히스토리 복원에 실패했습니다.");
+
+            // 인증 에러 처리
+            if (
+              error?.response?.status === 401 ||
+              error?.response?.status === 403
+            ) {
+              setIsAuthErrorModalOpen(true);
+            } else {
+              // 나머지 모든 에러는 일반 오류 모달
+              setIsErrorModalOpen(true);
+            }
           }
         }}
         resultImageUrl={resultImageUrl}
@@ -949,7 +974,17 @@ export default function MakerPage({ selectedPrompt = null }) {
             setResultFeedback(cachedFeedback ?? null);
           } catch (error) {
             console.error("히스토리 복원 실패:", error);
-            alert("히스토리 복원에 실패했습니다.");
+
+            // 인증 에러 처리
+            if (
+              error?.response?.status === 401 ||
+              error?.response?.status === 403
+            ) {
+              setIsAuthErrorModalOpen(true);
+            } else {
+              // 나머지 모든 에러는 일반 오류 모달
+              setIsErrorModalOpen(true);
+            }
           }
         }}
         resultImageUrl={resultImageUrl}
@@ -958,6 +993,26 @@ export default function MakerPage({ selectedPrompt = null }) {
         isResultLoading={isResultLoading}
         makerId={currentMakerId}
         historyId={currentHistoryId}
+      />
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        text="오류가 발생했습니다.\n잠시 후 다시 시도해주세요."
+      />
+      <LoginRequiredModal
+        isOpen={isAuthErrorModalOpen}
+        onClose={() => {
+          navigate("/");
+          setIsAuthErrorModalOpen(false);
+        }}
+        icon={WarningIcon}
+        text="인증이 만료되었습니다.\n다시 로그인해주세요."
+        buttonText="로그인 하기"
+        onButtonClick={() => {
+          startGoogleLogin();
+          setIsAuthErrorModalOpen(false);
+        }}
+        showCloseButton={true}
       />
     </MakerPageWrapper>
   );
