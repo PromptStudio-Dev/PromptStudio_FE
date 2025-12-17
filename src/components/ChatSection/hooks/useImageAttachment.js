@@ -3,15 +3,20 @@ import { useState, useRef, useEffect, useCallback } from "react";
 const MAX_IMAGES = 6;
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-export const useImageAttachment = ({ onMaxImagesExceeded } = {}) => {
+export const useImageAttachment = ({
+  onMaxImagesExceeded,
+  onFileSizeExceeded,
+} = {}) => {
   const [attachedImages, setAttachedImages] = useState([]);
   const fileInputRef = useRef(null);
   const onMaxImagesExceededRef = useRef(onMaxImagesExceeded);
+  const onFileSizeExceededRef = useRef(onFileSizeExceeded);
 
   // 콜백 ref 업데이트
   useEffect(() => {
     onMaxImagesExceededRef.current = onMaxImagesExceeded;
-  }, [onMaxImagesExceeded]);
+    onFileSizeExceededRef.current = onFileSizeExceeded;
+  }, [onMaxImagesExceeded, onFileSizeExceeded]);
 
   // 언마운트 시 정리를 위해 현재 이미지 리스트를 ref로 추적
   const imagesRef = useRef(attachedImages);
@@ -52,11 +57,9 @@ export const useImageAttachment = ({ onMaxImagesExceeded } = {}) => {
     });
 
     if (oversizedFiles.length > 0) {
-      alert(
-        `각 이미지 파일은 50MB 이하여야 합니다. 제한 초과: ${oversizedFiles.join(
-          ", "
-        )}`
-      );
+      if (onFileSizeExceededRef.current) {
+        onFileSizeExceededRef.current();
+      }
     }
 
     return validFiles.slice(0, availableSlots);

@@ -10,10 +10,10 @@ export default function CategoryTag({
   const hasIcon = Boolean(img);
 
   return (
-    <Tag isSelected={isSelected} onClick={onClick}>
+    <Tag $isSelected={isSelected} onClick={onClick}>
       {hasIcon && (
-        <ImageContainer isSelected={isSelected}>
-          <IconImage src={img} alt={name} isSelected={isSelected} />
+        <ImageContainer $isSelected={isSelected}>
+          <IconImage src={img} alt={name} $isSelected={isSelected} />
         </ImageContainer>
       )}
       <TagLabel>{name}</TagLabel>
@@ -49,8 +49,8 @@ const Tag = styled.div`
   min-width: 4rem;
   min-height: 2.4925rem;
   border-radius: 7.5rem;
-  background: ${({ isSelected }) => (isSelected ? "#00C8FF" : "#EBFAFF")};
-  color: ${({ isSelected }) => (isSelected ? "#fff" : "#6ED1FF")};
+  background: ${({ $isSelected }) => ($isSelected ? "#00C8FF" : "#EBFAFF")};
+  color: ${({ $isSelected }) => ($isSelected ? "#fff" : "#6ED1FF")};
   font-size: 1rem;
   font-style: normal;
   font-weight: 600;

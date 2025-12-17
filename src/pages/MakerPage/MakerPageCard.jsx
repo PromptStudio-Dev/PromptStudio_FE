@@ -44,12 +44,20 @@ export default function MakerPageCard({
         </ImageFooter>
         {isHovered && onDelete && (
           <DeleteButton
-            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
             }}
+            role="button"
+            tabIndex={0}
             aria-label="삭제"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete();
+              }
+            }}
           >
             <DeleteButtonIconImg src={DeleteButtonIcon} />
             <DeleteButtonText>삭제</DeleteButtonText>
@@ -79,12 +87,20 @@ export default function MakerPageCard({
       </DefaultFooter>
       {isHovered && onDelete && (
         <DeleteButton
-          type="button"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
+          role="button"
+          tabIndex={0}
           aria-label="삭제"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete();
+            }
+          }}
         >
           <DeleteButtonIconImg src={DeleteButtonIcon} />
           <DeleteButtonText>삭제</DeleteButtonText>
@@ -206,7 +222,7 @@ const Title = styled.p`
   z-index: 10;
 `;
 
-const DeleteButton = styled.button`
+const DeleteButton = styled.div`
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;

@@ -18,6 +18,7 @@ import PromptDropModal from "./components/PromptDropModal";
 import promptDragIcon from "./assets/promptDragIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
+import CopyCompleteModal from "../../components/CopyCompleteModal/CopyCompleteModal";
 
 export default function ChatBar() {
   const [droppedPrompt, setDroppedPrompt] = useState(null);
@@ -35,6 +36,7 @@ export default function ChatBar() {
   const chatViewSectionRef = useRef(null);
   const { openLoginModal } = useLoginModal();
   const [showImageLimitAlert, setShowImageLimitAlert] = useState(false);
+  const [isFileSizeModalOpen, setIsFileSizeModalOpen] = useState(false);
 
   // 커스텀 훅들 사용
   const { isHighlighted, handleDragOver } = useDragDrop();
@@ -50,6 +52,10 @@ export default function ChatBar() {
     onMaxImagesExceeded: () => {
       setShowImageLimitAlert(true);
       setTimeout(() => setShowImageLimitAlert(false), 2000);
+    },
+    onFileSizeExceeded: () => {
+      setIsFileSizeModalOpen(true);
+      setTimeout(() => setIsFileSizeModalOpen(false), 2000);
     },
   });
   const { textareaRef, handleTextareaChange: originalHandleTextareaChange } =
@@ -584,6 +590,10 @@ export default function ChatBar() {
         onApply={handleModalApply}
         initialValues={modalInitialValues}
         initialImages={modalInitialImages}
+      />
+      <CopyCompleteModal
+        isOpen={isFileSizeModalOpen}
+        message="파일 크기가 초과되었습니다"
       />
     </ChatBarContainer>
   );

@@ -9,6 +9,9 @@ import apiClient from "../../api/client";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
 import { useCopyModal } from "../../contexts/CopyModalContext";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
+import { useNavigate } from "react-router-dom";
 
 export default function PromptCard({
   promptId = "", // promptID가 필요하므로 기본값 설정
@@ -29,8 +32,11 @@ export default function PromptCard({
   const [isHeartClicked, setIsHeartClicked] = useState(initialLiked);
   const [isDragging, setIsDragging] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const { openLoginModal } = useLoginModal();
   const { showCopyModal } = useCopyModal();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsHeartClicked(initialLiked);
@@ -74,7 +80,8 @@ export default function PromptCard({
       }
     } catch (error) {
       console.error("좋아요 요청 실패:", error);
-      alert("좋아요 요청에 실패했습니다.");
+      setErrorMessage("좋아요 요청에 실패했습니다.");
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -93,17 +100,19 @@ export default function PromptCard({
           setIsCopied(false);
         }, 2000);
       } else {
-        alert("복사할 내용이 없습니다.");
+        setErrorMessage("복사할 내용이 없습니다.");
+        setIsErrorModalOpen(true);
       }
     } catch (error) {
       console.error("프롬프트 상세 정보 조회 실패:", error);
-      alert("프롬프트 내용을 복사하는데 실패했습니다.");
+      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.");
+      setIsErrorModalOpen(true);
     }
   };
 
   return (
     <PromptCardContainer
-      backgroundImage={backgroundImage}
+      $backgroundImage={backgroundImage}
       draggable={draggable}
       $isDraggable={draggable}
       onDragStart={onDragStart}
@@ -131,6 +140,18 @@ export default function PromptCard({
           onClick={handleCopyClick}
         />
       </ButtonSection>
+      <LoginRequiredModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        icon={WarningIcon}
+        text={errorMessage || "오류가 발생했습니다"}
+        buttonText="허브로 이동"
+        onButtonClick={() => {
+          navigate("/");
+          setIsErrorModalOpen(false);
+        }}
+        showCloseButton={false}
+      />
     </PromptCardContainer>
   );
 }
@@ -211,9 +232,9 @@ const PromptCardContainer = styled.div`
   border-radius: 1rem;
   // border: 1px solid rgba(0, 0, 0, 0.1);
   position: relative;
-  background: ${({ backgroundImage }) =>
-    backgroundImage
-      ? `url(${backgroundImage}) center / cover no-repeat`
+  background: ${({ $backgroundImage }) =>
+    $backgroundImage
+      ? `url(${$backgroundImage}) center / cover no-repeat`
       : `linear-gradient(
           102deg,
           #e4f7ff 32.44%,
@@ -234,8 +255,8 @@ const PromptCardContainer = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: ${({ backgroundImage }) =>
-      backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
+    background-color: ${({ $backgroundImage }) =>
+      $backgroundImage ? "rgba(0, 0, 0, 0.5)" : "transparent"};
     border-radius: 1rem;
     pointer-events: none;
     z-index: 0;

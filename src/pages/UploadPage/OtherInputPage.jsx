@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
+import CopyCompleteModal from "../../components/CopyCompleteModal/CopyCompleteModal";
 
 export default function OtherInputPage({
   formData,
@@ -16,6 +17,7 @@ export default function OtherInputPage({
   const [selectedResultType, setSelectedResultType] = useState(
     formData.resultType || "image"
   );
+  const [isFileSizeModalOpen, setIsFileSizeModalOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   const aiOptions = [
@@ -49,14 +51,16 @@ export default function OtherInputPage({
 
     // 이미지 파일인지 확인
     if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 업로드 가능합니다.");
+      setIsFileSizeModalOpen(true);
+      setTimeout(() => setIsFileSizeModalOpen(false), 2000);
       return;
     }
 
     // 파일 크기 제한 (예: 10MB)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      alert("이미지 크기는 10MB 이하여야 합니다.");
+      setIsFileSizeModalOpen(true);
+      setTimeout(() => setIsFileSizeModalOpen(false), 2000);
       return;
     }
 
@@ -187,6 +191,10 @@ export default function OtherInputPage({
           )}
         </ResultInputSection>
       </BottomSection>
+      <CopyCompleteModal
+        isOpen={isFileSizeModalOpen}
+        message="파일 크기가 초과되었습니다"
+      />
     </OtherInputPageWrapper>
   );
 }

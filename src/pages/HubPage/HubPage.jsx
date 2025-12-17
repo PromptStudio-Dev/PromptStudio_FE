@@ -14,6 +14,9 @@ import apiClient from "../../api/client";
 import ChatBar from "../../components/ChatSection/ChatBar";
 import { useNavigate } from "react-router-dom";
 import { isLoggedIn } from "../../utils/authStorage";
+import OnboardingModal, {
+  hasSeenOnboarding,
+} from "../../components/OnboardingModal/OnboardingModal";
 
 // TODO: 서버 설정 완료 후 이 플래그를 false로 변경하거나 삭제하세요
 const USE_DUMMY_DATA = false;
@@ -132,7 +135,22 @@ export default function HubPage() {
   const [categoryPrompts, setCategoryPrompts] = useState([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [categoryError, setCategoryError] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const navigate = useNavigate();
+
+  // 최초 접속 시 온보딩 표시
+  useEffect(() => {
+    const hasSeen = hasSeenOnboarding();
+    console.log("[온보딩] hasSeenOnboarding:", hasSeen);
+    if (!hasSeen) {
+      // 데이터 로딩 후 온보딩 표시를 위해 약간의 딜레이
+      const timer = setTimeout(() => {
+        console.log("[온보딩] 모달 표시");
+        setShowOnboarding(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handlePromptDragStart = (event, promptData) => {
     event.dataTransfer.effectAllowed = "copy";
@@ -575,6 +593,12 @@ export default function HubPage() {
       <RightSection>
         <ChatBar />
       </RightSection>
+
+      {/* 온보딩 모달 */}
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
     </MainSection>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useLocation, useNavigate } from "react-router-dom";
 import promptTemplate from "./assets/promptTemplate.svg";
@@ -10,6 +10,9 @@ import TitleInputPage from "./TitleInputPage";
 import OtherInputPage from "./OtherInputPage";
 import apiClient from "../../api/client";
 import { useCopyModal } from "../../contexts/CopyModalContext";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
+import UploadLoadingModal from "../../components/UploadLoadingModal/UploadLoadingModal";
 
 export default function UploadPage() {
   const location = useLocation();
@@ -21,6 +24,8 @@ export default function UploadPage() {
 
   const [currentPage, setCurrentPage] = useState(0);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // 모든 페이지의 데이터를 UploadPage에서 관리
   const [formData, setFormData] = useState({
@@ -79,28 +84,6 @@ export default function UploadPage() {
   };
 
   const handleRegister = async () => {
-    // 필수 필드 검증
-    if (!formData.content.trim()) {
-      alert("프롬프트 템플릿을 입력해주세요.");
-      return;
-    }
-    if (!formData.title.trim()) {
-      alert("프롬프트 제목을 입력해주세요.");
-      return;
-    }
-    if (!formData.introduction.trim()) {
-      alert("프롬프트 설명을 입력해주세요.");
-      return;
-    }
-    if (!formData.category) {
-      alert("카테고리를 선택해주세요.");
-      return;
-    }
-    if (formData.visible === null || formData.visible === undefined) {
-      alert("공개 범위를 선택해주세요.");
-      return;
-    }
-
     setIsRegistering(true);
 
     try {
@@ -169,7 +152,8 @@ export default function UploadPage() {
       }
     } catch (error) {
       console.error("프롬프트 등록/수정 실패:", error);
-      alert("프롬프트 처리에 실패했습니다. 다시 시도해주세요.");
+      setErrorMessage("프롬프트 처리에 실패했습니다. 다시 시도해주세요.");
+      setIsErrorModalOpen(true);
     } finally {
       setIsRegistering(false);
     }
@@ -257,59 +241,80 @@ export default function UploadPage() {
   };
 
   return (
-    <UploadPageWrapper>
-      <ProgressBar>
-        <ProgressBarItem $isActive={currentPage === 0}>
-          <ProgressBarItemText $isActive={currentPage === 0}>
-            프롬프트 템플릿
-          </ProgressBarItemText>
-          <ProgressBarItemImage
-            src={promptTemplate}
-            $isActive={currentPage === 0}
-          />
-        </ProgressBarItem>
-        <ProgressBarItem $isActive={currentPage === 1}>
-          <ProgressBarItemText $isActive={currentPage === 1}>
-            제목 / 설명
-          </ProgressBarItemText>
-          <ProgressBarItemImage src={infoIcon} $isActive={currentPage === 1} />
-        </ProgressBarItem>
-        <ProgressBarItem $isActive={currentPage === 2}>
-          <ProgressBarItemText $isActive={currentPage === 2}>
-            기타
-          </ProgressBarItemText>
-          <ProgressBarItemImage src={otherIcon} $isActive={currentPage === 2} />
-        </ProgressBarItem>
-      </ProgressBar>
-      <ContentWrapper>{renderCurrentPage()}</ContentWrapper>
+    <>
+      <UploadPageWrapper>
+        <ProgressBar>
+          <ProgressBarItem $isActive={currentPage === 0}>
+            <ProgressBarItemText $isActive={currentPage === 0}>
+              프롬프트 템플릿
+            </ProgressBarItemText>
+            <ProgressBarItemImage
+              src={promptTemplate}
+              $isActive={currentPage === 0}
+            />
+          </ProgressBarItem>
+          <ProgressBarItem $isActive={currentPage === 1}>
+            <ProgressBarItemText $isActive={currentPage === 1}>
+              제목 / 설명
+            </ProgressBarItemText>
+            <ProgressBarItemImage
+              src={infoIcon}
+              $isActive={currentPage === 1}
+            />
+          </ProgressBarItem>
+          <ProgressBarItem $isActive={currentPage === 2}>
+            <ProgressBarItemText $isActive={currentPage === 2}>
+              기타
+            </ProgressBarItemText>
+            <ProgressBarItemImage
+              src={otherIcon}
+              $isActive={currentPage === 2}
+            />
+          </ProgressBarItem>
+        </ProgressBar>
+        <ContentWrapper>{renderCurrentPage()}</ContentWrapper>
 
-      <ButtonContainer>
-        {currentPage > 0 && (
-          <PrevButton onClick={handlePrev}>
-            <PrevButtonIcon src={NextButtonIconImage} />
-            <PrevButtonText>이전</PrevButtonText>
-          </PrevButton>
-        )}
-        {currentPage < 2 ? (
-          <NextButton onClick={handleNext} disabled={isNextDisabled()}>
-            <NextButtonText>다음</NextButtonText>
-            <NextButtonIcon src={NextButtonIconImage} />
-          </NextButton>
-        ) : (
-          <RegisterButton onClick={handleRegister} disabled={isRegistering}>
-            <RegisterButtonText>
-              {isRegistering
-                ? editMode
-                  ? "수정 중..."
-                  : "등록 중..."
-                : editMode
-                ? "수정"
-                : "등록"}
-            </RegisterButtonText>
-          </RegisterButton>
-        )}
-      </ButtonContainer>
-    </UploadPageWrapper>
+        <ButtonContainer>
+          {currentPage > 0 && (
+            <PrevButton onClick={handlePrev}>
+              <PrevButtonIcon src={NextButtonIconImage} />
+              <PrevButtonText>이전</PrevButtonText>
+            </PrevButton>
+          )}
+          {currentPage < 2 ? (
+            <NextButton onClick={handleNext} disabled={isNextDisabled()}>
+              <NextButtonText>다음</NextButtonText>
+              <NextButtonIcon src={NextButtonIconImage} />
+            </NextButton>
+          ) : (
+            <RegisterButton onClick={handleRegister} disabled={isRegistering}>
+              <RegisterButtonText>
+                {isRegistering
+                  ? editMode
+                    ? "수정 중..."
+                    : "등록 중..."
+                  : editMode
+                  ? "수정"
+                  : "등록"}
+              </RegisterButtonText>
+            </RegisterButton>
+          )}
+        </ButtonContainer>
+      </UploadPageWrapper>
+      <UploadLoadingModal isOpen={isRegistering} />
+      <LoginRequiredModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        icon={WarningIcon}
+        text={errorMessage || "오류가 발생했습니다"}
+        buttonText="허브로 이동"
+        onButtonClick={() => {
+          navigate("/");
+          setIsErrorModalOpen(false);
+        }}
+        showCloseButton={false}
+      />
+    </>
   );
 }
 
