@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import TopPanel from "./TopPanel/TopPanel.jsx";
 import styled from "styled-components";
 import PromptHub from "./PromptHub/PromptHub";
-import UpgradeSection from "./UpgradeSection";
+import UpgradeSection from "./Upgrade/UpgradeSection";
 
 // props는 나중에 백엔드 연동 시 처리를 위해 선언
 export default function SidePanel({

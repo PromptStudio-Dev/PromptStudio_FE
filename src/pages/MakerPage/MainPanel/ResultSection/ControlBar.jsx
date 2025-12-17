@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import AIModalSelector from "../AIModalSelector";
+import AIModalSelector from "../../shared/AIModalSelector";
 import ResultPanelOpenEnabledImg from "../../assets/prompt-run-open-enabled.svg";
 import ResultPanelOpenDisabledImg from "../../assets/prompt-run-open-disabled.svg";
 
