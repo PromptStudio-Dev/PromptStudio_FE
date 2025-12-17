@@ -16,6 +16,11 @@ import MakerPrevButton from "./assets/maker-prev-button.svg";
 import { createMaker, getMaker, getMakers, deleteMaker } from "./api";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
+import OnboardingModal, {
+  hasSeenMakerOnboarding,
+  getMakerSlides,
+  getMakerOnboardingKey,
+} from "../../components/OnboardingModal/OnboardingModal";
 
 const RUN_STATE = {
   RUN: "RUN",
@@ -40,6 +45,7 @@ export default function MakerShellPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [makerIdToDelete, setMakerIdToDelete] = useState(null);
+  const [showMakerOnboarding, setShowMakerOnboarding] = useState(false);
   const authGuardedRef = useRef(false);
 
   const CARDS_PER_PAGE = 9;
@@ -118,6 +124,15 @@ export default function MakerShellPage() {
       authGuardedRef.current = true;
       openLoginModal();
       navigate("/", { replace: true });
+      return;
+    }
+    // 로그인된 상태에서만 온보딩 체크
+    if (!hasSeenMakerOnboarding()) {
+      // 데이터 로딩 후 온보딩 표시를 위해 약간의 딜레이
+      const timer = setTimeout(() => {
+        setShowMakerOnboarding(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [navigate, openLoginModal]);
 
@@ -607,6 +622,13 @@ export default function MakerShellPage() {
           </DeleteModalContainer>
         </DeleteModalOverlay>
       )}
+      {/* MakerPage 온보딩 모달 */}
+      <OnboardingModal
+        isOpen={showMakerOnboarding}
+        onClose={() => setShowMakerOnboarding(false)}
+        slides={getMakerSlides()}
+        onboardingKey={getMakerOnboardingKey()}
+      />
     </MakerShellWrapper>
   );
 }

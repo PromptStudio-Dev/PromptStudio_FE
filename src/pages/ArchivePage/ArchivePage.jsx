@@ -5,8 +5,10 @@ import PromptCard from "../HubPage/PromptCard";
 import ArchiveCategoryTag from "./ArchiveCategoryTag";
 import apiClient from "../../api/client";
 import { useNavigate } from "react-router-dom";
-import defaultProfileImage from "./assets/imageAttachIcon.svg";
 import { useCopyModal } from "../../contexts/CopyModalContext";
+import { useLoginModal } from "../../contexts/LoginModalContext";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
 import archiveNotSelectedHeartIcon from "./assets/archiveNotSelectedHeartIcon.svg";
 import colorHeartIcon from "../HubPage/assets/colorHeartIcon.svg";
 import heartIcon from "./assets/heartIcon.svg";
@@ -99,8 +101,11 @@ export default function ArchivePage() {
     introduction: "",
   });
   const [introductionInput, setIntroductionInput] = useState("");
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const { showCopyModal } = useCopyModal();
+  const { startGoogleLogin } = useLoginModal();
 
   const visibilityOptions = [
     { name: "모두", icon: null },
@@ -160,11 +165,20 @@ export default function ArchivePage() {
         setPrompts(Array.isArray(data) ? data : []);
       } catch (fetchError) {
         console.error("프롬프트를 불러오지 못했습니다.", fetchError);
-        let errorMessage = "프롬프트를 불러오지 못했습니다.";
-        if (fetchError?.response) {
-          errorMessage = `서버 오류: ${fetchError.response.status}`;
+
+        // 401 에러인 경우 오류 모달 표시 (X 버튼 없음, 허브로 이동 버튼 있음)
+        if (fetchError?.response?.status === 401) {
+          setErrorMessage("인증이 만료되었습니다. 다시 로그인해주세요.");
+          setIsErrorModalOpen(true);
+        } else {
+          // 다른 에러인 경우 오류 모달 표시 (X 버튼 있음, 허브로 이동 버튼 없음)
+          let errorMessage = "프롬프트를 불러오지 못했습니다.";
+          if (fetchError?.response) {
+            errorMessage = `서버 오류: ${fetchError.response.status}`;
+          }
+          setErrorMessage(errorMessage);
+          setIsErrorModalOpen(true);
         }
-        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -188,21 +202,32 @@ export default function ArchivePage() {
     fetchProfile();
   }, []);
 
+  // 자기소개 저장 함수
+  const saveIntroduction = async () => {
+    try {
+      await apiClient.patch("/api/members/me", {
+        introduction: introductionInput,
+      });
+      setProfile((prev) => ({ ...prev, introduction: introductionInput }));
+      showCopyModal("자기 소개 수정이 완료되었습니다");
+    } catch (err) {
+      console.error("자기소개 수정 실패:", err);
+      setErrorMessage("자기소개 수정에 실패했습니다.");
+      setIsErrorModalOpen(true);
+    }
+  };
+
   // 자기소개 수정 (Enter 키)
   const handleIntroductionKeyDown = async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      try {
-        await apiClient.patch("/api/members/me", {
-          introduction: introductionInput,
-        });
-        setProfile((prev) => ({ ...prev, introduction: introductionInput }));
-        showCopyModal("자기 소개 수정이 완료되었습니다");
-      } catch (err) {
-        console.error("자기소개 수정 실패:", err);
-        alert("자기소개 수정에 실패했습니다.");
-      }
+      await saveIntroduction();
     }
+  };
+
+  // 자기소개 수정 (포커스 아웃)
+  const handleIntroductionBlur = async () => {
+    await saveIntroduction();
   };
 
   const handlePromptDragStart = (event, promptData) => {
@@ -264,16 +289,21 @@ export default function ArchivePage() {
       <LeftSection>
         <ProfileSection>
           <ProfileHeader>
-            <ProfileImage
-              src={profile.profileImageUrl || defaultProfileImage}
-            />
+            <ProfileImageContainer>
+              {profile.profileImageUrl ? (
+                <ProfileImage src={profile.profileImageUrl} />
+              ) : (
+                <ProfileImagePlaceholder />
+              )}
+            </ProfileImageContainer>
             <ProfileDetail>
-              <ProfileName>{profile.name || "사용자"}</ProfileName>
+              <ProfileName>{profile.name || "로딩중"}</ProfileName>
               <ProfileInput
                 placeholder="자기소개를 입력해주세요"
                 value={introductionInput}
                 onChange={(e) => setIntroductionInput(e.target.value)}
                 onKeyDown={handleIntroductionKeyDown}
+                onBlur={handleIntroductionBlur}
               />
             </ProfileDetail>
           </ProfileHeader>
@@ -431,6 +461,29 @@ export default function ArchivePage() {
       <RightSection>
         <ChatBar />
       </RightSection>
+      <LoginRequiredModal
+        isOpen={isErrorModalOpen}
+        onClose={() => {
+          if (errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요.") {
+            navigate("/");
+          }
+          setIsErrorModalOpen(false);
+        }}
+        icon={WarningIcon}
+        text={errorMessage || "오류가 발생했습니다"}
+        buttonText={
+          errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요."
+            ? "로그인 하기"
+            : undefined
+        }
+        onButtonClick={() => {
+          if (errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요.") {
+            startGoogleLogin();
+            setIsErrorModalOpen(false);
+          }
+        }}
+        showCloseButton={true}
+      />
     </MainSection>
   );
 }
@@ -478,15 +531,29 @@ const ProfileHeader = styled.div`
   margin-bottom: 3.87rem;
 `;
 
-const ProfileImage = styled.img`
+const ProfileImageContainer = styled.div`
   width: 5rem;
   height: 5rem;
   border-radius: 1rem;
+  overflow: hidden;
 
   @media (max-width: 1600px) {
     width: 5rem;
     height: 5rem;
   }
+`;
+
+const ProfileImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const ProfileImagePlaceholder = styled.div`
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border-radius: 1rem;
 `;
 
 const ProfileDetail = styled.div`

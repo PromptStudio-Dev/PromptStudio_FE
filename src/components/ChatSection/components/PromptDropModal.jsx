@@ -9,6 +9,7 @@ import styled from "styled-components";
 
 import { useImageAttachment } from "../hooks/useImageAttachment";
 import { useCopyModal } from "../../../contexts/CopyModalContext";
+import CopyCompleteModal from "../../../components/CopyCompleteModal/CopyCompleteModal";
 
 // 백엔드에서 fields 데이터를 제공하므로 간소화된 구조 사용
 const dummyPromptData = {
@@ -77,9 +78,15 @@ export default function PromptDropModal({
     handleImageRemove: handleModalImageRemove,
     clearImages: clearModalImages,
     replaceImagesWithFiles: replaceModalImagesWithFiles,
-  } = useImageAttachment();
+  } = useImageAttachment({
+    onFileSizeExceeded: () => {
+      setIsFileSizeModalOpen(true);
+      setTimeout(() => setIsFileSizeModalOpen(false), 2000);
+    },
+  });
   const hasAppliedInitialImagesRef = useRef(false);
   const { showCopyModal } = useCopyModal();
+  const [isFileSizeModalOpen, setIsFileSizeModalOpen] = useState(false);
 
   const fieldNamesKey = useMemo(() => {
     if (!promptData?.fields?.length && !dummyPromptData.fields?.length) {
@@ -450,6 +457,10 @@ export default function PromptDropModal({
           </ActionButton>
         </ButtonSection>
       </ModalContent>
+      <CopyCompleteModal
+        isOpen={isFileSizeModalOpen}
+        message="파일 크기가 초과되었습니다"
+      />
     </ModalOverlay>
   );
 }

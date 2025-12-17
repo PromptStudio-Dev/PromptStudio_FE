@@ -21,6 +21,8 @@ import trashIcon from "./assets/trashIcon.svg";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
 import { useCopyModal } from "../../contexts/CopyModalContext";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
 
 const formatDate = (isoString) => {
   if (!isoString) return "";
@@ -46,6 +48,8 @@ export default function PromptDetailPage() {
   const [isLiked, setIsLiked] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const currentMemberId = getMemberId();
   const { openLoginModal } = useLoginModal();
   const { showCopyModal } = useCopyModal();
@@ -89,11 +93,13 @@ export default function PromptDetailPage() {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       } else {
-        alert("복사할 내용이 없습니다.");
+        setErrorMessage("복사할 내용이 없습니다.");
+        setIsErrorModalOpen(true);
       }
     } catch (copyError) {
       console.error("프롬프트 복사 실패:", copyError);
-      alert("프롬프트 내용을 복사하는데 실패했습니다.");
+      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.");
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -147,7 +153,8 @@ export default function PromptDetailPage() {
       }
     } catch (err) {
       console.error("좋아요 요청 실패:", err);
-      alert("좋아요 요청에 실패했습니다.");
+      setErrorMessage("좋아요 요청에 실패했습니다.");
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -166,7 +173,8 @@ export default function PromptDetailPage() {
       navigate("/");
     } catch (err) {
       console.error("프롬프트 삭제 실패:", err);
-      alert("프롬프트 삭제에 실패했습니다.");
+      setErrorMessage("프롬프트 삭제에 실패했습니다.");
+      setIsErrorModalOpen(true);
     }
   };
 
@@ -377,6 +385,18 @@ export default function PromptDetailPage() {
           </DeleteModalContainer>
         </DeleteModalOverlay>
       )}
+      <LoginRequiredModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        icon={WarningIcon}
+        text={errorMessage || "오류가 발생했습니다"}
+        buttonText="허브로 이동"
+        onButtonClick={() => {
+          navigate("/");
+          setIsErrorModalOpen(false);
+        }}
+        showCloseButton={false}
+      />
     </>
   );
 }
@@ -640,6 +660,8 @@ const PromptContent = styled.div`
   font-size: 1.1875rem;
   font-style: normal;
   font-weight: 400;
+  white-space: pre-wrap;
+  word-break: break-word;
 `;
 
 const PromptResultContent = styled.div`
@@ -662,6 +684,7 @@ const ResultText = styled.div`
   font-weight: 400;
   max-height: 29rem;
   overflow-y: auto;
+  min-height: 29rem;
 `;
 
 const ResultTextEmpty = styled(ResultText)`
@@ -669,7 +692,6 @@ const ResultTextEmpty = styled(ResultText)`
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 8rem;
 `;
 
 const DetailButton = styled.div`

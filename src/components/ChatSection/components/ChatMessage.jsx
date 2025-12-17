@@ -413,6 +413,9 @@ const CardTitle = styled.h3`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  @media (max-width: 1600px) {
+    font-size: 0.95rem;
+  }
 `;
 
 const CardSubtitle = styled.p`
@@ -427,6 +430,10 @@ const CardSubtitle = styled.p`
   -webkit-box-orient: vertical;
   overflow: hidden;
   max-height: calc(0.925rem * 1.45 * 2);
+
+  @media (max-width: 1800px) {
+    display: none;
+  }
 `;
 
 const MessageImagesWrapper = styled.div`

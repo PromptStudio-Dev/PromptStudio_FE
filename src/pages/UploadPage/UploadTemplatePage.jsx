@@ -237,7 +237,7 @@ export default function UploadTemplatePage({
       )}
       <CheckImageRequiredSection>
         <CheckImageRequiredText>
-          이 프롬프트에는 이미지를 입력받아요 해요.
+          이 프롬프트에는 이미지를 입력받아야 해요.
         </CheckImageRequiredText>
         <CheckImageRequiredCheckButton
           onClick={() => handleImageRequiredChange(true)}
