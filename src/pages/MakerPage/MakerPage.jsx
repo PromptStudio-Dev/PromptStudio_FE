@@ -16,6 +16,9 @@ import {
   getPromptFeedback,
 } from "./api/results";
 
+const normalizeContent = (raw) =>
+  typeof raw === "string" ? raw.replace(/\r\n/g, "\n") : raw;
+
 export default function MakerPage({ selectedPrompt = null }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isResultPanelOpen, setIsResultPanelOpen] = useState(false);
@@ -24,7 +27,7 @@ export default function MakerPage({ selectedPrompt = null }) {
   const [upgrades, setUpgrades] = useState([]);
   const [promptTitle, setPromptTitle] = useState(selectedPrompt?.title ?? "");
   const [promptContent, setPromptContent] = useState(
-    selectedPrompt?.content ?? ""
+    normalizeContent(selectedPrompt?.content ?? "")
   );
   const [attachedImages, setAttachedImages] = useState([]);
   const [latestUpgradeId, setLatestUpgradeId] = useState(null);
@@ -58,7 +61,7 @@ export default function MakerPage({ selectedPrompt = null }) {
   // 초기값을 selectedPrompt의 값으로 설정
   const prevValuesRef = useRef({
     title: selectedPrompt?.title ?? "",
-    content: selectedPrompt?.content ?? "",
+    content: normalizeContent(selectedPrompt?.content ?? ""),
     imageUrls:
       selectedPrompt?.images
         ?.map((img) => img.imageUrl || img.url)
@@ -123,7 +126,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
   useEffect(() => {
     const title = selectedPrompt?.title ?? "";
-    const content = selectedPrompt?.content ?? "";
+    const content = normalizeContent(selectedPrompt?.content ?? "");
 
     setPromptTitle(title);
     setPromptContent(content);
@@ -207,7 +210,7 @@ export default function MakerPage({ selectedPrompt = null }) {
       }
 
       const titleToSave = promptTitle;
-      const contentToSave = promptContent;
+      const contentToSave = normalizeContent(promptContent);
 
       // 전송해야 할 로컬 이미지 파일들
       const newImages = attachedImages.filter(
@@ -259,7 +262,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
         const savedMaker = await autoSaveMaker(currentMakerId, {
           title: promptTitle,
-          content: promptContent,
+          content: contentToSave,
           existingImageUrls: urlsToKeep,
           newImages: newImageFiles, // 파일 배열로 전달
         });
@@ -329,7 +332,7 @@ export default function MakerPage({ selectedPrompt = null }) {
           existingUpgrade.direction ?? existingUpgrade.originalDirection ?? "";
 
         responseData = await reupgradeMakerText({
-          fullText: contentSnapshot || promptContent,
+          fullText: normalizeContent(contentSnapshot || promptContent),
           selectedText: selectedText,
           prevDirection: prevDirection,
           prevResult: existingUpgrade.content,
@@ -364,7 +367,7 @@ export default function MakerPage({ selectedPrompt = null }) {
       } else {
         // 첫 업그레이드: 기존 업그레이드가 없으면 새 업그레이드 API 사용
         responseData = await upgradeMakerText({
-          fullText: contentSnapshot || promptContent,
+          fullText: normalizeContent(contentSnapshot || promptContent),
           selectedText: selectedText,
           direction: upgradeRequest,
         });
@@ -523,7 +526,9 @@ export default function MakerPage({ selectedPrompt = null }) {
         throw new Error("업그레이드 정보가 없습니다.");
       }
 
-      const fullText = upgrade.contentSnapshot || promptContent || "";
+      const fullText = normalizeContent(
+        upgrade.contentSnapshot || promptContent || ""
+      );
       const selectedText = upgrade.originalText || "";
 
       if (!fullText || !selectedText) {
@@ -649,7 +654,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
                 await autoSaveMaker(currentMakerId, {
                   title: promptTitle,
-                  content: promptContent,
+                  content: normalizeContent(promptContent),
                   existingImageUrls: urlsToKeep,
                   newImages: newImageFiles,
                 });
@@ -764,7 +769,7 @@ export default function MakerPage({ selectedPrompt = null }) {
 
               await autoSaveMaker(currentMakerId, {
                 title: promptTitle,
-                content: promptContent,
+                content: normalizeContent(promptContent),
                 existingImageUrls: urlsToKeep,
                 newImages: newImageFiles,
               });
@@ -839,7 +844,7 @@ export default function MakerPage({ selectedPrompt = null }) {
             skipNextAutoSaveRef.current = true;
             // 메이커 내용 복원
             setPromptTitle(restored.snapshotTitle || "");
-            setPromptContent(restored.snapshotContent || "");
+            setPromptContent(normalizeContent(restored.snapshotContent || ""));
 
             // 이미지 복원
             if (
@@ -908,7 +913,7 @@ export default function MakerPage({ selectedPrompt = null }) {
             skipNextAutoSaveRef.current = true;
             // 메이커 내용 복원
             setPromptTitle(restored.snapshotTitle || "");
-            setPromptContent(restored.snapshotContent || "");
+            setPromptContent(normalizeContent(restored.snapshotContent || ""));
 
             // 이미지 복원
             if (
