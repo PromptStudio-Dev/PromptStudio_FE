@@ -88,6 +88,8 @@ export default function MakerShellPage() {
         const safeResultText = (maker.resultText || "").trim();
         const safeTitle = (maker.title || "").trim();
 
+        const isDefaultTitle = !safeTitle || safeTitle === "새로운 프롬프트";
+
         // RUN일 때만 결과 이미지를 카드 썸네일로 사용
         const imageUrl =
           isRun && maker.resultType === "IMAGE" && maker.resultImageUrl
@@ -101,7 +103,7 @@ export default function MakerShellPage() {
 
         return {
           makerId: maker.makerId,
-          title: safeTitle || "새로운 프롬프트",
+          title: isDefaultTitle ? "새로운 메이커" : safeTitle,
           // 상세 페이지의 PromptEditor에 들어갈 사용자가 작성한 원본 텍스트
           content: safeContent,
           // 리스트(카드)에서만 사용하는 표시용 텍스트
