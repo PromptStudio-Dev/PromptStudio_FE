@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import AIModalSelector from "../MainPanel/AIModalSelector";
+import AIModalSelector from "../shared/AIModalSelector";
 import ResultPanelCloseImg from "../assets/prompt-run-close.svg";
-import ResultDisplay from "../shared/ResultDisplay";
-import HistoryBar from "../shared/HistoryBar";
-import ResultFeedback from "../shared/ResultFeedback";
+import ResultDisplay from "./ResultDisplay";
+import HistoryBar from "./HistoryBar";
+import ResultFeedback from "./ResultFeedback";
 import ResultModalOpenImg from "../assets/open-resultmodal.svg";
 
 export default function ResultPanel({

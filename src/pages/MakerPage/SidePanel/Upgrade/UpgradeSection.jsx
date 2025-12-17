@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import styled from "styled-components";
 import UpgradeCard from "./UpgradeCard";
 import UpgradeCardDetail from "./UpgradeCardDetail";
-import UpgradeAgainButtonImg from "../assets/upgrade-again-button.svg";
+import UpgradeAgainButtonImg from "../../assets/upgrade-again-button.svg";
 
 export default function UpgradeSection({
   upgrades,

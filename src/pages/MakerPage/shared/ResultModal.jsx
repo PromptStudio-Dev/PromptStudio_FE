@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import ExpandIconImg from "../assets/result-modal-expansion-button.svg";
 import CloseIconImg from "../assets/result-modal-close-button.svg";
-import ResultDisplay from "./ResultDisplay";
-import HistoryBar from "./HistoryBar";
-import ResultFeedback from "./ResultFeedback";
+import ResultDisplay from "../ResultPanel/ResultDisplay";
+import HistoryBar from "../ResultPanel/HistoryBar";
+import ResultFeedback from "../ResultPanel/ResultFeedback";
 
 export default function ResultModal({
   isOpen,
