@@ -94,8 +94,6 @@ export default function PromptHub({
         };
         const data = await getMyPrompts(params);
 
-        console.log("내가 작성한 글 응답 데이터:", data);
-
         const formattedPrompts = Array.isArray(data) ? data : [];
 
         setMyPrompts(formattedPrompts);
@@ -151,8 +149,6 @@ export default function PromptHub({
         };
         const data = await getLikedPrompts(params);
 
-        console.log("좋아요한 프롬프트 응답 데이터:", data);
-
         const formattedPrompts = Array.isArray(data) ? data : [];
 
         setLikedPrompts(formattedPrompts);
@@ -200,8 +196,6 @@ export default function PromptHub({
 
       try {
         const data = await getRecentPrompts();
-
-        console.log("최근 조회한 프롬프트 응답 데이터:", data);
 
         const formattedPrompts = Array.isArray(data) ? data : [];
 
@@ -260,8 +254,6 @@ export default function PromptHub({
         }
         const data = await getHotPrompts(params);
 
-        console.log("인기 프롬프트 응답 데이터:", data);
-
         // API 응답을 컴포넌트에서 사용하는 형식으로 변환
         const formattedPrompts = Array.isArray(data) ? data : [];
 
@@ -318,8 +310,6 @@ export default function PromptHub({
         }
 
         const data = await getGeneratedPrompts(params);
-
-        console.log("최근 생성한 프롬프트 응답 데이터:", data);
 
         const formattedPrompts = Array.isArray(data) ? data : [];
 
@@ -391,8 +381,6 @@ export default function PromptHub({
         }
         const data = await searchPrompts(params);
 
-        console.log("프롬프트 검색 결과:", data);
-
         const formattedPrompts = Array.isArray(data) ? data : [];
 
         setSearchResults(formattedPrompts);
@@ -437,15 +425,12 @@ export default function PromptHub({
 
   // 카드 클릭 시 모달 열기
   const handleCardClick = async (promptId) => {
-    console.log("카드 클릭:", promptId);
     if (!promptId) {
       console.error("promptId가 없습니다:", promptId);
       return;
     }
-    console.log("모달 열기 - promptId:", promptId);
     setSelectedPromptId(promptId);
     setIsModalOpen(true);
-    console.log("모달 상태 업데이트 완료");
 
     // 최근 조회한 프롬프트 업데이트를 위한 API 호출
     try {
@@ -455,8 +440,6 @@ export default function PromptHub({
         params.memberId = Number(memberId);
       }
       const data = await getPromptDetail(promptId, params);
-
-      console.log("프롬프트 상세 응답 데이터:", data);
 
       const formattedPrompt = {
         promptId: data.promptId,

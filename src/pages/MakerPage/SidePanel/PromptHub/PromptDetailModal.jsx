@@ -74,14 +74,7 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
   };
 
   useEffect(() => {
-    console.log(
-      "PromptDetailModal useEffect - isOpen:",
-      isOpen,
-      "promptId:",
-      promptId
-    );
     if (isOpen && promptId) {
-      console.log("프롬프트 상세 정보 가져오기 시작");
       fetchPromptDetail();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,19 +86,9 @@ export default function PromptDetailModal({ isOpen, onClose, promptId }) {
     }
   };
 
-  console.log(
-    "PromptDetailModal render - isOpen:",
-    isOpen,
-    "promptId:",
-    promptId
-  );
-
   if (!isOpen) {
-    console.log("모달이 닫혀있음 - 렌더링하지 않음");
     return null;
   }
-
-  console.log("모달 렌더링 시작");
 
   return (
     <ModalOverlay onClick={handleOverlayClick}>
