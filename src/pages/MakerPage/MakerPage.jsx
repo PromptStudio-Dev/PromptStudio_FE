@@ -721,8 +721,8 @@ export default function MakerPage({ selectedPrompt = null }) {
           }
         }}
         onOpenResultPanel={() => {
-          // 히스토리 목록이 있거나 선택된 historyId가 있으면 열기
-          if (historyItems.length > 0 || currentHistoryId) {
+          // 히스토리 목록이 있거나 선택된 historyId가 있으면 열기(로딩 중도 추가)
+          if (historyItems.length > 0 || currentHistoryId || isResultLoading) {
             setIsResultPanelOpen(true);
           }
         }}

@@ -11,8 +11,8 @@ export default function ControlBar({
   isResultModalOpen = false,
   isResultLoading = false,
 }) {
-  // History가 있고 ResultModal이 열려있지 않으며, 로딩 중이 아닐 때만 버튼 활성화
-  const isButtonEnabled = hasHistory && !isResultModalOpen && !isResultLoading;
+  // 로딩중이어도 활성화 - 히스토리는 무조건 있어야 하고, 모달은 무조건 닫힌 상태여야 함
+  const isButtonEnabled = (hasHistory || isResultLoading) && !isResultModalOpen;
 
   const handleOpenResultPanel = () => {
     // 버튼이 활성화되어 있을 때만 ResultPanel 열기
