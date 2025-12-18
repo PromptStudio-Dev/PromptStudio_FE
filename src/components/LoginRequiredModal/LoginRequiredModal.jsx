@@ -143,6 +143,8 @@ const ModalText = styled.div`
   margin-top: 0.58rem;
   margin-bottom: 2.25rem;
   line-height: normal;
+  white-space: pre-line;
+  text-align: center;
 `;
 
 const LoginButton = styled.button`

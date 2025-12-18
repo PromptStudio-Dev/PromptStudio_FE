@@ -152,7 +152,7 @@ export default function UploadPage() {
       }
     } catch (error) {
       console.error("프롬프트 등록/수정 실패:", error);
-      setErrorMessage("프롬프트 처리에 실패했습니다. 다시 시도해주세요.");
+      setErrorMessage("프롬프트 처리에 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     } finally {
       setIsRegistering(false);

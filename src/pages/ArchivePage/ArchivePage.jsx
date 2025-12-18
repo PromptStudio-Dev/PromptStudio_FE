@@ -168,7 +168,7 @@ export default function ArchivePage() {
 
         // 401 에러인 경우 오류 모달 표시 (X 버튼 없음, 허브로 이동 버튼 있음)
         if (fetchError?.response?.status === 401) {
-          setErrorMessage("인증이 만료되었습니다. 다시 로그인해주세요.");
+          setErrorMessage("인증이 만료되었습니다.\n다시 로그인해주세요.");
           setIsErrorModalOpen(true);
         } else {
           // 다른 에러인 경우 오류 모달 표시 (X 버튼 있음, 허브로 이동 버튼 없음)
@@ -212,7 +212,7 @@ export default function ArchivePage() {
       showCopyModal("자기 소개 수정이 완료되었습니다");
     } catch (err) {
       console.error("자기소개 수정 실패:", err);
-      setErrorMessage("자기소개 수정에 실패했습니다.");
+      setErrorMessage("자기소개 수정에 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };
@@ -464,7 +464,7 @@ export default function ArchivePage() {
       <LoginRequiredModal
         isOpen={isErrorModalOpen}
         onClose={() => {
-          if (errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요.") {
+          if (errorMessage === "인증이 만료되었습니다.\n다시 로그인해주세요.") {
             navigate("/");
           }
           setIsErrorModalOpen(false);
@@ -472,12 +472,12 @@ export default function ArchivePage() {
         icon={WarningIcon}
         text={errorMessage || "오류가 발생했습니다"}
         buttonText={
-          errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요."
+          errorMessage === "인증이 만료되었습니다.\n다시 로그인해주세요."
             ? "로그인 하기"
             : undefined
         }
         onButtonClick={() => {
-          if (errorMessage === "인증이 만료되었습니다. 다시 로그인해주세요.") {
+          if (errorMessage === "인증이 만료되었습니다.\n다시 로그인해주세요.") {
             startGoogleLogin();
             setIsErrorModalOpen(false);
           }

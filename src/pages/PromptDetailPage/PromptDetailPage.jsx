@@ -93,12 +93,12 @@ export default function PromptDetailPage() {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       } else {
-        setErrorMessage("복사할 내용이 없습니다.");
+        setErrorMessage("복사할 내용이 없습니다.\n프롬프트를 확인해주세요.");
         setIsErrorModalOpen(true);
       }
     } catch (copyError) {
       console.error("프롬프트 복사 실패:", copyError);
-      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.");
+      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };
@@ -153,7 +153,7 @@ export default function PromptDetailPage() {
       }
     } catch (err) {
       console.error("좋아요 요청 실패:", err);
-      setErrorMessage("좋아요 요청에 실패했습니다.");
+      setErrorMessage("좋아요 요청에 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };
@@ -173,7 +173,7 @@ export default function PromptDetailPage() {
       navigate("/");
     } catch (err) {
       console.error("프롬프트 삭제 실패:", err);
-      setErrorMessage("프롬프트 삭제에 실패했습니다.");
+      setErrorMessage("프롬프트 삭제에 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };

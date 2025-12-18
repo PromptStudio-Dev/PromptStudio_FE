@@ -215,7 +215,8 @@ export default function UploadTemplatePage({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onMouseUp={handleMouseUp}
-          placeholder="프롬프트 템플릿을 입력해주세요."
+          placeholder={`문장을 드래그한 뒤 입력하면
+예: 주제-> [주제], 자기소개서 초안 -> [자기소개서 초안]으로 쉽게 바뀌어요!`}
         />
       </ContentInputWrapper>
       {showInputBlock && (
@@ -340,7 +341,7 @@ const ContentInput = styled.textarea`
   }
 
   &::placeholder {
-    color: transparent;
+    color: #9a9a9a;
   }
 `;
 
