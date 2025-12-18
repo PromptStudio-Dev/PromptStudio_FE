@@ -16,6 +16,9 @@ import MakerPrevButton from "./assets/maker-prev-button.svg";
 import { createMaker, getMaker, getMakers, deleteMaker } from "./api";
 import { isLoggedIn } from "../../utils/authStorage";
 import { useLoginModal } from "../../contexts/LoginModalContext";
+import LoginRequiredModal from "../../components/LoginRequiredModal/LoginRequiredModal";
+import ErrorModal from "../../components/ErrorModal/ErrorModal";
+import WarningIcon from "../../components/LoginRequiredModal/assets/warningIcon.svg";
 import OnboardingModal, {
   hasSeenMakerOnboarding,
   getMakerSlides,
@@ -32,7 +35,7 @@ const MAKER_NOT_FOUND_MESSAGE = "선택한 Maker를 찾을 수 없습니다.";
 export default function MakerShellPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { openLoginModal } = useLoginModal();
+  const { openLoginModal, startGoogleLogin } = useLoginModal();
   const { makerId: makerIdParam } = useParams();
   const [makerView, setMakerView] = useState(RUN_STATE.RUN);
   const [makers, setMakers] = useState([]);
@@ -46,6 +49,8 @@ export default function MakerShellPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [makerIdToDelete, setMakerIdToDelete] = useState(null);
   const [showMakerOnboarding, setShowMakerOnboarding] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isAuthErrorModalOpen, setIsAuthErrorModalOpen] = useState(false);
   const authGuardedRef = useRef(false);
 
   const CARDS_PER_PAGE = 9;
@@ -56,7 +61,9 @@ export default function MakerShellPage() {
 
     try {
       if (!isLoggedIn()) {
-        throw new Error("로그인이 필요합니다.");
+        openLoginModal();
+        setMakers([]);
+        return;
       }
       // RUN / NO RUN에 따라 hasHistory(boolean) 결정
       const hasHistory = makerView === RUN_STATE.RUN;
@@ -81,6 +88,8 @@ export default function MakerShellPage() {
         const safeResultText = (maker.resultText || "").trim();
         const safeTitle = (maker.title || "").trim();
 
+        const isDefaultTitle = !safeTitle || safeTitle === "새로운 프롬프트";
+
         // RUN일 때만 결과 이미지를 카드 썸네일로 사용
         const imageUrl =
           isRun && maker.resultType === "IMAGE" && maker.resultImageUrl
@@ -94,7 +103,7 @@ export default function MakerShellPage() {
 
         return {
           makerId: maker.makerId,
-          title: safeTitle || "새로운 프롬프트",
+          title: isDefaultTitle ? "새로운 메이커" : safeTitle,
           // 상세 페이지의 PromptEditor에 들어갈 사용자가 작성한 원본 텍스트
           content: safeContent,
           // 리스트(카드)에서만 사용하는 표시용 텍스트
@@ -110,12 +119,26 @@ export default function MakerShellPage() {
       setMakers(normalized);
     } catch (error) {
       console.error("Maker 목록을 불러오지 못했습니다.", error);
-      setMakerListError("Maker 목록을 불러오지 못했습니다.");
+      // 비로그인 상태면 로그인 모달로 안내
+      if (!isLoggedIn()) {
+        openLoginModal();
+        setMakers([]);
+        return;
+      }
+      // 401/403 에러인 경우 인증 에러 모달 표시
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        setIsAuthErrorModalOpen(true);
+        setMakers([]);
+        return;
+      }
+
+      // 일반 오류는 ErrorModal로 표시
+      setIsErrorModalOpen(true);
       setMakers([]);
     } finally {
       setIsLoadingMakers(false);
     }
-  }, [makerView]);
+  }, [makerView, openLoginModal]);
 
   // 로그인 여부 선행 체크: 비로그인 시 허브로 돌려보내고 로그인 모달 오픈
   useEffect(() => {
@@ -278,10 +301,12 @@ export default function MakerShellPage() {
       const memberId = localStorage.getItem("memberId");
 
       if (!memberId) {
+        openLoginModal();
         throw new Error("로그인이 필요합니다. 먼저 로그인해주세요.");
       }
 
       if (!isLoggedIn()) {
+        openLoginModal();
         throw new Error("로그인이 필요합니다. 먼저 로그인해주세요.");
       }
 
@@ -303,30 +328,18 @@ export default function MakerShellPage() {
     } catch (error) {
       console.error("새 Maker를 생성하지 못했습니다.", error);
 
-      let errorMessage = "새 Maker를 생성하지 못했습니다.";
-
-      if (error?.message?.includes("로그인이 필요")) {
-        errorMessage = error.message;
-      } else if (
-        error?.code === "ERR_NAME_NOT_RESOLVED" ||
-        error?.message?.includes("ERR_NAME_NOT_RESOLVED")
-      ) {
-        errorMessage =
-          "서버에 연결할 수 없습니다. 서버가 준비되었는지 확인해주세요.";
-      } else if (error?.response) {
-        errorMessage = `서버 오류: ${error.response.status}`;
-        if (error.response.data?.message) {
-          errorMessage = error.response.data.message;
-        }
-      } else if (error?.request) {
-        errorMessage = "서버로부터 응답을 받지 못했습니다.";
+      // 401/403 에러인 경우 인증 에러 모달 표시
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        setIsAuthErrorModalOpen(true);
+        return;
       }
 
-      setMakerError(errorMessage);
+      // 일반 오류는 ErrorModal로 표시
+      setIsErrorModalOpen(true);
     } finally {
       setIsCreatingMaker(false);
     }
-  }, [navigate]);
+  }, [navigate, openLoginModal]);
 
   const handleSelectMaker = useCallback(
     async (makerId) => {
@@ -628,6 +641,26 @@ export default function MakerShellPage() {
         onClose={() => setShowMakerOnboarding(false)}
         slides={getMakerSlides()}
         onboardingKey={getMakerOnboardingKey()}
+      />
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        onClose={() => setIsErrorModalOpen(false)}
+        text="오류가 발생했습니다.\n잠시 후 다시 시도해주세요."
+      />
+      <LoginRequiredModal
+        isOpen={isAuthErrorModalOpen}
+        onClose={() => {
+          navigate("/");
+          setIsAuthErrorModalOpen(false);
+        }}
+        icon={WarningIcon}
+        text="인증이 만료되었습니다.\n다시 로그인해주세요."
+        buttonText="로그인 하기"
+        onButtonClick={() => {
+          startGoogleLogin();
+          setIsAuthErrorModalOpen(false);
+        }}
+        showCloseButton={true}
       />
     </MakerShellWrapper>
   );

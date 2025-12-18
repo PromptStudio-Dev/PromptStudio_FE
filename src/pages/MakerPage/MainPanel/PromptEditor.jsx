@@ -85,12 +85,18 @@ export default function PromptEditor({
       const textarea = textareaRef.current;
       if (!textarea) return;
 
+      // Windows CRLF 보정
+      let safeEnd = end;
+      if (content.slice(end - 2, end) === "\r\n" && end < content.length) {
+        safeEnd = end + 1;
+      }
+
       if (activeUpgradeId) {
         const isDifferentSelection =
           !activeUpgrade ||
           !activeUpgrade.selectionRange ||
           activeUpgrade.selectionRange.start !== start ||
-          activeUpgrade.selectionRange.end !== end;
+          activeUpgrade.selectionRange.end !== safeEnd;
 
         if (isDifferentSelection) {
           setUpgradeIdToCancel(activeUpgradeId);
@@ -99,16 +105,16 @@ export default function PromptEditor({
         }
       }
 
-      const draggedText = content.substring(start, end);
+      const draggedText = content.substring(start, safeEnd);
       const trimmedText = draggedText.trim();
 
       if (trimmedText.length >= 40) {
         setSelectedText(draggedText);
-        setSelectionRange({ start, end });
+        setSelectionRange({ start, end: safeEnd });
 
         const calculateModalPosition = () => {
           const textareaRect = textarea.getBoundingClientRect();
-          const textUpToEnd = content.substring(0, end);
+          const textUpToEnd = content.substring(0, safeEnd);
           const scrollTop = textarea.scrollTop || 0;
 
           const tempElement = document.createElement("div");
@@ -195,8 +201,6 @@ export default function PromptEditor({
     if (immediateStart === immediateEnd) {
       return; // 선택 없으면 바로 리턴
     }
-
-    processSelectionRange(immediateStart, immediateEnd);
 
     // 브라우저가 selection을 확정할 시간을 주고 다시 체크
     setTimeout(() => {
