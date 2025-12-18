@@ -20,6 +20,7 @@ import {
   restoreHistory,
   getPromptFeedback,
 } from "./api/results";
+const DEFAULT_ERROR_TEXT = "오류가 발생했습니다.\n잠시 후 다시 시도해주세요.";
 
 const normalizeContent = (raw) =>
   typeof raw === "string" ? raw.replace(/\r\n/g, "\n") : raw;
@@ -32,6 +33,7 @@ export default function MakerPage({ selectedPrompt = null }) {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isResultPanelExpanded, setIsResultPanelExpanded] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorModalText, setErrorModalText] = useState("");
   const [isAuthErrorModalOpen, setIsAuthErrorModalOpen] = useState(false);
   const [upgrades, setUpgrades] = useState([]);
   const [promptTitle, setPromptTitle] = useState(selectedPrompt?.title ?? "");
@@ -409,6 +411,7 @@ export default function MakerPage({ selectedPrompt = null }) {
       }
 
       // 나머지 모든 에러는 일반 오류 모달
+      setErrorModalText(DEFAULT_ERROR_TEXT);
       setIsErrorModalOpen(true);
     }
   };
@@ -582,6 +585,7 @@ export default function MakerPage({ selectedPrompt = null }) {
       }
 
       // 나머지 모든 에러는 일반 오류 모달
+      setErrorModalText(DEFAULT_ERROR_TEXT);
       setIsErrorModalOpen(true);
     }
   };
@@ -703,18 +707,25 @@ export default function MakerPage({ selectedPrompt = null }) {
                 }
               }
             } catch (error) {
-              console.error("프롬프트 실행 실패:", error);
-
-              // 인증 에러 처리
               if (
                 error?.response?.status === 401 ||
                 error?.response?.status === 403
               ) {
                 setIsAuthErrorModalOpen(true);
-              } else {
-                // 나머지 모든 에러는 일반 오류 모달
-                setIsErrorModalOpen(true);
+                return;
               }
+
+              if (error?.response?.status === 422) {
+                setErrorModalText(
+                  "요청한 이미지가 내부 정책에 따라 처리되지 않을 수 있어요.\n" +
+                    "자세한 내용은 결과 패널에서 확인해주세요."
+                );
+                setIsErrorModalOpen(true);
+                return;
+              }
+
+              setErrorModalText(DEFAULT_ERROR_TEXT);
+              setIsErrorModalOpen(true);
             } finally {
               setIsResultLoading(false);
             }
@@ -829,18 +840,25 @@ export default function MakerPage({ selectedPrompt = null }) {
               }
             }
           } catch (error) {
-            console.error("프롬프트 실행 실패:", error);
-
-            // 인증 에러 처리
             if (
               error?.response?.status === 401 ||
               error?.response?.status === 403
             ) {
               setIsAuthErrorModalOpen(true);
-            } else {
-              // 나머지 모든 에러는 일반 오류 모달
-              setIsErrorModalOpen(true);
+              return;
             }
+
+            if (error?.response?.status === 422) {
+              setErrorModalText(
+                "요청한 이미지가 내부 정책에 따라 처리되지 않을 수 있어요.\n" +
+                  "자세한 내용은 결과 패널에서 확인해주세요."
+              );
+              setIsErrorModalOpen(true);
+              return;
+            }
+
+            setErrorModalText(DEFAULT_ERROR_TEXT);
+            setIsErrorModalOpen(true);
           } finally {
             setIsResultLoading(false);
           }
@@ -904,6 +922,7 @@ export default function MakerPage({ selectedPrompt = null }) {
               setIsAuthErrorModalOpen(true);
             } else {
               // 나머지 모든 에러는 일반 오류 모달
+              setErrorModalText(DEFAULT_ERROR_TEXT);
               setIsErrorModalOpen(true);
             }
           }
@@ -983,6 +1002,7 @@ export default function MakerPage({ selectedPrompt = null }) {
               setIsAuthErrorModalOpen(true);
             } else {
               // 나머지 모든 에러는 일반 오류 모달
+              setErrorModalText(DEFAULT_ERROR_TEXT);
               setIsErrorModalOpen(true);
             }
           }
@@ -997,7 +1017,7 @@ export default function MakerPage({ selectedPrompt = null }) {
       <ErrorModal
         isOpen={isErrorModalOpen}
         onClose={() => setIsErrorModalOpen(false)}
-        text="오류가 발생했습니다.\n잠시 후 다시 시도해주세요."
+        text={errorModalText}
       />
       <LoginRequiredModal
         isOpen={isAuthErrorModalOpen}
