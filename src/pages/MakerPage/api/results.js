@@ -15,12 +15,9 @@ export const runPrompt = async (makerId, prompt) => {
     throw new Error("prompt는 필수입니다.");
   }
 
-  const params = new URLSearchParams();
-  params.append("prompt", prompt);
-
   const response = await apiClient.post(
-    `/api/makers/${makerId}/histories/run?${params.toString()}`,
-    null,
+    `/api/makers/${makerId}/histories/run`,
+    { prompt },
     {
       timeout: 10000000,
     }
