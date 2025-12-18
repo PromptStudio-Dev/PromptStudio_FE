@@ -679,14 +679,6 @@ const MakerContent = styled.div`
   overflow: hidden;
 `;
 
-const CenteredContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 100%;
-`;
-
 const MakerPageIconImg = styled.img`
   width: 1.4219rem;
   height: auto;
@@ -704,7 +696,7 @@ const TopSection = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 1rem;
 `;
 
 const Inner = styled.div`
@@ -713,9 +705,9 @@ const Inner = styled.div`
   align-items: center;
   width: 100%;
   max-width: 1920px;
-  padding: 2rem 3rem 2.94rem;
+  padding: 2rem 3rem 1.25rem;
   box-sizing: border-box;
-  gap: 2.5rem;
+  gap: 1.5rem;
 `;
 
 const TopRow = styled.div`
@@ -802,17 +794,16 @@ const CardGridContainer = styled.div`
   flex-direction: column;
   width: 100%;
   align-items: center;
-  gap: 3rem;
+  gap: 1.5rem;
   max-width: min(calc(100% - 6rem), calc(1920px - 6rem));
 `;
 
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2.5rem;
+  gap: 1.8rem;
   width: 100%;
   justify-content: center;
-  min-height: calc(12.625rem * 3 + 2.5rem * 2);
 
   @media (max-width: 1600px) {
     gap: 2.2rem;
