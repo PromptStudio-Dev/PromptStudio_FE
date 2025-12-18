@@ -80,7 +80,7 @@ export default function PromptCard({
       }
     } catch (error) {
       console.error("좋아요 요청 실패:", error);
-      setErrorMessage("좋아요 요청에 실패했습니다.");
+      setErrorMessage("좋아요 요청에 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };
@@ -100,12 +100,12 @@ export default function PromptCard({
           setIsCopied(false);
         }, 2000);
       } else {
-        setErrorMessage("복사할 내용이 없습니다.");
+        setErrorMessage("복사할 내용이 없습니다.\n프롬프트를 확인해주세요.");
         setIsErrorModalOpen(true);
       }
     } catch (error) {
       console.error("프롬프트 상세 정보 조회 실패:", error);
-      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.");
+      setErrorMessage("프롬프트 내용을 복사하는데 실패했습니다.\n다시 시도해주세요.");
       setIsErrorModalOpen(true);
     }
   };
